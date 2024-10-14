@@ -59,7 +59,8 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   return (
     <SessionProvider>
       <UserProvider>
-        <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter>
+        {/* <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter> */}
+        {children}
       </UserProvider>
     </SessionProvider>
   );

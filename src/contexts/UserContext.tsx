@@ -9,9 +9,8 @@ import React, {
 } from "react";
 import useSWR from "swr";
 import { useSession } from "next-auth/react";
+import axios from "axios";
 import { User } from "@/models/UserModel";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 interface UserContextProps {
   user: User | null;
@@ -30,6 +29,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const [initialLoading, setInitialLoading] = useState(true);
 
+  // Axios-based fetcher function
+  const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
   const {
     data: userData,
     error,
@@ -45,11 +47,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     if (!isValidating && status !== "loading") {
       setInitialLoading(false);
     }
-
-    if (isValidating && !initialLoading) {
-      
-    }
-  }, [isValidating, status, initialLoading]);
+  }, [isValidating, status]);
 
   const value = useMemo(
     () => ({
