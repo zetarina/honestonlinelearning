@@ -187,6 +187,21 @@ const FeaturedCoursesSection: React.FC = () => {
           <Link href="/courses">
             <Button type="link">View All Courses</Button>
           </Link>
+          <Link href="/courses" passHref>
+            <Button
+              type="primary"
+              size="middle"
+              style={{
+                marginTop: "20px",
+                width: "100%",
+                borderRadius: "8px",
+                background: "#1890ff",
+                borderColor: "#1890ff",
+              }}
+            >
+              View All Courses
+            </Button>
+          </Link>
         </div>
       )}
     </div>
