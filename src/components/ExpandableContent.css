@@ -1,0 +1,9 @@
+/* ExpandableContent.css */
+.expandable-content img,
+.expandable-content svg,
+.expandable-content .emoji {
+  max-height: 1em;
+  vertical-align: middle;
+  width: auto;
+  display: inline-block;
+}
