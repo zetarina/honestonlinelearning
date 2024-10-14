@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  productionBrowserSourceMaps: true, // Enable source maps for production
+
   images: {
     remotePatterns: [
       {
