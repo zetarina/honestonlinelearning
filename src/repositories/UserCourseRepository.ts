@@ -69,26 +69,59 @@ class UserCourseRepository {
           },
           expires_at: { $ifNull: ["$userEnrollment.expires_at", null] },
           chapters: {
-            $cond: [
-              {
-                $and: [
-                  { $eq: ["$isEnrolled", true] },
-                  { $eq: ["$enrollmentExpired", false] },
-                ],
-              },
-              "$chapters",
-              {
-                $map: {
-                  input: "$chapters",
-                  as: "chapter",
-                  in: {
-                    title: "$$chapter.title",
-                    resources: [],
-                    videos: [],
+            $map: {
+              input: "$chapters",
+              as: "chapter",
+              in: {
+                title: "$$chapter.title",
+                resources: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $eq: ["$isEnrolled", true] },
+                        { $eq: ["$enrollmentExpired", false] },
+                      ],
+                    },
+                    "$$chapter.resources",
+                    [],
+                  ],
+                },
+                videos: {
+                  $map: {
+                    input: "$$chapter.videos",
+                    as: "video",
+                    in: {
+                      title: "$$video.title",
+                      duration: "$$video.duration",
+                      url: {
+                        $cond: [
+                          {
+                            $and: [
+                              { $eq: ["$isEnrolled", true] },
+                              { $eq: ["$enrollmentExpired", false] },
+                            ],
+                          },
+                          "$$video.url", 
+                          null, 
+                        ],
+                      },
+                      type: {
+                        $cond: [
+                          {
+                            $and: [
+                              { $eq: ["$isEnrolled", true] },
+                              { $eq: ["$enrollmentExpired", false] },
+                            ],
+                          },
+                          "$$video.type", 
+                          null, 
+                        ],
+                      },
+                    },
                   },
                 },
               },
-            ],
+            },
           },
         },
       },
@@ -144,7 +177,6 @@ class UserCourseRepository {
           ]
         : []),
 
-      // Calculate isEnrolled and enrollmentExpired first
       {
         $addFields: {
           isEnrolled: {
@@ -167,7 +199,6 @@ class UserCourseRepository {
         },
       },
 
-      // Now that isEnrolled and enrollmentExpired are calculated, we use them in the $map step
       {
         $addFields: {
           chapters: {
@@ -176,19 +207,51 @@ class UserCourseRepository {
               as: "chapter",
               in: {
                 title: "$$chapter.title",
-                resources: "$$chapter.resources",
-                // Use pre-calculated fields for videos
-                videos: {
+                resources: {
                   $cond: [
                     {
                       $and: [
-                        { $eq: ["$isEnrolled", true] }, // Use pre-calculated isEnrolled
-                        { $eq: ["$enrollmentExpired", false] }, // Use pre-calculated enrollmentExpired
+                        { $eq: ["$isEnrolled", true] },
+                        { $eq: ["$enrollmentExpired", false] },
                       ],
                     },
-                    "$$chapter.videos", // Return actual videos if conditions are met
-                    [], // Otherwise return an empty array
+                    "$$chapter.resources",
+                    [],
                   ],
+                },
+                videos: {
+                  $map: {
+                    input: "$$chapter.videos",
+                    as: "video",
+                    in: {
+                      title: "$$video.title",
+                      duration: "$$video.duration",
+                      url: {
+                        $cond: [
+                          {
+                            $and: [
+                              { $eq: ["$isEnrolled", true] },
+                              { $eq: ["$enrollmentExpired", false] },
+                            ],
+                          },
+                          "$$video.url", 
+                          null, 
+                        ],
+                      },
+                      type: {
+                        $cond: [
+                          {
+                            $and: [
+                              { $eq: ["$isEnrolled", true] },
+                              { $eq: ["$enrollmentExpired", false] },
+                            ],
+                          },
+                          "$$video.type", 
+                          null, 
+                        ],
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -198,11 +261,10 @@ class UserCourseRepository {
 
       {
         $project: {
-          userEnrollment: 0, // Exclude user enrollment from final output
+          userEnrollment: 0,
         },
       },
     ]);
-
 
     return result.length > 0 ? (result[0] as ApplicationLevelCourse) : null;
   }

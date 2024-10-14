@@ -1,11 +1,7 @@
 "use client";
-import React, { useState, useContext, useEffect } from "react";
-import { Layout, Menu, Spin, Drawer, Avatar } from "antd";
-import { useRouter } from "next/navigation";
+import React, { useState, useContext } from "react";
+import { Layout, Menu, Drawer, Avatar } from "antd";
 import {
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
   HomeOutlined,
   PlusOutlined,
   UploadOutlined,
@@ -16,6 +12,7 @@ import {
   SettingOutlined,
   TeamOutlined,
   UserOutlined,
+  FileOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
@@ -31,6 +28,7 @@ interface MenuItem {
   link?: string;
   children?: MenuItem[];
 }
+
 const menuData: MenuItem[] = [
   {
     key: "courses",
@@ -121,11 +119,9 @@ const menuData: MenuItem[] = [
     link: "/dashboard/settings",
   },
 ];
+
 const iconMapper: { [key: string]: React.ReactNode } = {
   HomeOutlined: <HomeOutlined />,
-  PieChartOutlined: <PieChartOutlined />,
-  DesktopOutlined: <DesktopOutlined />,
-  FileOutlined: <FileOutlined />,
   UserOutlined: <UserOutlined />,
   TeamOutlined: <TeamOutlined />,
   BookOutlined: <BookOutlined />,
@@ -134,14 +130,8 @@ const iconMapper: { [key: string]: React.ReactNode } = {
   UploadOutlined: <UploadOutlined />,
   SettingOutlined: <SettingOutlined />,
   FormOutlined: <FormOutlined />,
+  FileOutlined: <FileOutlined />,
 };
-
-interface AntMenuItem {
-  key: string;
-  icon?: React.ReactNode;
-  label: React.ReactNode;
-  children?: AntMenuItem[];
-}
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -157,35 +147,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [drawerVisible, setDrawerVisible] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 767 });
 
-  const generateMenuItems = (items: MenuItem[]): AntMenuItem[] => {
-    return items.map((item) => {
-      const { key, icon, label, link, children } = item;
-      if (children && children.length > 0) {
-        return {
-          key,
-          icon: icon ? iconMapper[icon] : null,
-          label,
-          children: generateMenuItems(children),
-        };
-      }
-      return {
-        key,
-        icon: icon ? iconMapper[icon] : null,
-        label: link ? <Link href={link}>{label}</Link> : label,
-      };
-    });
-  };
-
-  const menuItems = generateMenuItems(menuData);
-
   const handleDrawerToggle = () => {
     setDrawerVisible(!drawerVisible);
-  };
-
-  const homeMenuItem: AntMenuItem = {
-    key: "home",
-    icon: iconMapper["HomeOutlined"],
-    label: <Link href="/">Home</Link>,
   };
 
   const pathname = usePathname();
@@ -197,20 +160,46 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     <Layout style={{ minHeight: "100vh", background: "none" }}>
       {isMobile && (
         <Drawer
-          title="Menu"
+          title={settings.siteName}
           placement="left"
           closable={true}
           onClose={handleDrawerToggle}
           open={drawerVisible}
-          styles={{
-            body: { padding: 0 },
-          }}
+          bodyStyle={{ padding: 0, backgroundColor: "#001529" }} // Ensure the background color
         >
           <Menu
-            mode="vertical"
+            mode="inline" // Switch to inline mode on mobile
             selectedKeys={[selectedKey || ""]}
-            items={[...menuItems, homeMenuItem]}
-          />
+            theme="dark"
+            style={{ backgroundColor: "#001529" }} // Dark background for mobile
+          >
+            {menuData.map((menu) => {
+              if (menu.children && menu.children.length > 0) {
+                return (
+                  <Menu.SubMenu
+                    key={menu.key}
+                    icon={iconMapper[menu.icon || ""]}
+                    title={menu.label}
+                  >
+                    {menu.children.map((child) => (
+                      <Menu.Item
+                        key={child.key}
+                        icon={iconMapper[child.icon || ""]}
+                      >
+                        <Link href={child.link || "#"}>{child.label}</Link>
+                      </Menu.Item>
+                    ))}
+                  </Menu.SubMenu>
+                );
+              } else {
+                return (
+                  <Menu.Item key={menu.key} icon={iconMapper[menu.icon || ""]}>
+                    <Link href={menu.link || "#"}>{menu.label}</Link>
+                  </Menu.Item>
+                );
+              }
+            })}
+          </Menu>
         </Drawer>
       )}
       {!isMobile && (
@@ -234,7 +223,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             justifyContent: "space-between",
           }}
         >
-                    <div
+          <div
             className="logo"
             style={{
               height: "64px",
@@ -266,19 +255,34 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               )}
             </Link>
           </div>
-                    <Menu
-            theme="dark"
-            mode="inline"
-            selectedKeys={[selectedKey || ""]}
-            items={menuItems}
-            style={{ flex: 1 }}
-          />
-                    <Menu
-            theme="dark"
-            mode="inline"
-            items={[homeMenuItem]}
-            style={{ borderTop: "1px solid #f0f0f0" }}
-          />
+          <Menu theme="dark" mode="inline" selectedKeys={[selectedKey || ""]}>
+            {menuData.map((menu) => {
+              if (menu.children && menu.children.length > 0) {
+                return (
+                  <Menu.SubMenu
+                    key={menu.key}
+                    icon={iconMapper[menu.icon || ""]}
+                    title={menu.label}
+                  >
+                    {menu.children.map((child) => (
+                      <Menu.Item
+                        key={child.key}
+                        icon={iconMapper[child.icon || ""]}
+                      >
+                        <Link href={child.link || "#"}>{child.label}</Link>
+                      </Menu.Item>
+                    ))}
+                  </Menu.SubMenu>
+                );
+              } else {
+                return (
+                  <Menu.Item key={menu.key} icon={iconMapper[menu.icon || ""]}>
+                    <Link href={menu.link || "#"}>{menu.label}</Link>
+                  </Menu.Item>
+                );
+              }
+            })}
+          </Menu>
         </Sider>
       )}
       <Layout
@@ -290,7 +294,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <Header
           style={{
             backgroundColor: "#fff",
-            padding: "0 24px",
+            padding: isMobile ? "0 12px" : "0 24px",
             borderBottom: "1px solid #f0f0f0",
             display: "flex",
             alignItems: "center",
@@ -316,7 +320,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             padding: isMobile ? "12px" : "24px",
             margin: 0,
             minHeight: "calc(100vh - 134px)",
-            background: "#fff",
+            background: "#fff", // White background for content
           }}
         >
           {children}

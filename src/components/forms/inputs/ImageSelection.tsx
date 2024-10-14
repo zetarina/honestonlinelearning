@@ -120,19 +120,23 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
 
   return (
     <>
-      <Input
-        value={url}
-        placeholder="Thumbnail URL or path (e.g. /images/my-image.jpg)"
-        onChange={handleUrlChange}
-        addonAfter={
-          <Button
-            icon={<PictureOutlined />}
-            onClick={() => setIsModalOpen(true)}
-          >
-            Select Image
-          </Button>
-        }
-      />
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Input
+          value={url}
+          placeholder="image URL or path (e.g. /images/my-image.jpg)"
+          onChange={handleUrlChange}
+          style={{ borderRadius: "4px", width: "70%" }}
+        />
+        <Button
+          icon={<PictureOutlined />}
+          onClick={() => setIsModalOpen(true)}
+          style={{
+            borderRadius: "4px",
+            padding: "4px 12px",
+            border: "1px solid #d9d9d9",
+          }}
+        ></Button>
+      </div>
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <Modal

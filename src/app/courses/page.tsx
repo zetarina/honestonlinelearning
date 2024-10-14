@@ -13,7 +13,6 @@ import {
   Tooltip,
 } from "antd";
 import Link from "next/link";
-import Image from "next/image";
 import axios from "axios";
 import { ApplicationLevelCourse } from "@/models/CourseModel";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -21,7 +20,7 @@ import CacheImage from "@/components/CacheImage";
 import ExpandableContent from "@/components/ExpandableContent";
 
 const { Meta } = Card;
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 const CoursesPage: React.FC = () => {
   const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
@@ -31,7 +30,11 @@ const CoursesPage: React.FC = () => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get("/api/me/courses");
-        setCourses(response.data);
+        if (response.data && Array.isArray(response.data)) {
+          setCourses(response.data);
+        } else {
+          console.error("Unexpected API response format", response);
+        }
       } catch (error) {
         console.error("Failed to fetch courses:", error);
       } finally {
@@ -44,6 +47,10 @@ const CoursesPage: React.FC = () => {
 
   if (loading) {
     return <LoadingSpinner />;
+  }
+
+  if (!courses || courses.length === 0) {
+    return <p>No courses available.</p>; // Handle no courses scenario
   }
 
   return (
@@ -62,7 +69,7 @@ const CoursesPage: React.FC = () => {
       <div style={{ flex: 1 }}>
         <Row gutter={[24, 24]} justify="center">
           {courses.map((course) => (
-            <Col key={course._id.toString()} xs={24} sm={12} md={8} lg={8}>
+            <Col key={course?._id?.toString()} xs={24} sm={12} md={8} lg={8}>
               <Card
                 hoverable
                 cover={
@@ -73,18 +80,24 @@ const CoursesPage: React.FC = () => {
                       position: "relative",
                     }}
                   >
-                    <CacheImage
-                      src={course.thumbnailUrl}
-                      alt={course.title}
-                      width={300}
-                      height={300}
-                      objectFit="cover"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                    />
+                    {course.thumbnailUrl ? (
+                      <CacheImage
+                        src={course.thumbnailUrl}
+                        alt={course.title || "Course Thumbnail"}
+                        width={300}
+                        height={300}
+                        objectFit="cover"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div style={{ textAlign: "center", padding: "40px" }}>
+                        No Image Available
+                      </div>
+                    )}
                   </div>
                 }
                 style={{
@@ -102,7 +115,7 @@ const CoursesPage: React.FC = () => {
                     "0 2px 8px rgba(0, 0, 0, 0.1)")
                 }
               >
-                                <Meta
+                <Meta
                   title={
                     <Tooltip title={course.title}>
                       <Text
@@ -113,23 +126,23 @@ const CoursesPage: React.FC = () => {
                           whiteSpace: "normal",
                         }}
                       >
-                        {course.title}
+                        {course.title || "Untitled Course"}
                       </Text>
                     </Tooltip>
                   }
                 />
 
                 <ExpandableContent
-                  content={course.highlights}
+                  content={course.highlights || "No highlights available"}
                   linesToShow={3}
                 />
 
-                                <div style={{ marginTop: 8 }}>
-                  <Tag color="blue">{course.category}</Tag>
-                  <Tag color="green">{course.level}</Tag>
+                <div style={{ marginTop: 8 }}>
+                  <Tag color="blue">{course.category || "Uncategorized"}</Tag>
+                  <Tag color="green">{course.level || "All Levels"}</Tag>
                 </div>
 
-                                <div
+                <div
                   style={{
                     marginTop: 8,
                     display: "flex",
@@ -140,26 +153,25 @@ const CoursesPage: React.FC = () => {
                   <Text strong style={{ fontSize: "16px", color: "#1890ff" }}>
                     {course.price === 0
                       ? "Free"
-                      : `${course.price.toLocaleString()} MMK`}
+                      : course.price
+                      ? `${course.price.toLocaleString()} MMK`
+                      : "Price not available"}
                   </Text>
-                  <Rate
-                    disabled
-                    defaultValue={4.5}
-                    style={{ fontSize: "14px" }}
-                  />
                 </div>
 
-                                <Space
+                <Space
                   style={{
                     marginTop: 12,
                     justifyContent: "space-between",
                     width: "100%",
                   }}
                 >
-                  <Text type="secondary">
-                    {Math.floor(Math.random() * 500) + 50} students
-                  </Text>
-                  <Link href={`/courses/${course._id}`} passHref>
+                  {/* <Text type="secondary">
+                    {course.studentsEnrolled
+                      ? `${course.studentsEnrolled} students`
+                      : `${Math.floor(Math.random() * 500) + 50} students`}
+                  </Text> */}
+                  <Link href={`/courses/${course?._id}`} passHref>
                     <Button
                       type={course.isEnrolled ? "primary" : "default"}
                       size="small"

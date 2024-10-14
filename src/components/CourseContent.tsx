@@ -1,5 +1,5 @@
-// components/CourseContent.tsx
 "use client";
+
 import React, { useState } from "react";
 import { Layout, Typography, List, Button, Divider, Menu, Alert } from "antd";
 import {
@@ -8,9 +8,11 @@ import {
   PlayCircleOutlined,
   VideoCameraOutlined,
   DownloadOutlined,
+  MenuOutlined,
 } from "@ant-design/icons";
-import { Course, Chapter, Video, VideoType } from "@/models/CourseModel"; // Adjust the path accordingly
-import ReactPlayer from "react-player"; // Make sure `react-player` is installed
+import { Course } from "@/models/CourseModel";
+import ReactPlayer from "react-player";
+import useBreakpoint from "antd/lib/grid/hooks/useBreakpoint";
 
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography;
@@ -22,11 +24,15 @@ interface CourseContentProps {
 const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
   const [selectedChapterIndex, setSelectedChapterIndex] = useState<number>(0);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number>(0);
+  const [isMobileSidebarVisible, setIsMobileSidebarVisible] =
+    useState<boolean>(false);
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+
+  const screens = useBreakpoint();
 
   const currentChapter = course.chapters?.[selectedChapterIndex];
   const currentVideo = currentChapter?.videos[selectedVideoIndex];
 
-  // Handle the live session scenario
   if (course.isLive && course.liveCourseUrl) {
     return (
       <Layout style={{ minHeight: "100vh", padding: "20px" }}>
@@ -42,7 +48,7 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             showIcon
           />
 
-                    <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
             <Button
               type="primary"
               icon={<VideoCameraOutlined />}
@@ -55,7 +61,7 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             </Button>
           </div>
 
-                    {course.zoomLinks && course.zoomLinks.length > 0 && (
+          {course.zoomLinks && course.zoomLinks.length > 0 && (
             <div style={{ marginTop: "20px" }}>
               <Divider />
               <Title level={4}>Other Zoom Links for Upcoming Sessions:</Title>
@@ -85,7 +91,6 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
     );
   }
 
-  // Handling pre-recorded course with chapters and videos
   const handleNextVideo = () => {
     if (selectedVideoIndex < (currentChapter?.videos.length || 0) - 1) {
       setSelectedVideoIndex(selectedVideoIndex + 1);
@@ -111,37 +116,131 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
     setSelectedChapterIndex(chapterIndex);
     setSelectedVideoIndex(0);
   };
+
   const menuItems = course.chapters?.map((chapter, index) => ({
     key: index,
     icon: <PlayCircleOutlined />,
     label: chapter.title,
     onClick: () => handleChapterChange(index),
   }));
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
-            <Sider
-        width={250}
-        style={{
-          background: "#fff",
-          padding: "20px",
-          borderRight: "1px solid #f0f0f0",
-        }}
-      >
-        <Title level={4}>Chapters</Title>
-        <Menu
-          mode="inline"
-          selectedKeys={[`${selectedChapterIndex}`]}
-          items={menuItems}
-        />
-        ;
-      </Sider>
+      {/* Hamburger Menu for Mobile */}
+      {!screens.lg && (
+        <Button
+          icon={<MenuOutlined />}
+          type="primary"
+          style={{
+            margin: "20px",
+            position: "relative",
+            zIndex: 1000,
+          }}
+          onClick={() => setIsMobileSidebarVisible(true)}
+        >
+          Chapters
+        </Button>
+      )}
 
-            <Layout style={{ padding: "20px" }}>
+      {/* Mobile Sidebar - Fixed and Fullscreen */}
+      {isMobileSidebarVisible && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "#fff",
+            zIndex: 1001,
+            overflowY: "scroll",
+          }}
+        >
+          <Button
+            type="text"
+            icon={<MenuOutlined />}
+            onClick={() => setIsMobileSidebarVisible(false)}
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              zIndex: 1002,
+              fontSize: "18px",
+            }}
+          />
+          <Sider
+            width="100%"
+            style={{
+              background: "#fff",
+              padding: "40px 20px",
+            }}
+          >
+            <Title level={4}>{collapsed ? <MenuOutlined /> : "Chapters"}</Title>
+
+            <Menu
+              mode="inline"
+              selectedKeys={[`${selectedChapterIndex}`]}
+              items={menuItems}
+              onClick={() => setIsMobileSidebarVisible(false)}
+            />
+          </Sider>
+        </div>
+      )}
+
+      {/* Sidebar for larger screens */}
+      {screens.lg && (
+        <Sider
+          width={250}
+          collapsible
+          collapsed={collapsed}
+          trigger={null}
+          style={{
+            background: "#fff",
+            padding: "20px",
+            borderRight: "1px solid #f0f0f0",
+          }}
+        >
+          <Button
+            type="primary"
+            icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              position: "absolute",
+              top: "50%",
+              right: collapsed ? "-20px" : "-10px",
+              transform: "translateY(-50%)",
+              zIndex: 1000,
+              backgroundColor: "#1890ff",
+              borderRadius: "50%",
+            }}
+          />
+          <Title
+            level={4}
+            style={{
+              textAlign: "center", // Centers the text or icon
+              width: "100%", // Ensures full width
+              marginBottom: "20px", // Optional: removes extra margin for better centering
+            }}
+          >
+            {collapsed ? <MenuOutlined /> : "Chapters"}
+          </Title>
+
+          <Menu
+            mode="inline"
+            selectedKeys={[`${selectedChapterIndex}`]}
+            items={menuItems}
+          />
+        </Sider>
+      )}
+
+      {/* Content Area */}
+      <Layout style={{ padding: "20px" }}>
         <Content style={{ background: "#fff", padding: "20px" }}>
           <Title level={3}>{currentChapter?.title}</Title>
           <Divider />
 
-                    <div style={{ position: "relative", marginBottom: "20px" }}>
+          {/* Video Player */}
+          <div style={{ position: "relative", marginBottom: "20px" }}>
             {currentVideo && (
               <ReactPlayer
                 url={currentVideo.url}
@@ -156,7 +255,8 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             )}
           </div>
 
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+          {/* Navigation Buttons */}
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <Button
               type="primary"
               disabled={selectedChapterIndex === 0 && selectedVideoIndex === 0}
@@ -178,7 +278,8 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             </Button>
           </div>
 
-                    <Divider />
+          <Divider />
+          {/* List of videos in current chapter */}
           <Title level={4}>Videos in this Chapter</Title>
           <List
             itemLayout="horizontal"
@@ -200,7 +301,8 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             )}
           />
 
-                    <Divider />
+          <Divider />
+          {/* Resources */}
           <Title level={4}>Resources</Title>
           {currentChapter?.resources.length ? (
             <List
