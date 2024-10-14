@@ -26,6 +26,7 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
     siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
     siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
   };
+  console.log("Settings:", settings); // Add this to log settings
 
   useEffect(() => {
     const onLoad = () => {

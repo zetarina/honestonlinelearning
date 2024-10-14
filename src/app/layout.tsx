@@ -10,6 +10,10 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
   // Fetch settings asynchronously
   const settings = await new SettingService().getPublicSettings();
 
+  if (!settings) {
+    console.error("Settings are null or unavailable");
+  }
+
   // If settings are null, the setup page needs to be shown.
   const isSetupRequired = !settings || !settings.siteName || !settings.siteUrl;
 
@@ -50,7 +54,10 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
         }}
       >
         <AntdStyleRegistry>
-          <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
+          <SettingsProvider
+            settings={settings}
+            isSetupRequired={isSetupRequired}
+          >
             {children}
           </SettingsProvider>
         </AntdStyleRegistry>
