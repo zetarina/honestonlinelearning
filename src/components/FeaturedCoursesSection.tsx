@@ -161,7 +161,22 @@ const FeaturedCoursesSection: React.FC = () => {
                   </div>
                 </div>
 
-                <Link href={`/courses/${course._id}`} passHref>
+                <Link href={`/courses/${course._id}`}>
+                  <Button
+                    type="primary"
+                    size="middle"
+                    style={{
+                      marginTop: "20px",
+                      width: "100%",
+                      borderRadius: "8px",
+                      background: "#1890ff",
+                      borderColor: "#1890ff",
+                    }}
+                  >
+                    {course.isEnrolled ? "View Course" : "Buy Course"}
+                  </Button>
+                </Link>
+                <Link href={`/courses/${course._id}`}>
                   <Button
                     type="primary"
                     size="middle"
@@ -192,6 +207,21 @@ const FeaturedCoursesSection: React.FC = () => {
           >
             View All Courses
           </Button>
+          <Link href={`/courses/}`}>
+            <Button
+              type="primary"
+              size="middle"
+              style={{
+                marginTop: "20px",
+                width: "100%",
+                borderRadius: "8px",
+                background: "#1890ff",
+                borderColor: "#1890ff",
+              }}
+            >
+              View All Courses
+            </Button>
+          </Link>
         </div>
       )}
     </div>
