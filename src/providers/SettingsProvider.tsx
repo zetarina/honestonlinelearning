@@ -30,6 +30,7 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   useEffect(() => {
     const onLoad = () => {
       setIsPageLoaded(true);
+      setIsFirstLoad(true);
       localStorage.setItem("isPageLoaded", "true");
     };
 

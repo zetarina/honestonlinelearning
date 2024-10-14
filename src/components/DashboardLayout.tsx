@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useContext } from "react";
-import { Layout, Menu, Drawer, Avatar } from "antd";
+import { Layout, Menu, Drawer, Avatar, Button } from "antd";
 import {
   HomeOutlined,
   PlusOutlined,
@@ -186,7 +186,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         key={child.key}
                         icon={iconMapper[child.icon || ""]}
                       >
-                        <Link href={child.link || "#"}>{child.label}</Link>
+                        <Button
+                          type="link"
+                          href={child.link || "#"}
+                          style={{ padding: 0 }}
+                        >
+                          {child.label}
+                        </Button>
                       </Menu.Item>
                     ))}
                   </Menu.SubMenu>
@@ -194,7 +200,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               } else {
                 return (
                   <Menu.Item key={menu.key} icon={iconMapper[menu.icon || ""]}>
-                    <Link href={menu.link || "#"}>{menu.label}</Link>
+                    <Button
+                      type="link"
+                      href={menu.link || "#"}
+                      style={{ padding: 0 }}
+                    >
+                      {menu.label}
+                    </Button>
                   </Menu.Item>
                 );
               }
@@ -236,7 +248,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               padding: "0 16px",
             }}
           >
-            <Link href="/" aria-label="Go to Home">
+            <Button
+              type="link"
+              href="/"
+              aria-label="Go to Home"
+              style={{ padding: 0 }}
+            >
               {collapsed ? (
                 <DashboardOutlined
                   style={{ fontSize: "24px", color: "#fff" }}
@@ -253,7 +270,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                   {settings.siteName}
                 </span>
               )}
-            </Link>
+            </Button>
           </div>
           <Menu theme="dark" mode="inline" selectedKeys={[selectedKey || ""]}>
             {menuData.map((menu) => {
@@ -269,7 +286,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                         key={child.key}
                         icon={iconMapper[child.icon || ""]}
                       >
-                        <Link href={child.link || "#"}>{child.label}</Link>
+                        <Button
+                          type="link"
+                          href={child.link || "#"}
+                          style={{ padding: 0 }}
+                        >
+                          {child.label}
+                        </Button>
                       </Menu.Item>
                     ))}
                   </Menu.SubMenu>
@@ -277,7 +300,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               } else {
                 return (
                   <Menu.Item key={menu.key} icon={iconMapper[menu.icon || ""]}>
-                    <Link href={menu.link || "#"}>{menu.label}</Link>
+                    <Button
+                      type="link"
+                      href={menu.link || "#"}
+                      style={{ padding: 0 }}
+                    >
+                      {menu.label}
+                    </Button>
                   </Menu.Item>
                 );
               }

@@ -40,37 +40,64 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
       callbackUrl: "/",
     });
   };
-
   const menuItems = [
-    { key: "home", icon: <HomeOutlined />, label: <Link href="/">Home</Link> },
+    {
+      key: "home",
+      icon: <HomeOutlined />,
+      label: (
+        <Button type="link" href="/" style={{ padding: 0 }}>
+          Home
+        </Button>
+      ),
+    },
     {
       key: "courses",
       icon: <BookOutlined />,
-      label: <Link href="/courses">Courses</Link>,
+      label: (
+        <Button type="link" href="/courses" style={{ padding: 0 }}>
+          Courses
+        </Button>
+      ),
     },
     {
       key: "top-up",
       icon: <WalletOutlined />,
-      label: <Link href="/top-up">Top Up</Link>,
+      label: (
+        <Button type="link" href="/top-up" style={{ padding: 0 }}>
+          Top Up
+        </Button>
+      ),
     },
     ...(user
       ? [
           {
             key: "dashboard",
             icon: <UserOutlined />,
-            label: <Link href="/dashboard">Dashboard</Link>,
+            label: (
+              <Button type="link" href="/dashboard" style={{ padding: 0 }}>
+                Dashboard
+              </Button>
+            ),
           },
           {
             key: "logout",
             icon: <LogoutOutlined />,
-            label: <span onClick={handleLogout}>Logout</span>,
+            label: (
+              <Button type="link" onClick={handleLogout} style={{ padding: 0 }}>
+                Logout
+              </Button>
+            ),
           },
         ]
       : [
           {
             key: "login",
             icon: <UserOutlined />,
-            label: <Link href="/login">Login</Link>,
+            label: (
+              <Button type="link" href="/login" style={{ padding: 0 }}>
+                Login
+              </Button>
+            ),
           },
         ]),
   ];
@@ -88,7 +115,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
           boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", // Add shadow to give depth
         }}
       >
-                <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
+        <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
           <Link href="/" style={{ display: "flex", alignItems: "center" }}>
             <Image
               src="/images/logo.png"
@@ -114,7 +141,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
                 onClose={toggleDrawer}
                 open={drawerVisible}
               >
-                <Menu mode="vertical" items={menuItems} onClick={toggleDrawer} />
+                <Menu
+                  mode="vertical"
+                  items={menuItems}
+                  onClick={toggleDrawer}
+                />
               </Drawer>
             </>
           ) : (
@@ -150,7 +181,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         }}
       >
         <div style={{ marginBottom: "20px" }}>
-                    <Space size="large">
+          <Space size="large">
             <Button
               type="link"
               href="https://facebook.com"
@@ -190,7 +221,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         </div>
 
         <div>
-                    <Text style={{ color: "#000" }}>
+          <Text style={{ color: "#000" }}>
             {settings.siteName} ©{new Date().getFullYear()} All rights reserved.
           </Text>
         </div>
