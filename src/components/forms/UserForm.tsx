@@ -5,6 +5,7 @@ import { Form, Input, Button, Select, Card, message } from "antd";
 import { User, UserRole } from "@/models/UserModel";
 import axios from "axios";
 import ImageSelection from "./inputs/ImageSelection";
+import { useRouter } from "next/navigation";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -16,6 +17,7 @@ interface UserFormProps {
 const UserForm: React.FC<UserFormProps> = ({ user }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(false);
+  const router = useRouter(); // Initialize useRouter
 
   useEffect(() => {
     if (user) {
@@ -47,7 +49,11 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
       message.success(
         user ? "User updated successfully!" : "User created successfully!"
       );
+
       form.resetFields();
+
+      // Redirect to the user dashboard after success
+      router.push("/dashboard/users");
     } catch (error: any) {
       console.error("Error submitting form:", error);
       const errorMessage =
@@ -70,7 +76,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
         initialValues={{ role: UserRole.STUDENT }}
         autoComplete="off"
       >
-                <Form.Item
+        <Form.Item
           label="Name"
           name="name"
           rules={[{ required: true, message: "Please enter the full name" }]}
@@ -78,7 +84,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
           <Input autoComplete="off" />
         </Form.Item>
 
-                <Form.Item
+        <Form.Item
           label="Username"
           name="username"
           rules={[{ required: true, message: "Please enter a username" }]}
@@ -86,7 +92,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
           <Input autoComplete="off" />
         </Form.Item>
 
-                <Form.Item
+        <Form.Item
           label="Email"
           name="email"
           rules={[
@@ -97,18 +103,18 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
           <Input autoComplete="off" />
         </Form.Item>
 
-                <Form.Item label="Password" name="password">
+        <Form.Item label="Password" name="password">
           <Input.Password
             placeholder="Leave blank to keep the current password"
             autoComplete="new-password"
           />
         </Form.Item>
 
-                <Form.Item label="Avatar" name="avatar">
+        <Form.Item label="Avatar" name="avatar">
           <ImageSelection />
         </Form.Item>
 
-                <Form.Item label="Bio" name="bio" rules={[{ required: false }]}>
+        <Form.Item label="Bio" name="bio" rules={[{ required: false }]}>
           <TextArea
             rows={4}
             placeholder="Tell us a bit about yourself"
@@ -116,7 +122,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
           />
         </Form.Item>
 
-                <Form.Item
+        <Form.Item
           label="Role"
           name="role"
           rules={[{ required: true, message: "Please select a role" }]}
@@ -128,7 +134,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
           </Select>
         </Form.Item>
 
-                <Form.Item>
+        <Form.Item>
           <Button type="primary" htmlType="submit" loading={loading} block>
             {user ? "Update User" : "Create User"}
           </Button>

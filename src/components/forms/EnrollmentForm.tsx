@@ -18,6 +18,7 @@ import axios from "axios";
 import moment from "moment";
 import { Enrollment } from "@/models/EnrollmentModel";
 import { DurationType } from "@/models/CourseModel";
+import { useRouter } from "next/navigation";
 
 const { Option } = Select;
 
@@ -34,6 +35,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
   const [expirationMethod, setExpirationMethod] = useState<"duration" | "date">(
     "duration"
   );
+  const router = useRouter(); // Initialize useRouter
 
   useEffect(() => {
     const fetchUsersAndCourses = async () => {
@@ -117,6 +119,9 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
       }
 
       form.resetFields();
+
+      // Redirect to the enrollments dashboard after success
+      router.push("/dashboard/enrollments");
     } catch (error) {
       message.error("Failed to submit the form.");
     } finally {

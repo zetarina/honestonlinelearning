@@ -19,6 +19,7 @@ import ImageSelection from "@/components/forms/inputs/ImageSelection";
 import InstructorSelection from "@/components/forms/inputs/InstructorSelection";
 import LiveCourseInfo from "@/components/forms/inputs/LiveCourseInfo";
 import RichTextEditor from "@/components/forms/inputs/RichTextEditor";
+import { useRouter } from "next/navigation";
 
 const { Option } = Select;
 
@@ -31,6 +32,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
   const [chapters, setChapters] = useState(course?.chapters || []);
   const [isLive, setIsLive] = useState<boolean>(course?.isLive || false);
   const [isChaptersModalOpen, setIsChaptersModalOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (course) {
@@ -55,7 +57,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
 
   const handleDurationTypeChange = (value: DurationType) => {
     if (value === DurationType.PERMANENT) {
-      form.setFieldsValue({ recurrence: undefined }); // Clear recurrence when permanent
+      form.setFieldsValue({ recurrence: undefined });
     }
   };
 
@@ -70,7 +72,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
       endDate: values.endDate ? moment(values.endDate).toISOString() : null,
     };
 
-    // Remove recurrence if the course is permanent
     if (values.durationType === DurationType.PERMANENT) {
       delete courseData.recurrence;
     }
@@ -83,6 +84,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         await axios.post("/api/courses", courseData);
         message.success("Course created successfully!");
       }
+      router.push("/dashboard/courses");
     } catch (error) {
       message.error(
         "An error occurred while saving the course. Please try again."
