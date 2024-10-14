@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 
 import jwt, { JwtPayload } from "jsonwebtoken";
 import UserService from "@/services/UserService";
-import { userRepository } from "@/repositories";
 import { UserRole } from "@/models/UserModel";
 import { authOptions } from "@/config/authOptions";
 
@@ -17,18 +16,34 @@ async function authMiddleware(
   let userId: string | null = null;
 
   const authorizationHeader = request.headers.get("authorization");
+
+  // Ensure authorizationHeader is not null and has the correct Bearer format
   if (authorizationHeader?.startsWith("Bearer ")) {
-    const token = authorizationHeader.split(" ")[1];
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-      if (typeof decoded === "object" && decoded.userId) {
-        userId = decoded.userId as string;
+    const tokenParts = authorizationHeader.split(" ");
+    
+    // Check if the token is present after splitting
+    if (tokenParts.length === 2) {
+      const token = tokenParts[1];
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        if (typeof decoded === "object" && decoded.userId) {
+          userId = decoded.userId as string;
+        }
+      } catch (error) {
+        console.error("Invalid token");
+        if (showError) {
+          return NextResponse.json(
+            { error: "Unauthorized: Invalid token" },
+            { status: 401 }
+          );
+        }
       }
-    } catch (error) {
-      console.error("Invalid token");
+    } else {
+      console.error("Invalid Bearer token format");
       if (showError) {
         return NextResponse.json(
-          { error: "Unauthorized: Invalid token" },
+          { error: "Unauthorized: Invalid token format" },
           { status: 401 }
         );
       }
@@ -68,6 +83,7 @@ async function authMiddleware(
 
   return { userId };
 }
+
 export function withAuthMiddleware(
   routeHandler: (
     request: Request,
