@@ -28,39 +28,33 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   };
 
   // Log extracted settings
-  
-  
 
-  useEffect(() => {
-     // Add logging for page load
-    const onLoad = () => {
-      setIsPageLoaded(true);
-      localStorage.setItem("isPageLoaded", "true");
-      
-    };
+  // useEffect(() => {
+  //   // Add logging for page load
+  //   const onLoad = () => {
+  //     setIsPageLoaded(true);
+  //     localStorage.setItem("isPageLoaded", "true");
+  //   };
 
-    if (document.readyState === "complete") {
-      setIsPageLoaded(true);
-      localStorage.setItem("isPageLoaded", "true");
-      
-    } else {
-      window.addEventListener("load", onLoad);
-    }
+  //   if (document.readyState === "complete") {
+  //     setIsPageLoaded(true);
+  //     localStorage.setItem("isPageLoaded", "true");
+  //   } else {
+  //     window.addEventListener("load", onLoad);
+  //   }
 
-    return () => {
-      window.removeEventListener("load", onLoad);
-    };
-  }, [isPageLoaded]);
+  //   return () => {
+  //     window.removeEventListener("load", onLoad);
+  //   };
+  // }, [isPageLoaded]);
 
-  if (!isPageLoaded && isFirstLoad) {
-     // Track spinner rendering
-    return <LoadingSpinner />;
-  }
+  // if (!isPageLoaded && isFirstLoad) {
+  //   return <LoadingSpinner />;
+  // }
 
-  if (isSetupRequired) {
-     // Track when setup is required
-    return <SetupPage />;
-  }
+  // if (isSetupRequired) {
+  //   return <SetupPage />;
+  // }
 
   return (
     <SessionProvider>
