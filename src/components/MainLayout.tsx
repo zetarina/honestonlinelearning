@@ -116,17 +116,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         }}
       >
         <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
-          <Link href="/" passHref>
-            <a style={{ display: "flex", alignItems: "center" }}>
-              <Image
-                src="/images/logo.png"
-                alt={settings.siteName || "Site Logo"}
-                width={150}
-                height={150}
-                priority
-                style={{ objectFit: "contain" }}
-              />
-            </a>
+          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+            <Image
+              src="/images/logo.png"
+              alt={settings.siteName || "Site Logo"}
+              width={150}
+              height={150}
+              priority
+              style={{ objectFit: "contain" }}
+            />
           </Link>
         </div>
 
