@@ -112,7 +112,7 @@ const FeaturedCoursesSection: React.FC = () => {
                     "translateY(0px)")
                 }
               >
-                                <Meta
+                <Meta
                   title={
                     <Tooltip title={course.title}>
                       <Text
@@ -133,12 +133,12 @@ const FeaturedCoursesSection: React.FC = () => {
                   linesToShow={3}
                 />
 
-                                <div style={{ marginTop: "10px" }}>
+                <div style={{ marginTop: "10px" }}>
                   <Tag color="blue">{course.category || "General"}</Tag>
                   <Tag color="green">{course.level || "Beginner"}</Tag>
                 </div>
 
-                                <div
+                <div
                   style={{
                     marginTop: "10px",
                     display: "flex",
@@ -161,7 +161,7 @@ const FeaturedCoursesSection: React.FC = () => {
                   </div>
                 </div>
 
-                                <Link href={`/courses/${course._id}`} passHref>
+                <Link href={`/courses/${course._id}`} passHref>
                   <Button
                     type="primary"
                     size="middle"
@@ -182,9 +182,9 @@ const FeaturedCoursesSection: React.FC = () => {
         })}
       </Row>
 
-            {courses.length > 4 && (
+      {courses.length > 4 && (
         <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <Link href="/courses">
+          <Link href="/courses" passHref>
             <Button type="link">View All Courses</Button>
           </Link>
         </div>
