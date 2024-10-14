@@ -81,14 +81,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         style={{
           display: "flex",
           alignItems: "center",
-          background: "#ffffff", // Set background to white
+          background: "#ffffff",
           justifyContent: "space-between",
           height: "100px",
           padding: "0 20px",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", // Add shadow to give depth
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
         }}
       >
-                <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
+        <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
           <Link href="/" style={{ display: "flex", alignItems: "center" }}>
             <Image
               src="/images/logo.png"
@@ -114,15 +114,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
                 onClose={toggleDrawer}
                 open={drawerVisible}
               >
-                <Menu mode="vertical" items={menuItems} onClick={toggleDrawer} />
+                <Menu
+                  mode="vertical"
+                  items={menuItems}
+                  onClick={toggleDrawer}
+                />
               </Drawer>
             </>
           ) : (
             <Menu
               mode="horizontal"
-              theme="light" // Set theme to light for white background
+              theme="light"
               items={menuItems}
-              style={{ background: "#ffffff", color: "#000" }} // Set menu text color
+              style={{ background: "#ffffff", color: "#000" }}
             />
           )}
           {!isMobile && user && (
@@ -143,54 +147,74 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
 
       <Footer
         style={{
-          backgroundColor: "#ffffff", // Light background color for footer
-          color: "#000", // Dark text color for footer
+          backgroundColor: "#ffffff",
+          color: "#000",
           textAlign: "center",
           padding: "20px 20px",
         }}
       >
         <div style={{ marginBottom: "20px" }}>
-                    <Space size="large">
-            <Button
-              type="link"
+          <Space size="large">
+            <a
               href="https://facebook.com"
-              icon={<FacebookOutlined />}
               target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
+              rel="noopener noreferrer"
+            >
+              <Button
+                type="link"
+                icon={<FacebookOutlined />}
+                style={{ color: "#000" }}
+              />
+            </a>
+            <a
               href="https://twitter.com"
-              icon={<TwitterOutlined />}
               target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
+              rel="noopener noreferrer"
+            >
+              <Button
+                type="link"
+                icon={<TwitterOutlined />}
+                style={{ color: "#000" }}
+              />
+            </a>
+            <a
               href="https://instagram.com"
-              icon={<InstagramOutlined />}
               target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
+              rel="noopener noreferrer"
+            >
+              <Button
+                type="link"
+                icon={<InstagramOutlined />}
+                style={{ color: "#000" }}
+              />
+            </a>
+            <a
               href="https://linkedin.com"
-              icon={<LinkedinOutlined />}
               target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
+              rel="noopener noreferrer"
+            >
+              <Button
+                type="link"
+                icon={<LinkedinOutlined />}
+                style={{ color: "#000" }}
+              />
+            </a>
+            <a
               href="https://github.com"
-              icon={<GithubOutlined />}
               target="_blank"
-              style={{ color: "#000" }}
-            />
+              rel="noopener noreferrer"
+            >
+              <Button
+                type="link"
+                icon={<GithubOutlined />}
+                style={{ color: "#000" }}
+              />
+            </a>
           </Space>
         </div>
 
         <div>
-                    <Text style={{ color: "#000" }}>
+          <Text style={{ color: "#000" }}>
             {settings.siteName} ©{new Date().getFullYear()} All rights reserved.
           </Text>
         </div>
