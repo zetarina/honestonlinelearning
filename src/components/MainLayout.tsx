@@ -75,6 +75,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         ]),
   ];
 
+  console.log("Menu Items:", menuItems);
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Header
@@ -134,7 +136,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
               <Avatar src={user?.avatar || "/images/default-avatar.webp"} />
               <Text style={{ color: "#000" }}>{user.username}</Text>
               <Text style={{ color: "#000" }}>
-                Points: {user.pointsBalance || 0}
+                Points: {user?.pointsBalance || 0}
               </Text>
             </Space>
           )}
