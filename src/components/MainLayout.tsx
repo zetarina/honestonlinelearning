@@ -42,23 +42,43 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
   };
 
   const menuItems = [
-    { key: "home", icon: <HomeOutlined />, label: <Link href="/">Home</Link> },
+    {
+      key: "home",
+      icon: <HomeOutlined />,
+      label: (
+        <Link href="/" passHref>
+          <a>Home</a>
+        </Link>
+      ),
+    },
     {
       key: "courses",
       icon: <BookOutlined />,
-      label: <Link href="/courses">Courses</Link>,
+      label: (
+        <Link href="/courses" passHref>
+          <a>Courses</a>
+        </Link>
+      ),
     },
     {
       key: "top-up",
       icon: <WalletOutlined />,
-      label: <Link href="/top-up">Top Up</Link>,
+      label: (
+        <Link href="/top-up" passHref>
+          <a>Top Up</a>
+        </Link>
+      ),
     },
     ...(user
       ? [
           {
             key: "dashboard",
             icon: <UserOutlined />,
-            label: <Link href="/dashboard">Dashboard</Link>,
+            label: (
+              <Link href="/dashboard" passHref>
+                <a>Dashboard</a>
+              </Link>
+            ),
           },
           {
             key: "logout",
@@ -74,7 +94,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
           {
             key: "login",
             icon: <UserOutlined />,
-            label: <Link href="/login">Login</Link>,
+            label: (
+              <Link href="/login" passHref>
+                <a>Login</a>
+              </Link>
+            ),
           },
         ]),
   ];
@@ -95,15 +119,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         }}
       >
         <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
-          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-            <Image
-              src="/images/logo.png"
-              alt={settings.siteName || "Site Logo"}
-              width={150}
-              height={150}
-              priority
-              style={{ objectFit: "contain" }}
-            />
+          <Link href="/" passHref>
+            <a style={{ display: "flex", alignItems: "center" }}>
+              <Image
+                src="/images/logo.png"
+                alt={settings.siteName || "Site Logo"}
+                width={150}
+                height={150}
+                priority
+                style={{ objectFit: "contain" }}
+              />
+            </a>
           </Link>
         </div>
 
@@ -162,49 +188,49 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         <div style={{ marginBottom: "20px" }}>
           <Space size="large">
             <Link href="https://facebook.com" passHref>
-              <Button
-                type="link"
-                icon={<FacebookOutlined />}
-                style={{ color: "#000" }}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+              <a target="_blank" rel="noopener noreferrer">
+                <Button
+                  type="link"
+                  icon={<FacebookOutlined />}
+                  style={{ color: "#000" }}
+                />
+              </a>
             </Link>
             <Link href="https://twitter.com" passHref>
-              <Button
-                type="link"
-                icon={<TwitterOutlined />}
-                style={{ color: "#000" }}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+              <a target="_blank" rel="noopener noreferrer">
+                <Button
+                  type="link"
+                  icon={<TwitterOutlined />}
+                  style={{ color: "#000" }}
+                />
+              </a>
             </Link>
             <Link href="https://instagram.com" passHref>
-              <Button
-                type="link"
-                icon={<InstagramOutlined />}
-                style={{ color: "#000" }}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+              <a target="_blank" rel="noopener noreferrer">
+                <Button
+                  type="link"
+                  icon={<InstagramOutlined />}
+                  style={{ color: "#000" }}
+                />
+              </a>
             </Link>
             <Link href="https://linkedin.com" passHref>
-              <Button
-                type="link"
-                icon={<LinkedinOutlined />}
-                style={{ color: "#000" }}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+              <a target="_blank" rel="noopener noreferrer">
+                <Button
+                  type="link"
+                  icon={<LinkedinOutlined />}
+                  style={{ color: "#000" }}
+                />
+              </a>
             </Link>
             <Link href="https://github.com" passHref>
-              <Button
-                type="link"
-                icon={<GithubOutlined />}
-                style={{ color: "#000" }}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
+              <a target="_blank" rel="noopener noreferrer">
+                <Button
+                  type="link"
+                  icon={<GithubOutlined />}
+                  style={{ color: "#000" }}
+                />
+              </a>
             </Link>
           </Space>
         </div>
