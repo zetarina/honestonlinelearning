@@ -4,7 +4,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import DashboardLayout from "./DashboardLayout";
 import MainLayout from "./MainLayout";
-import SetupPage from "./SetupPage";
 import LoadingSpinner from "./LoadingSpinner";
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
@@ -20,7 +19,6 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
   const pathname = usePathname();
   const router = useRouter();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
-  const isSetupRequired = !settings.siteName || !settings.siteUrl;
 
   const [initialCheckDone, setInitialCheckDone] = useState(false);
 
@@ -44,14 +42,11 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
     }
   }, [initialLoading, user, isDashboardRoute, router]);
 
-  if (isSetupRequired) {
-    return <SetupPage />;
-  }
-
   if (!initialCheckDone && initialLoading) {
     return <LoadingSpinner />;
   }
 
+  // Render appropriate layout depending on the route
   if (isDashboardRoute && user) {
     return <DashboardLayout settings={settings}>{children}</DashboardLayout>;
   }

@@ -7,7 +7,11 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
   children,
 }) => {
+  // Fetch settings asynchronously
   const settings = await new SettingService().getPublicSettings();
+
+  // If settings are null, the setup page needs to be shown.
+  const isSetupRequired = !settings || !settings.siteName || !settings.siteUrl;
 
   if (!settings) {
     return (
@@ -23,7 +27,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
             alignItems: "center",
           }}
         >
-          <LoadingSpinner /> {/* Display loading spinner */}
+          <LoadingSpinner />
         </body>
       </html>
     );
@@ -32,7 +36,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
   return (
     <html lang="en">
       <head>
-        <title>{settings?.siteName || "Online Learning App"}</title>
+        <title>{settings.siteName || "Online Learning App"}</title>
         <link rel="icon" href="/images/favicon.ico" />
       </head>
       <body
@@ -46,7 +50,9 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
         }}
       >
         <AntdStyleRegistry>
-          <SettingsProvider settings={settings}>{children}</SettingsProvider>
+          <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
+            {children}
+          </SettingsProvider>
         </AntdStyleRegistry>
       </body>
     </html>
