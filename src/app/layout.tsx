@@ -1,41 +1,16 @@
 import React from "react";
 import SettingsProvider from "@/providers/SettingsProvider";
-import SettingService from "@/services/SettingService";
 import AntdStyleRegistry from "@/components/AntdStyleRegistry";
-import LoadingSpinner from "@/components/LoadingSpinner";
 
-const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
-  children,
-}) => {
-  // Fetch settings asynchronously
-  const settings = await new SettingService().getPublicSettings();
+const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Static values for settings
+  const settings = {
+    siteName: "My Online Learning App",
+    siteUrl: "https://myonlinelearningapp.com",
+  };
 
-  if (!settings) {
-    console.error("Settings are null or unavailable");
-  }
-
-  // If settings are null, the setup page needs to be shown.
-  const isSetupRequired = !settings || !settings.siteName || !settings.siteUrl;
-
-  if (!settings) {
-    return (
-      <html lang="en">
-        <body
-          style={{
-            margin: 0,
-            padding: 0,
-            width: "100%",
-            minHeight: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <LoadingSpinner />
-        </body>
-      </html>
-    );
-  }
+  // Check if setup is required (for example, if settings are missing)
+  const isSetupRequired = !settings.siteName || !settings.siteUrl;
 
   return (
     <html lang="en">
@@ -54,15 +29,11 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
           flexDirection: "column",
         }}
       >
-             {children}
-        {/* <AntdStyleRegistry>
-          <SettingsProvider
-            settings={settings}
-            isSetupRequired={isSetupRequired}
-          >
+        <AntdStyleRegistry>
+          <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
             {children}
           </SettingsProvider>
-        </AntdStyleRegistry> */}
+        </AntdStyleRegistry>
       </body>
     </html>
   );
