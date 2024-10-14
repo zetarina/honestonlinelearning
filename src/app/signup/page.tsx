@@ -40,8 +40,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="w-full flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-md relative transform transition-all duration-300 hover:shadow-lg">
         <Title level={2} className="text-center mb-6">
           Sign Up
         </Title>
@@ -60,21 +60,21 @@ export default function SignupPage() {
             label="Username"
             rules={[{ required: true, message: "Please input your username!" }]}
           >
-            <Input placeholder="Username" />
+            <Input placeholder="Username" size="large" />
           </Form.Item>
           <Form.Item
             name="email"
             label="Email"
             rules={[{ required: true, message: "Please input your email!" }]}
           >
-            <Input placeholder="Email" />
+            <Input placeholder="Email" size="large" />
           </Form.Item>
           <Form.Item
             name="password"
             label="Password"
             rules={[{ required: true, message: "Please input your password!" }]}
           >
-            <Input.Password placeholder="Password" />
+            <Input.Password placeholder="Password" size="large" />
           </Form.Item>
           <Form.Item>
             <Button
@@ -83,6 +83,7 @@ export default function SignupPage() {
               block
               loading={loading}
               disabled={loading}
+              size="large"
             >
               {loading ? <Spin /> : "Sign Up"}
             </Button>
