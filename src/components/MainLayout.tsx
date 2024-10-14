@@ -63,7 +63,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
           {
             key: "logout",
             icon: <LogoutOutlined />,
-            label: <span onClick={handleLogout}>Logout</span>,
+            label: (
+              <Button type="link" onClick={handleLogout} style={{ padding: 0 }}>
+                Logout
+              </Button>
+            ),
           },
         ]
       : [
@@ -157,61 +161,51 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
       >
         <div style={{ marginBottom: "20px" }}>
           <Space size="large">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Link href="https://facebook.com" passHref>
               <Button
                 type="link"
                 icon={<FacebookOutlined />}
                 style={{ color: "#000" }}
+                target="_blank"
+                rel="noopener noreferrer"
               />
-            </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            </Link>
+            <Link href="https://twitter.com" passHref>
               <Button
                 type="link"
                 icon={<TwitterOutlined />}
                 style={{ color: "#000" }}
+                target="_blank"
+                rel="noopener noreferrer"
               />
-            </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            </Link>
+            <Link href="https://instagram.com" passHref>
               <Button
                 type="link"
                 icon={<InstagramOutlined />}
                 style={{ color: "#000" }}
+                target="_blank"
+                rel="noopener noreferrer"
               />
-            </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            </Link>
+            <Link href="https://linkedin.com" passHref>
               <Button
                 type="link"
                 icon={<LinkedinOutlined />}
                 style={{ color: "#000" }}
+                target="_blank"
+                rel="noopener noreferrer"
               />
-            </a>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            </Link>
+            <Link href="https://github.com" passHref>
               <Button
                 type="link"
                 icon={<GithubOutlined />}
                 style={{ color: "#000" }}
+                target="_blank"
+                rel="noopener noreferrer"
               />
-            </a>
+            </Link>
           </Space>
         </div>
 
