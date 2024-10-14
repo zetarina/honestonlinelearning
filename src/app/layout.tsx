@@ -1,15 +1,39 @@
 import React from "react";
 import SettingsProvider from "@/providers/SettingsProvider";
+import SettingService from "@/services/SettingService";
 import AntdStyleRegistry from "@/components/AntdStyleRegistry";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
-const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Static values for settings
-  const settings = {
-    siteName: "My Online Learning App",
-    siteUrl: "https://myonlinelearningapp.com",
-  };
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Fetch settings on the server-side since layout is a server component
+  const settingService = new SettingService();
+  const settings = await settingService.getPublicSettings();
 
-  // Check if setup is required (for example, if settings are missing)
+  // Handle the case where settings are unavailable
+  if (!settings) {
+    return (
+      <html lang="en">
+        <body
+          style={{
+            margin: 0,
+            padding: 0,
+            width: "100%",
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <LoadingSpinner />
+        </body>
+      </html>
+    );
+  }
+
   const isSetupRequired = !settings.siteName || !settings.siteUrl;
 
   return (
@@ -30,13 +54,14 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }}
       >
         <AntdStyleRegistry>
-          <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
+          <SettingsProvider
+            settings={settings}
+            isSetupRequired={isSetupRequired}
+          >
             {children}
           </SettingsProvider>
         </AntdStyleRegistry>
       </body>
     </html>
   );
-};
-
-export default AppLayout;
+}
