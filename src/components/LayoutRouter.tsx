@@ -23,15 +23,10 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
   const [initialCheckDone, setInitialCheckDone] = useState(false);
 
   // Log the current pathname, user, and loading state
-  
-  
-  
-  
 
   useEffect(() => {
     if (!initialLoading) {
       if (isDashboardRoute && !user) {
-        
         router.push("/login");
         return;
       }
@@ -41,7 +36,6 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
         user &&
         ![UserRole.ADMIN, UserRole.INSTRUCTOR].includes(user.role)
       ) {
-        
         router.push("/profile");
         return;
       }
@@ -51,18 +45,18 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
   }, [initialLoading, user, isDashboardRoute, router]);
 
   if (!initialCheckDone && initialLoading) {
-    
     return <LoadingSpinner />;
   }
 
   // Log which layout is being rendered
-  if (isDashboardRoute && user) {
-    
-    return <DashboardLayout settings={settings}>{children}</DashboardLayout>;
-  }
+  // if (isDashboardRoute && user) {
 
-  
-  return <MainLayout settings={settings}>{children}</MainLayout>;
+  //   return <DashboardLayout settings={settings}>{children}</DashboardLayout>;
+  // }
+
+  // return <MainLayout settings={settings}>{children}</MainLayout>;
+
+  return <div>{children}</div>;
 };
 
 export default LayoutRouter;
