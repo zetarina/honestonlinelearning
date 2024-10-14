@@ -5,12 +5,11 @@ import { SessionProvider } from "next-auth/react";
 import { UserProvider } from "@/contexts/UserContext";
 import LayoutRouter from "@/components/LayoutRouter";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { GlobalSettings, SETTINGS_KEYS } from "@/config/settingKeys"; // Adjust import
-import "@/styles/globals.css";
+import { GlobalSettings, SETTINGS_KEYS } from "@/config/settingKeys";
 
 interface SettingsProviderProps {
   children: React.ReactNode;
-  settings: Record<string, any>; // You could replace this with GlobalSettings
+  settings: Record<string, any>;
 }
 
 const SettingsProvider: React.FC<SettingsProviderProps> = ({
@@ -20,41 +19,27 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  // Dynamically map settings using SETTINGS_KEYS
   const extractedSettings: GlobalSettings = {
-    siteName:
-      typeof settings[SETTINGS_KEYS.SITE_NAME] === "string"
-        ? settings[SETTINGS_KEYS.SITE_NAME]
-        : settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? undefined,
-    siteUrl:
-      typeof settings[SETTINGS_KEYS.SITE_URL] === "string"
-        ? settings[SETTINGS_KEYS.SITE_URL]
-        : settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? undefined,
+    siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
+    siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
   };
 
   useEffect(() => {
-    const cachedPageLoadStatus = localStorage.getItem("isPageLoaded");
-
-    if (cachedPageLoadStatus === "true") {
+    const onLoad = () => {
       setIsPageLoaded(true);
-      setIsFirstLoad(false);
+      localStorage.setItem("isPageLoaded", "true");
+    };
+
+    if (document.readyState === "complete") {
+      setIsPageLoaded(true);
+      localStorage.setItem("isPageLoaded", "true");
     } else {
-      const onLoad = () => {
-        setIsPageLoaded(true);
-        localStorage.setItem("isPageLoaded", "true");
-      };
-
-      if (document.readyState === "complete") {
-        setIsPageLoaded(true);
-        localStorage.setItem("isPageLoaded", "true");
-      } else {
-        window.addEventListener("load", onLoad);
-      }
-
-      return () => {
-        window.removeEventListener("load", onLoad);
-      };
+      window.addEventListener("load", onLoad);
     }
+
+    return () => {
+      window.removeEventListener("load", onLoad);
+    };
   }, []);
 
   if (!isPageLoaded && isFirstLoad) {
@@ -64,7 +49,7 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   return (
     <SessionProvider>
       <UserProvider>
-                <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter>
+        <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter>
       </UserProvider>
     </SessionProvider>
   );

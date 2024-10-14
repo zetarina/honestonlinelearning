@@ -11,8 +11,8 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
   return (
     <html lang="en">
       <head>
-        <title>{settings.siteName || "Online Learning App"}</title>
-        <meta name="description" />
+        <title>{settings?.siteName || "Online Learning App"}</title>
+
         <link rel="icon" href="/images/favicon.ico" />
       </head>
       <body

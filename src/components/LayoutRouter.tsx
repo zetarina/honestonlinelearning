@@ -5,9 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import DashboardLayout from "./DashboardLayout";
 import MainLayout from "./MainLayout";
 import SetupPage from "./SetupPage";
-import { Spin } from "antd";
-import UserContext from "@/contexts/UserContext";
 import LoadingSpinner from "./LoadingSpinner";
+import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
 import { GlobalSettings } from "@/config/settingKeys";
 
