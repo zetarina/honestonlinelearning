@@ -14,6 +14,16 @@ interface CacheImageProps {
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+// Helper function to determine if the src is an external URL
+const isExternalUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch (error) {
+    return false; // If URL constructor fails, it's likely a relative URL
+  }
+};
+
 const CacheImage: React.FC<CacheImageProps> = ({
   src,
   alt,
@@ -28,54 +38,75 @@ const CacheImage: React.FC<CacheImageProps> = ({
   const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
-    const cachedImages = JSON.parse(
-      localStorage.getItem("cachedImages") || "{}"
-    );
-    const now = new Date().getTime();
-
-    if (cachedImages[src] && now - cachedImages[src].timestamp < ONE_DAY_IN_MS) {
-      setCachedSrc(cachedImages[src].base64);
+    if (!src) {
+      console.error("Image source is invalid:", src);
+      setError(true);
       setLoading(false);
-    } else {
-      fetch(src)
-        .then((response) => {
-          if (!response.ok) throw new Error("Image fetch failed");
-          return response.blob();
-        })
-        .then((blob) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64data = reader.result as string;
-            setCachedSrc(base64data);
-            setLoading(false);
+      return;
+    }
 
-            localStorage.setItem(
-              "cachedImages",
-              JSON.stringify({
-                ...cachedImages,
-                [src]: {
-                  base64: base64data,
-                  timestamp: now,
-                },
-              })
-            );
-          };
-          reader.readAsDataURL(blob); 
-        })
-        .catch((err) => {
-          console.error("Failed to cache image", err);
-          setError(true);
-          setLoading(false);
-        });
+    // Skip caching if the image is a local resource (starts with '/')
+    if (!isExternalUrl(src)) {
+      setCachedSrc(src); // Directly use the src if it's local
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const cachedImages = JSON.parse(localStorage.getItem("cachedImages") || "{}");
+      const now = Date.now();
+
+      if (cachedImages[src] && now - cachedImages[src].timestamp < ONE_DAY_IN_MS) {
+        setCachedSrc(cachedImages[src].base64);
+        setLoading(false);
+      } else {
+        fetch(src)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Image fetch failed");
+            }
+            return response.blob();
+          })
+          .then((blob) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64data = reader.result as string;
+              setCachedSrc(base64data);
+              setLoading(false);
+
+              // Store the base64 image in localStorage if it's an external URL
+              localStorage.setItem(
+                "cachedImages",
+                JSON.stringify({
+                  ...cachedImages,
+                  [src]: {
+                    base64: base64data,
+                    timestamp: now,
+                  },
+                })
+              );
+            };
+            reader.readAsDataURL(blob);
+          })
+          .catch((err) => {
+            console.error("Failed to cache image", err);
+            setError(true);
+            setLoading(false);
+          });
+      }
+    } catch (err) {
+      console.error("Error accessing localStorage", err);
+      setError(true);
+      setLoading(false);
     }
   }, [src]);
 
   if (loading) {
-    return <div>Loading image...</div>; 
+    return <div>Loading image...</div>; // Loading placeholder
   }
 
   if (error || !cachedSrc) {
-    return <div>Failed to load image</div>; 
+    return <div>Failed to load image</div>; // Error placeholder
   }
 
   return (

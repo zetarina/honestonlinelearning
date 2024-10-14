@@ -19,48 +19,44 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   settings,
   isSetupRequired,
 }) => {
-  // const [isPageLoaded, setIsPageLoaded] = useState(false);
-  // const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  // const extractedSettings: GlobalSettings = {
-  //   siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
-  //   siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
-  // };
+  const extractedSettings: GlobalSettings = {
+    siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
+    siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
+  };
 
-  // Log extracted settings
+  useEffect(() => {
+    const onLoad = () => {
+      setIsPageLoaded(true);
+      localStorage.setItem("isPageLoaded", "true");
+    };
 
-  // useEffect(() => {
-  //   // Add logging for page load
-  //   const onLoad = () => {
-  //     setIsPageLoaded(true);
-  //     localStorage.setItem("isPageLoaded", "true");
-  //   };
+    if (document.readyState === "complete") {
+      setIsPageLoaded(true);
+      localStorage.setItem("isPageLoaded", "true");
+    } else {
+      window.addEventListener("load", onLoad);
+    }
 
-  //   if (document.readyState === "complete") {
-  //     setIsPageLoaded(true);
-  //     localStorage.setItem("isPageLoaded", "true");
-  //   } else {
-  //     window.addEventListener("load", onLoad);
-  //   }
+    return () => {
+      window.removeEventListener("load", onLoad);
+    };
+  }, []);
 
-  //   return () => {
-  //     window.removeEventListener("load", onLoad);
-  //   };
-  // }, [isPageLoaded]);
+  if (!isPageLoaded && isFirstLoad) {
+    return <LoadingSpinner />;
+  }
 
-  // if (!isPageLoaded && isFirstLoad) {
-  //   return <LoadingSpinner />;
-  // }
-
-  // if (isSetupRequired) {
-  //   return <SetupPage />;
-  // }
+  if (isSetupRequired) {
+    return <SetupPage />;
+  }
 
   return (
     <SessionProvider>
       <UserProvider>
-        {/* <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter> */}
-        {children}
+        <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter>
       </UserProvider>
     </SessionProvider>
   );
