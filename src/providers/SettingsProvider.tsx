@@ -26,17 +26,23 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
     siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
     siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
   };
-  console.log("Settings:", settings); // Add this to log settings
+
+  // Log extracted settings
+  console.log("Extracted Settings:", extractedSettings);
+  console.log("Is Setup Required:", isSetupRequired);
 
   useEffect(() => {
+    console.log("Page Load Status:", isPageLoaded); // Add logging for page load
     const onLoad = () => {
       setIsPageLoaded(true);
       localStorage.setItem("isPageLoaded", "true");
+      console.log("Page fully loaded.");
     };
 
     if (document.readyState === "complete") {
       setIsPageLoaded(true);
       localStorage.setItem("isPageLoaded", "true");
+      console.log("Document ready on first load.");
     } else {
       window.addEventListener("load", onLoad);
     }
@@ -44,13 +50,15 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
     return () => {
       window.removeEventListener("load", onLoad);
     };
-  }, []);
+  }, [isPageLoaded]);
 
   if (!isPageLoaded && isFirstLoad) {
+    console.log("Showing Loading Spinner"); // Track spinner rendering
     return <LoadingSpinner />;
   }
 
   if (isSetupRequired) {
+    console.log("Showing Setup Page"); // Track when setup is required
     return <SetupPage />;
   }
 
