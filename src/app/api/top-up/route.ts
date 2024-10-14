@@ -1,83 +1,106 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-import SettingService from "@/services/SettingService";
-import { SETTINGS_KEYS } from "@/config/settingKeys"; // Importing the settings keys
+import { getServerSession } from "next-auth";
 
-const settingService = new SettingService();
+import jwt, { JwtPayload } from "jsonwebtoken";
+import UserService from "@/services/UserService";
+import { UserRole } from "@/models/UserModel";
+import { authOptions } from "@/config/authOptions";
 
-async function handleTopUpRequest(req: Request) {
-  try {
-    const { amount, screenshot, userId } = await req.json();
+const userService = new UserService();
 
-    if (!amount || !screenshot || !userId) {
+async function authMiddleware(
+  request: Request,
+  showError: boolean = false,
+  requiredRoles?: UserRole[]
+) {
+  let userId: string | null = null;
+
+  const authorizationHeader = request.headers.get("authorization");
+
+  // Ensure authorizationHeader is not null and has the correct Bearer format
+  if (authorizationHeader?.startsWith("Bearer ")) {
+    const tokenParts = authorizationHeader.split(" ");
+    
+    // Check if the token is present after splitting
+    if (tokenParts.length === 2) {
+      const token = tokenParts[1];
+
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        if (typeof decoded === "object" && decoded.userId) {
+          userId = decoded.userId as string;
+        }
+      } catch (error) {
+        console.error("Invalid token");
+        if (showError) {
+          return NextResponse.json(
+            { error: "Unauthorized: Invalid token" },
+            { status: 401 }
+          );
+        }
+      }
+    } else {
+      console.error("Invalid Bearer token format");
+      if (showError) {
+        return NextResponse.json(
+          { error: "Unauthorized: Invalid token format" },
+          { status: 401 }
+        );
+      }
+    }
+  }
+
+  if (!userId) {
+    const session = await getServerSession(authOptions);
+
+    if (session && session.user?.id) {
+      userId = session.user.id;
+    } else if (showError) {
       return NextResponse.json(
-        { error: "Amount, screenshot, and userId are required" },
-        { status: 400 }
+        { error: "Unauthorized: No valid session or token" },
+        { status: 401 }
       );
     }
+  }
 
-    // Fetch Gmail credentials and admin email from settings using SETTINGS_KEYS
-    const gmailUserSetting = await settingService.getSettingByKey(
-      SETTINGS_KEYS.GMAIL_USER
-    );
-    const gmailPasswordSetting = await settingService.getSettingByKey(
-      SETTINGS_KEYS.GMAIL_PASSWORD
-    );
-    const adminEmailSetting = await settingService.getSettingByKey(
-      SETTINGS_KEYS.ADMIN_EMAIL
-    );
-
-    // Use settings from the database
-    const GMAIL_USER = gmailUserSetting?.value;
-    const GMAIL_PASSWORD = gmailPasswordSetting?.value;
-    const ADMIN_EMAIL = adminEmailSetting?.value;
-
-    // Check if all required settings are configured
-    if (!GMAIL_USER || !GMAIL_PASSWORD || !ADMIN_EMAIL) {
+  if (userId && requiredRoles?.length) {
+    try {
+      const user = await userService.getUserById(userId);
+      if (!user || !requiredRoles.includes(user.role)) {
+        return NextResponse.json(
+          { error: "Forbidden: Insufficient role" },
+          { status: 403 }
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
       return NextResponse.json(
-        { error: "Gmail server is not set up yet. Please contact the admin." },
+        { error: "Internal Server Error" },
         { status: 500 }
       );
     }
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: GMAIL_USER,
-        pass: GMAIL_PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: GMAIL_USER,
-      to: ADMIN_EMAIL,
-      subject: "New Top-up Request",
-      text: `User with ID: ${userId} requested a top-up of ${amount} MMK.`,
-      attachments: [
-        {
-          filename: "screenshot.png",
-          content: screenshot.split("base64,")[1],
-          encoding: "base64",
-        },
-      ],
-    };
-
-    // Send email
-    await transporter.sendMail(mailOptions);
-
-    return NextResponse.json(
-      { message: "Top-up request submitted!" },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error processing top-up request:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
   }
+
+  return { userId };
 }
 
-export const POST = async (req: Request) => {
-  return handleTopUpRequest(req);
-};
+export function withAuthMiddleware(
+  routeHandler: (
+    request: Request,
+    userId: string | null
+  ) => Promise<NextResponse>,
+  showError: boolean = false,
+  requiredRoles?: UserRole[]
+) {
+  return async (request: Request) => {
+    const authResult = await authMiddleware(request, showError, requiredRoles);
+
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
+    const { userId } = authResult;
+
+    return routeHandler(request, userId);
+  };
+}
