@@ -184,24 +184,14 @@ const FeaturedCoursesSection: React.FC = () => {
 
       {courses.length > 4 && (
         <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <Link href="/courses">
-            <Button type="link">View All Courses</Button>
-          </Link>
-          <Link href="/courses" passHref>
-            <Button
-              type="primary"
-              size="middle"
-              style={{
-                marginTop: "20px",
-                width: "100%",
-                borderRadius: "8px",
-                background: "#1890ff",
-                borderColor: "#1890ff",
-              }}
-            >
-              View All Courses
-            </Button>
-          </Link>
+          <Button
+            type="link"
+            size="large"
+            onClick={() => console.log("Navigating to /courses")}
+            href="/courses"
+          >
+            View All Courses
+          </Button>
         </div>
       )}
     </div>
