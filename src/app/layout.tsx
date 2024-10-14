@@ -54,14 +54,15 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
           flexDirection: "column",
         }}
       >
-        <AntdStyleRegistry>
+             {children}
+        {/* <AntdStyleRegistry>
           <SettingsProvider
             settings={settings}
             isSetupRequired={isSetupRequired}
           >
             {children}
           </SettingsProvider>
-        </AntdStyleRegistry>
+        </AntdStyleRegistry> */}
       </body>
     </html>
   );

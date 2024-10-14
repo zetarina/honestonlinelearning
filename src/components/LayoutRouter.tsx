@@ -49,14 +49,11 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
   }
 
   // Log which layout is being rendered
-  // if (isDashboardRoute && user) {
+  if (isDashboardRoute && user) {
+    return <DashboardLayout settings={settings}>{children}</DashboardLayout>;
+  }
 
-  //   return <DashboardLayout settings={settings}>{children}</DashboardLayout>;
-  // }
-
-  // return <MainLayout settings={settings}>{children}</MainLayout>;
-
-  return <div>{children}</div>;
+  return <MainLayout settings={settings}>{children}</MainLayout>;
 };
 
 export default LayoutRouter;
