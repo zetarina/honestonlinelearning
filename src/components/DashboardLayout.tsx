@@ -165,7 +165,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           closable={true}
           onClose={handleDrawerToggle}
           open={drawerVisible}
-          bodyStyle={{ padding: 0, backgroundColor: "#001529" }} // Ensure the background color
+          styles={{ body: { padding: 0, backgroundColor: "#001529" } }}
         >
           <Menu
             mode="inline" // Switch to inline mode on mobile

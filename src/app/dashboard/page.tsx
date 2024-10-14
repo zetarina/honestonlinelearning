@@ -50,7 +50,7 @@ export default function DashboardPage() {
               borderRadius: "8px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
             }}
-            bodyStyle={{ padding: "24px" }}
+            styles={{ body: { padding: "24px" } }}
           >
             <Title
               level={3}

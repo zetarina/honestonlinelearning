@@ -42,6 +42,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = async ({
       <head>
         <title>{settings.siteName || "Online Learning App"}</title>
         <link rel="icon" href="/images/favicon.ico" />
+        <link rel="prefetch" href="/_next/static/css/app/page.css" />
       </head>
       <body
         style={{

@@ -42,68 +42,38 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
   };
 
   const menuItems = [
-    {
-      key: "home",
-      icon: <HomeOutlined />,
-      label: (
-        <Link href="/" passHref>
-          <a>Home</a>
-        </Link>
-      ),
-    },
+    { key: "home", icon: <HomeOutlined />, label: <Link href="/">Home</Link> },
     {
       key: "courses",
       icon: <BookOutlined />,
-      label: (
-        <Link href="/courses" passHref>
-          <a>Courses</a>
-        </Link>
-      ),
+      label: <Link href="/courses">Courses</Link>,
     },
     {
       key: "top-up",
       icon: <WalletOutlined />,
-      label: (
-        <Link href="/top-up" passHref>
-          <a>Top Up</a>
-        </Link>
-      ),
+      label: <Link href="/top-up">Top Up</Link>,
     },
     ...(user
       ? [
           {
             key: "dashboard",
             icon: <UserOutlined />,
-            label: (
-              <Link href="/dashboard" passHref>
-                <a>Dashboard</a>
-              </Link>
-            ),
+            label: <Link href="/dashboard">Dashboard</Link>,
           },
           {
             key: "logout",
             icon: <LogoutOutlined />,
-            label: (
-              <Button type="link" onClick={handleLogout} style={{ padding: 0 }}>
-                Logout
-              </Button>
-            ),
+            label: <span onClick={handleLogout}>Logout</span>,
           },
         ]
       : [
           {
             key: "login",
             icon: <UserOutlined />,
-            label: (
-              <Link href="/login" passHref>
-                <a>Login</a>
-              </Link>
-            ),
+            label: <Link href="/login">Login</Link>,
           },
         ]),
   ];
-
-  console.log("Menu Items:", menuItems);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -111,25 +81,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         style={{
           display: "flex",
           alignItems: "center",
-          background: "#ffffff",
+          background: "#ffffff", // Set background to white
           justifyContent: "space-between",
           height: "100px",
           padding: "0 20px",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", // Add shadow to give depth
         }}
       >
-        <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
-          <Link href="/" passHref>
-            <a style={{ display: "flex", alignItems: "center" }}>
-              <Image
-                src="/images/logo.png"
-                alt={settings.siteName || "Site Logo"}
-                width={150}
-                height={150}
-                priority
-                style={{ objectFit: "contain" }}
-              />
-            </a>
+                <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+            <Image
+              src="/images/logo.png"
+              alt={settings.siteName || "Site Logo"}
+              width={150}
+              height={150}
+              priority
+              style={{ objectFit: "contain" }}
+            />
           </Link>
         </div>
 
@@ -146,19 +114,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
                 onClose={toggleDrawer}
                 open={drawerVisible}
               >
-                <Menu
-                  mode="vertical"
-                  items={menuItems}
-                  onClick={toggleDrawer}
-                />
+                <Menu mode="vertical" items={menuItems} onClick={toggleDrawer} />
               </Drawer>
             </>
           ) : (
             <Menu
               mode="horizontal"
-              theme="light"
+              theme="light" // Set theme to light for white background
               items={menuItems}
-              style={{ background: "#ffffff", color: "#000" }}
+              style={{ background: "#ffffff", color: "#000" }} // Set menu text color
             />
           )}
           {!isMobile && user && (
@@ -166,7 +130,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
               <Avatar src={user?.avatar || "/images/default-avatar.webp"} />
               <Text style={{ color: "#000" }}>{user.username}</Text>
               <Text style={{ color: "#000" }}>
-                Points: {user?.pointsBalance || 0}
+                Points: {user.pointsBalance || 0}
               </Text>
             </Space>
           )}
@@ -179,64 +143,54 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
 
       <Footer
         style={{
-          backgroundColor: "#ffffff",
-          color: "#000",
+          backgroundColor: "#ffffff", // Light background color for footer
+          color: "#000", // Dark text color for footer
           textAlign: "center",
           padding: "20px 20px",
         }}
       >
         <div style={{ marginBottom: "20px" }}>
-          <Space size="large">
-            <Link href="https://facebook.com" passHref>
-              <a target="_blank" rel="noopener noreferrer">
-                <Button
-                  type="link"
-                  icon={<FacebookOutlined />}
-                  style={{ color: "#000" }}
-                />
-              </a>
-            </Link>
-            <Link href="https://twitter.com" passHref>
-              <a target="_blank" rel="noopener noreferrer">
-                <Button
-                  type="link"
-                  icon={<TwitterOutlined />}
-                  style={{ color: "#000" }}
-                />
-              </a>
-            </Link>
-            <Link href="https://instagram.com" passHref>
-              <a target="_blank" rel="noopener noreferrer">
-                <Button
-                  type="link"
-                  icon={<InstagramOutlined />}
-                  style={{ color: "#000" }}
-                />
-              </a>
-            </Link>
-            <Link href="https://linkedin.com" passHref>
-              <a target="_blank" rel="noopener noreferrer">
-                <Button
-                  type="link"
-                  icon={<LinkedinOutlined />}
-                  style={{ color: "#000" }}
-                />
-              </a>
-            </Link>
-            <Link href="https://github.com" passHref>
-              <a target="_blank" rel="noopener noreferrer">
-                <Button
-                  type="link"
-                  icon={<GithubOutlined />}
-                  style={{ color: "#000" }}
-                />
-              </a>
-            </Link>
+                    <Space size="large">
+            <Button
+              type="link"
+              href="https://facebook.com"
+              icon={<FacebookOutlined />}
+              target="_blank"
+              style={{ color: "#000" }}
+            />
+            <Button
+              type="link"
+              href="https://twitter.com"
+              icon={<TwitterOutlined />}
+              target="_blank"
+              style={{ color: "#000" }}
+            />
+            <Button
+              type="link"
+              href="https://instagram.com"
+              icon={<InstagramOutlined />}
+              target="_blank"
+              style={{ color: "#000" }}
+            />
+            <Button
+              type="link"
+              href="https://linkedin.com"
+              icon={<LinkedinOutlined />}
+              target="_blank"
+              style={{ color: "#000" }}
+            />
+            <Button
+              type="link"
+              href="https://github.com"
+              icon={<GithubOutlined />}
+              target="_blank"
+              style={{ color: "#000" }}
+            />
           </Space>
         </div>
 
         <div>
-          <Text style={{ color: "#000" }}>
+                    <Text style={{ color: "#000" }}>
             {settings.siteName} ©{new Date().getFullYear()} All rights reserved.
           </Text>
         </div>

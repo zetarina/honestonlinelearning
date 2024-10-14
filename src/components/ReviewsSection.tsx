@@ -63,7 +63,8 @@ const ReviewsSection = () => {
                     boxShadow: "0px 4px 16px rgba(0, 0, 0, 0.1)",
                     transition: "transform 0.3s",
                   }}
-                  bodyStyle={{ padding: "20px" }}
+                  styles={{ body: { padding: "20px" }}}
+                 
                 >
                   <Card.Meta
                     avatar={<Avatar src={review.avatar} size={64} />}

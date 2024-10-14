@@ -47,7 +47,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     if (isValidating && !initialLoading) {
-      console.log("Silently checked auth.");
+      
     }
   }, [isValidating, status, initialLoading]);
 

@@ -70,7 +70,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
           width: "100%",
         }}
       >
-                <Col xs={24} md={10}>
+        <Col xs={24} md={10}>
           <Card
             hoverable
             cover={
@@ -85,7 +85,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
                 }}
               />
             }
-            bodyStyle={{ padding: "16px" }}
+            styles={{ body: { padding: "16px" } }}
             style={{
               borderRadius: "8px",
               overflow: "hidden",
@@ -146,7 +146,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
 
               <Divider />
 
-                            <div
+              <div
                 style={{
                   // maxHeight: "300px",
                   overflowY: "auto",
@@ -177,7 +177,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
                 )}
               </div>
 
-                            {course.zoomLinks && course.zoomLinks.length > 0 && (
+              {course.zoomLinks && course.zoomLinks.length > 0 && (
                 <>
                   <Divider />
                   <div
