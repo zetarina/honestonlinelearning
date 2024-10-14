@@ -19,13 +19,13 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   settings,
   isSetupRequired,
 }) => {
-  const [isPageLoaded, setIsPageLoaded] = useState(false);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  // const [isPageLoaded, setIsPageLoaded] = useState(false);
+  // const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  const extractedSettings: GlobalSettings = {
-    siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
-    siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
-  };
+  // const extractedSettings: GlobalSettings = {
+  //   siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
+  //   siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
+  // };
 
   // Log extracted settings
 
