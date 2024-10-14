@@ -53,14 +53,9 @@ export default async function AppLayout({
           flexDirection: "column",
         }}
       >
-        <AntdStyleRegistry>
-          <SettingsProvider
-            settings={settings}
-            isSetupRequired={isSetupRequired}
-          >
-            {children}
-          </SettingsProvider>
-        </AntdStyleRegistry>
+        <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
+          {children}
+        </SettingsProvider>
       </body>
     </html>
   );
