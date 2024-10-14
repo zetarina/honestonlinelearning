@@ -185,7 +185,9 @@ const FeaturedCoursesSection: React.FC = () => {
       {courses.length > 4 && (
         <div style={{ textAlign: "center", marginTop: "40px" }}>
           <Link href="/courses" passHref>
-            <Button type="link">View All Courses</Button>
+            <a>
+              <Button type="link">View All Courses</Button>
+            </a>
           </Link>
         </div>
       )}
