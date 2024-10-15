@@ -21,8 +21,24 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
   const isDashboardRoute = pathname?.startsWith("/dashboard");
 
   const [initialCheckDone, setInitialCheckDone] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Log the current pathname, user, and loading state
+  useEffect(() => {
+    const handleRouteChangeStart = () => setLoading(true);
+    const handleRouteChangeComplete = () => setLoading(false);
+
+    // Manually control loading states by detecting pathname changes
+    setLoading(true);
+    handleRouteChangeStart();
+
+    const timeoutId = setTimeout(() => {
+      handleRouteChangeComplete();
+    }, 500); // Simulated delay, adjust as needed
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!initialLoading) {
@@ -48,7 +64,10 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
     return <LoadingSpinner />;
   }
 
-  // Log which layout is being rendered
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   if (isDashboardRoute && user) {
     return <DashboardLayout settings={settings}>{children}</DashboardLayout>;
   }
