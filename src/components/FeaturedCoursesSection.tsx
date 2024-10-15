@@ -207,7 +207,7 @@ const FeaturedCoursesSection: React.FC = () => {
           >
             View All Courses
           </Button>
-          <Link href={`/courses/`}>
+          <Link href={`/courses`} prefetch={false}>
             <Button
               type="primary"
               size="middle"
