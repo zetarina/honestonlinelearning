@@ -8,7 +8,6 @@ import {
   Tag,
   Typography,
   Button,
-  Rate,
   Space,
   Tooltip,
 } from "antd";

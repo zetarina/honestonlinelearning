@@ -1,7 +1,8 @@
 import React from "react";
 import SettingsProvider from "@/providers/SettingsProvider";
 import SettingService from "@/services/SettingService";
-import AntdStyleRegistry from "@/components/AntdStyleRegistry";
+import { ConfigProvider } from "antd";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default async function AppLayout({
@@ -53,9 +54,23 @@ export default async function AppLayout({
           flexDirection: "column",
         }}
       >
-        <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
-          {children}
-        </SettingsProvider>
+        <AntdRegistry>
+          <ConfigProvider
+            theme={{
+              token: {
+                colorPrimary: "#001529",
+                colorLink: "#ffffff",
+              },
+            }}
+          >
+            <SettingsProvider
+              settings={settings}
+              isSetupRequired={isSetupRequired}
+            >
+              {children}
+            </SettingsProvider>
+          </ConfigProvider>
+        </AntdRegistry>
       </body>
     </html>
   );

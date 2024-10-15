@@ -7,7 +7,6 @@ import LayoutRouter from "@/components/LayoutRouter";
 import SetupPage from "@/components/SetupPage";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { GlobalSettings, SETTINGS_KEYS } from "@/config/settingKeys";
-import AntdStyleRegistry from "@/components/AntdStyleRegistry";
 
 interface SettingsProviderProps {
   children: React.ReactNode;
@@ -56,13 +55,11 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   }
 
   return (
-    <AntdStyleRegistry>
-      <SessionProvider>
-        <UserProvider>
-          <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter>
-        </UserProvider>
-      </SessionProvider>
-    </AntdStyleRegistry>
+    <SessionProvider>
+      <UserProvider>
+        <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter>
+      </UserProvider>
+    </SessionProvider>
   );
 };
 
