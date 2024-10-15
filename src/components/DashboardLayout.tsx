@@ -133,28 +133,57 @@ const iconMapper: { [key: string]: React.ReactNode } = {
   FileOutlined: <FileOutlined />,
 };
 
-interface DashboardLayoutProps {
+const getMenuItems = (menuData: MenuItem[]) => {
+  return menuData.map((menu) => {
+    if (menu.children && menu.children.length > 0) {
+      return {
+        key: menu.key,
+        icon: iconMapper[menu.icon || ""],
+        label: <span style={{ color: "white" }}>{menu.label}</span>,
+        children: menu.children.map((child) => ({
+          key: child.key,
+          icon: iconMapper[child.icon || ""],
+          label: (
+            <Link href={child.link || "#"} passHref>
+              <Button type="link" style={{ padding: 0, color: "white" }}>
+                {child.label}
+              </Button>
+            </Link>
+          ),
+        })),
+      };
+    } else {
+      return {
+        key: menu.key,
+        icon: iconMapper[menu.icon || ""],
+        label: (
+          <Link href={menu.link || "#"} passHref>
+            <Button type="link" style={{ padding: 0, color: "white" }}>
+              {menu.label}
+            </Button>
+          </Link>
+        ),
+      };
+    }
+  });
+};
+
+const DashboardLayout: React.FC<{
   children: React.ReactNode;
   settings: Record<string, any>;
-}
-
-const DashboardLayout: React.FC<DashboardLayoutProps> = ({
-  children,
-  settings,
-}) => {
+}> = ({ children, settings }) => {
   const { user } = useContext(UserContext);
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 767 });
-
-  const handleDrawerToggle = () => {
-    setDrawerVisible(!drawerVisible);
-  };
-
   const pathname = usePathname();
   const selectedKey = menuData
     .flatMap((item) => [item, ...(item.children || [])])
     .find((item) => pathname.startsWith(item.link || ""))?.key;
+  const handleDrawerToggle = () => {
+    setDrawerVisible((prevState) => !prevState);
+  };
+
   return (
     <Layout style={{ minHeight: "100vh", background: "none" }}>
       {isMobile && (
@@ -171,48 +200,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             selectedKeys={[selectedKey || ""]}
             theme="dark"
             style={{ backgroundColor: "#001529" }}
-          >
-            {menuData.map((menu) => {
-              if (menu.children && menu.children.length > 0) {
-                return (
-                  <Menu.SubMenu
-                    key={menu.key}
-                    icon={iconMapper[menu.icon || ""]}
-                    title={<span style={{ color: "white" }}>{menu.label}</span>}
-                  >
-                    {menu.children.map((child) => (
-                      <Menu.Item
-                        key={child.key}
-                        icon={iconMapper[child.icon || ""]}
-                      >
-                        <Link href={child.link || "#"} passHref>
-                          <Button
-                            type="link"
-                            style={{ padding: 0, color: "white" }}
-                          >
-                            {child.label}
-                          </Button>
-                        </Link>
-                      </Menu.Item>
-                    ))}
-                  </Menu.SubMenu>
-                );
-              } else {
-                return (
-                  <Menu.Item key={menu.key} icon={iconMapper[menu.icon || ""]}>
-                    <Link href={menu.link || "#"} passHref>
-                      <Button
-                        type="link"
-                        style={{ padding: 0, color: "white" }}
-                      >
-                        {menu.label}
-                      </Button>
-                    </Link>
-                  </Menu.Item>
-                );
-              }
-            })}
-          </Menu>
+            items={getMenuItems(menuData)}
+          />
         </Drawer>
       )}
       {!isMobile && (
@@ -274,48 +263,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </Button>
             </Link>
           </div>
-          <Menu theme="dark" mode="inline" selectedKeys={[selectedKey || ""]}>
-            {menuData.map((menu) => {
-              if (menu.children && menu.children.length > 0) {
-                return (
-                  <Menu.SubMenu
-                    key={menu.key}
-                    icon={iconMapper[menu.icon || ""]}
-                    title={<span style={{ color: "white" }}>{menu.label}</span>}
-                  >
-                    {menu.children.map((child) => (
-                      <Menu.Item
-                        key={child.key}
-                        icon={iconMapper[child.icon || ""]}
-                      >
-                        <Link href={child.link || "#"} passHref>
-                          <Button
-                            type="link"
-                            style={{ padding: 0, color: "white" }}
-                          >
-                            {child.label}
-                          </Button>
-                        </Link>
-                      </Menu.Item>
-                    ))}
-                  </Menu.SubMenu>
-                );
-              } else {
-                return (
-                  <Menu.Item key={menu.key} icon={iconMapper[menu.icon || ""]}>
-                    <Link href={menu.link || "#"} passHref>
-                      <Button
-                        type="link"
-                        style={{ padding: 0, color: "white" }}
-                      >
-                        {menu.label}
-                      </Button>
-                    </Link>
-                  </Menu.Item>
-                );
-              }
-            })}
-          </Menu>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[selectedKey || ""]}
+            items={getMenuItems(menuData)}
+          />
         </Sider>
       )}
       <Layout
