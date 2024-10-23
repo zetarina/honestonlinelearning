@@ -1,8 +1,10 @@
 import { Model, Types } from "mongoose";
 import { ApplicationLevelCourse, Course } from "../models/CourseModel";
-import { Enrollment, enrollmentsModelName } from "../models/EnrollmentModel";
+import { enrollmentsModelName } from "../models/EnrollmentModel";
 import dbConnect from "@/utils/db";
 import CourseModel from "../models/CourseModel";
+
+const SERVER_URL = process.env.SERVER_URL || "https://your-server.com";
 
 class UserCourseRepository {
   private courseModel: Model<Course>;
@@ -11,9 +13,12 @@ class UserCourseRepository {
     this.courseModel = CourseModel;
   }
 
-  async getAllUserCourses(
-    userId?: string | null
-  ): Promise<ApplicationLevelCourse[]> {
+  private appendServerUrl(url: string | undefined): string | null {
+    if (!url) return null;
+    return url.startsWith("/") ? `${SERVER_URL}${url}` : url;
+  }
+
+  async getAllUserCourses(userId?: string | null): Promise<ApplicationLevelCourse[]> {
     await dbConnect();
 
     const userIdObj = userId ? new Types.ObjectId(userId) : null;
@@ -40,34 +45,27 @@ class UserCourseRepository {
                 as: "userEnrollment",
               },
             },
-            {
-              $unwind: {
-                path: "$userEnrollment",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
+            { $unwind: { path: "$userEnrollment", preserveNullAndEmptyArrays: true } },
           ]
         : []),
 
       {
         $addFields: {
-          isEnrolled: {
-            $cond: [{ $gt: ["$userEnrollment", null] }, true, false],
-          },
+          isEnrolled: { $gt: ["$userEnrollment", null] },
           enrollmentExpired: {
-            $cond: [
-              {
-                $and: [
-                  { $ne: ["$userEnrollment", null] },
-                  { $ne: ["$userEnrollment.expires_at", null] },
-                  { $lt: ["$userEnrollment.expires_at", new Date()] },
-                ],
-              },
-              true,
-              false,
+            $and: [
+              { $ne: ["$userEnrollment.expires_at", null] },
+              { $lt: ["$userEnrollment.expires_at", new Date()] },
             ],
           },
           expires_at: { $ifNull: ["$userEnrollment.expires_at", null] },
+          thumbnailUrl: {
+            $cond: {
+              if: { $regexMatch: { input: "$thumbnailUrl", regex: /^\/.*/ } },
+              then: { $concat: [SERVER_URL, "$thumbnailUrl"] },
+              else: "$thumbnailUrl",
+            },
+          },
           chapters: {
             $map: {
               input: "$chapters",
@@ -76,12 +74,7 @@ class UserCourseRepository {
                 title: "$$chapter.title",
                 resources: {
                   $cond: [
-                    {
-                      $and: [
-                        { $eq: ["$isEnrolled", true] },
-                        { $eq: ["$enrollmentExpired", false] },
-                      ],
-                    },
+                    { $and: [{ $eq: ["$isEnrolled", true] }, { $eq: ["$enrollmentExpired", false] }] },
                     "$$chapter.resources",
                     [],
                   ],
@@ -93,30 +86,8 @@ class UserCourseRepository {
                     in: {
                       title: "$$video.title",
                       duration: "$$video.duration",
-                      url: {
-                        $cond: [
-                          {
-                            $and: [
-                              { $eq: ["$isEnrolled", true] },
-                              { $eq: ["$enrollmentExpired", false] },
-                            ],
-                          },
-                          "$$video.url", 
-                          null, 
-                        ],
-                      },
-                      type: {
-                        $cond: [
-                          {
-                            $and: [
-                              { $eq: ["$isEnrolled", true] },
-                              { $eq: ["$enrollmentExpired", false] },
-                            ],
-                          },
-                          "$$video.type", 
-                          null, 
-                        ],
-                      },
+                      url: this.appendServerUrl("$$video.url"),
+                      type: "$$video.type",
                     },
                   },
                 },
@@ -125,27 +96,20 @@ class UserCourseRepository {
           },
         },
       },
-      {
-        $project: {
-          userEnrollment: 0,
-        },
-      },
+      { $project: { userEnrollment: 0 } },
     ]);
+
     return result as ApplicationLevelCourse[];
   }
-  async getUserCourseById(
-    courseId: string,
-    userId?: string | null
-  ): Promise<ApplicationLevelCourse | null> {
+
+  async getUserCourseById(courseId: string, userId?: string | null): Promise<ApplicationLevelCourse | null> {
     await dbConnect();
 
     const courseIdObj = new Types.ObjectId(courseId);
     const userIdObj = userId ? new Types.ObjectId(userId) : null;
 
     const result = await this.courseModel.aggregate([
-      {
-        $match: { _id: courseIdObj },
-      },
+      { $match: { _id: courseIdObj } },
 
       ...(userIdObj
         ? [
@@ -168,39 +132,20 @@ class UserCourseRepository {
                 as: "userEnrollment",
               },
             },
-            {
-              $unwind: {
-                path: "$userEnrollment",
-                preserveNullAndEmptyArrays: true,
-              },
-            },
+            { $unwind: { path: "$userEnrollment", preserveNullAndEmptyArrays: true } },
           ]
         : []),
 
       {
         $addFields: {
-          isEnrolled: {
-            $cond: [{ $gt: ["$userEnrollment", null] }, true, false],
-          },
+          isEnrolled: { $gt: ["$userEnrollment", null] },
           enrollmentExpired: {
-            $cond: [
-              {
-                $and: [
-                  { $ne: ["$userEnrollment", null] },
-                  { $ne: ["$userEnrollment.expires_at", null] },
-                  { $lt: ["$userEnrollment.expires_at", new Date()] },
-                ],
-              },
-              true,
-              false,
+            $and: [
+              { $ne: ["$userEnrollment.expires_at", null] },
+              { $lt: ["$userEnrollment.expires_at", new Date()] },
             ],
           },
           expires_at: { $ifNull: ["$userEnrollment.expires_at", null] },
-        },
-      },
-
-      {
-        $addFields: {
           chapters: {
             $map: {
               input: "$chapters",
@@ -209,12 +154,7 @@ class UserCourseRepository {
                 title: "$$chapter.title",
                 resources: {
                   $cond: [
-                    {
-                      $and: [
-                        { $eq: ["$isEnrolled", true] },
-                        { $eq: ["$enrollmentExpired", false] },
-                      ],
-                    },
+                    { $and: [{ $eq: ["$isEnrolled", true] }, { $eq: ["$enrollmentExpired", false] }] },
                     "$$chapter.resources",
                     [],
                   ],
@@ -226,30 +166,8 @@ class UserCourseRepository {
                     in: {
                       title: "$$video.title",
                       duration: "$$video.duration",
-                      url: {
-                        $cond: [
-                          {
-                            $and: [
-                              { $eq: ["$isEnrolled", true] },
-                              { $eq: ["$enrollmentExpired", false] },
-                            ],
-                          },
-                          "$$video.url", 
-                          null, 
-                        ],
-                      },
-                      type: {
-                        $cond: [
-                          {
-                            $and: [
-                              { $eq: ["$isEnrolled", true] },
-                              { $eq: ["$enrollmentExpired", false] },
-                            ],
-                          },
-                          "$$video.type", 
-                          null, 
-                        ],
-                      },
+                      url: this.appendServerUrl("$$video.url"),
+                      type: "$$video.type",
                     },
                   },
                 },
@@ -258,12 +176,7 @@ class UserCourseRepository {
           },
         },
       },
-
-      {
-        $project: {
-          userEnrollment: 0,
-        },
-      },
+      { $project: { userEnrollment: 0 } },
     ]);
 
     return result.length > 0 ? (result[0] as ApplicationLevelCourse) : null;

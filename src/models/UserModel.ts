@@ -17,6 +17,12 @@ export enum PointTransactionType {
 
 export const usersModelName: string = "users";
 
+export interface DeviceToken {
+  deviceName: string;
+  token: string;
+  createdAt: Date;
+}
+
 export interface PointTransaction {
   type: PointTransactionType;
   points: number;
@@ -37,7 +43,7 @@ export interface User extends Document {
   pointTransactions: PointTransaction[];
   pointsBalance: number;
   role: UserRole;
-  tokens: string[];
+  devices: DeviceToken[];
   created_at: Date;
   updated_at: Date;
   avatar: string;
@@ -50,13 +56,15 @@ const pointTransactionSchema = new Schema({
     required: true,
   },
   points: { type: Number, required: true },
-  paymentId: {
-    type: Schema.Types.ObjectId,
-    ref: "Payment",
-    sparse: true,
-  },
+  paymentId: { type: Schema.Types.ObjectId, ref: "Payment", sparse: true },
   date: { type: Date, default: Date.now },
   courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+});
+
+const deviceTokenSchema = new Schema({
+  deviceName: { type: String, required: true },
+  token: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const userSchema = new Schema(
@@ -67,33 +75,32 @@ const userSchema = new Schema(
     email: { type: String, unique: true, required: true, trim: true },
     hashedPassword: { type: String, required: true },
     salt: { type: String, required: true },
-    avatar: {
-      type: String,
-      required: true,
-      default: "/images/default-avatar.webp",
-    },
+    avatar: { type: String, default: "/images/default-avatar.webp" },
     pointTransactions: [pointTransactionSchema],
     role: {
       type: String,
       enum: Object.values(UserRole),
       default: UserRole.STUDENT,
     },
-    tokens: [{ type: String, default: [] }],
+    devices: [deviceTokenSchema],
   },
   { timestamps: true }
 );
 
 userSchema.virtual("pointsBalance").get(function () {
-  return this.pointTransactions?.reduce((total, transaction) => {
-    return total + (transaction.points || 0);
-  }, 0) || 0;
+  return (
+    this.pointTransactions?.reduce(
+      (total, transaction) => total + (transaction.points || 0),
+      0
+    ) || 0
+  );
 });
 
 userSchema.set("toObject", { virtuals: true });
 userSchema.set("toJSON", { virtuals: true });
 
 const User =
-  mongoose.models?.[usersModelName] ||
+  mongoose.models[usersModelName] ||
   mongoose.model<User>(usersModelName, userSchema);
 
 export default User;

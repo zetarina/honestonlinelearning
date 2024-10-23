@@ -20,6 +20,7 @@ async function authMiddleware(
   // Ensure authorizationHeader is not null and has the correct Bearer format
   if (authorizationHeader?.startsWith("Bearer ")) {
     const tokenParts = authorizationHeader.split(" ");
+    console.log(tokenParts)
     
     // Check if the token is present after splitting
     if (tokenParts.length === 2) {

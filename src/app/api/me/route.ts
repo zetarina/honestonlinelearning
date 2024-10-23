@@ -23,7 +23,7 @@ async function handleGetUserProfileRequest(
     }
 
     const { hashedPassword, salt, tokens, ...safeUser } = user.toObject();
-
+    console.log(safeUser)
     return NextResponse.json(safeUser);
   } catch (error) {
     console.error("Error fetching user profile:", error);

@@ -8,7 +8,7 @@ export enum CourseLevel {
 export enum VideoType {
   YOUTUBE = "youtube",
   VIMEO = "vimeo",
-  UPLOAD = "upload",
+  AWS = "aws",
 }
 
 export enum DurationType {
@@ -33,11 +33,28 @@ export interface Chapter {
   videos: Video[];
   resources: string[];
 }
-export interface ApplicationLevelCourse extends Course {
+export interface ApplicationLevelCourse
+  extends Omit<
+    Course,
+    | "created_at"
+    | "updated_at"
+    | "expires_at"
+    | "startDate"
+    | "endDate"
+    | "liveSessionStart"
+    | "liveSessionEnd"
+  > {
   isEnrolled: boolean;
   enrollmentExpired?: boolean;
-  expires_at?: Date;
+  startDate?: string;
+  endDate?: string;
+  expires_at?: string;
+  liveSessionStart?: string;
+  liveSessionEnd?: string;
+  created_at?: string;
+  updated_at?: string;
 }
+
 export interface Course extends Document {
   _id: mongoose.Types.ObjectId | string;
   title: string;
@@ -83,7 +100,7 @@ const courseSchema = new Schema(
     highlights: { type: String, trim: true },
     price: { type: Number, required: true },
     category: { type: String, required: true },
-    thumbnailUrl: { type: String , trim: true },
+    thumbnailUrl: { type: String, trim: true },
     level: {
       type: String,
       enum: Object.values(CourseLevel),

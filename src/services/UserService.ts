@@ -1,6 +1,6 @@
 import { PointTransactionType, User, UserRole } from "../models/UserModel";
 import crypto from "crypto";
-
+import jwt from "jsonwebtoken";
 import { userRepository } from "@/repositories/";
 
 class UserService {
@@ -15,12 +15,14 @@ class UserService {
   async getSafeUserByEmail(email: string): Promise<Partial<User> | null> {
     return userRepository.findSafeByEmail(email);
   }
+
   async getUsersByRole(
     role: UserRole,
     safe: boolean = false
   ): Promise<Partial<User>[] | User[]> {
     return userRepository.findByRole(role);
   }
+
   async getAllUsers(): Promise<User[]> {
     return userRepository.findAll();
   }
@@ -34,10 +36,7 @@ class UserService {
   }
 
   async createUser(userData: Partial<User>): Promise<User> {
-    const { hashedPassword, salt } = this.hashPassword(
-      userData.password!.toString()
-    );
-
+    const { hashedPassword, salt } = this.hashPassword(userData.password!);
     userData.hashedPassword = hashedPassword;
     userData.salt = salt;
 
@@ -67,14 +66,40 @@ class UserService {
     userId: string,
     points: number,
     type: PointTransactionType,
-    details?: {
-      courseId?: string;
-      reason?: string;
-    }
+    details?: { courseId?: string; reason?: string }
   ): Promise<User | null> {
     return userRepository.manipulatePoints(userId, type, points, details);
   }
 
+  // Save refresh token with device name
+  async saveDeviceToken(
+    userId: string,
+    deviceName: string,
+    refreshToken: string
+  ): Promise<void> {
+    return userRepository.saveDeviceToken(userId, deviceName, refreshToken);
+  }
+
+  // Check if a device token exists for the user
+  async findDeviceToken(
+    userId: string,
+    refreshToken: string
+  ): Promise<boolean> {
+    return userRepository.findDeviceToken(userId, refreshToken);
+  }
+
+  // Delete a specific device token
+  async deleteDeviceToken(userId: string, refreshToken: string): Promise<void> {
+    return userRepository.deleteDeviceToken(userId, refreshToken);
+  }
+
+  // Get all devices associated with a user
+  async getAllUserDevices(userId: string): Promise<User["devices"]> {
+    return userRepository.getAllDevices(userId);
+  }
+  async findRefreshToken(refreshToken: string): Promise<User | null> {
+    return userRepository.findRefreshToken(refreshToken);
+  }
   private hashPassword(password: string): {
     hashedPassword: string;
     salt: string;
@@ -83,7 +108,6 @@ class UserService {
     const hashedPassword = crypto
       .pbkdf2Sync(password, salt, 1000, 64, `sha512`)
       .toString(`hex`);
-
     return { hashedPassword, salt };
   }
 
@@ -91,8 +115,17 @@ class UserService {
     const hash = crypto
       .pbkdf2Sync(inputPassword, user.salt, 1000, 64, `sha512`)
       .toString(`hex`);
-
     return user.hashedPassword === hash;
+  }
+
+  generateAccessToken(userId: string) {
+    return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
+  }
+
+  generateRefreshToken(userId: string) {
+    return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET!, {
+      expiresIn: "30d",
+    });
   }
 }
 

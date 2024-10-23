@@ -1,21 +1,41 @@
-import React from "react";
-import SettingsProvider from "@/providers/SettingsProvider";
-import AntdStyleRegistry from "@/components/AntdStyleRegistry";
+import React from 'react';
+import SettingsProvider from '@/providers/SettingsProvider';
+import SettingService from '@/services/SettingService';
+import AntdStyleRegistry from '@/components/AntdStyleRegistry';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
-const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Static values for settings
-  const settings = {
-    siteName: "My Online Learning App",
-    siteUrl: "https://myonlinelearningapp.com",
-  };
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // Fetch settings on the server-side since layout is a server component
+  const settingService = new SettingService();
+  const settings = await settingService.getPublicSettings();
 
-  // Check if setup is required (for example, if settings are missing)
+  // Handle the case where settings are unavailable
+  if (!settings) {
+    return (
+      <html lang="en">
+        <body
+          style={{
+            margin: 0,
+            padding: 0,
+            width: '100%',
+            minHeight: '100vh',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <LoadingSpinner />
+        </body>
+      </html>
+    );
+  }
+
   const isSetupRequired = !settings.siteName || !settings.siteUrl;
 
   return (
     <html lang="en">
       <head>
-        <title>{settings.siteName || "Online Learning App"}</title>
+        <title>{settings.siteName || 'Online Learning App'}</title>
         <link rel="icon" href="/images/favicon.ico" />
         <link rel="prefetch" href="/_next/static/css/app/page.css" />
       </head>
@@ -23,10 +43,10 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         style={{
           margin: 0,
           padding: 0,
-          width: "100%",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <AntdStyleRegistry>
@@ -37,6 +57,4 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </body>
     </html>
   );
-};
-
-export default AppLayout;
+}
