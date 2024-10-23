@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useContext } from "react";
-import { Layout, Menu, Drawer, Avatar, Space, Typography, Button } from "antd";
+import { Layout, Menu, Drawer, Avatar, Space, Typography } from "antd";
 import {
   HomeOutlined,
   LogoutOutlined,
@@ -40,32 +40,39 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
       callbackUrl: "/",
     });
   };
+
   const menuItems = [
     {
       key: "home",
       icon: <HomeOutlined />,
       label: (
-        <Button type="link" href="/" style={{ padding: 0 }}>
-          Home
-        </Button>
+        <Link href="/" passHref legacyBehavior>
+          <Text strong style={{ cursor: "pointer" }}>
+            Home
+          </Text>
+        </Link>
       ),
     },
     {
       key: "courses",
       icon: <BookOutlined />,
       label: (
-        <Button type="link" href="/courses" style={{ padding: 0 }}>
-          Courses
-        </Button>
+        <Link href="/courses" passHref legacyBehavior>
+          <Text strong style={{ cursor: "pointer" }}>
+            Courses
+          </Text>
+        </Link>
       ),
     },
     {
       key: "top-up",
       icon: <WalletOutlined />,
       label: (
-        <Button type="link" href="/top-up" style={{ padding: 0 }}>
-          Top Up
-        </Button>
+        <Link href="/top-up" passHref legacyBehavior>
+          <Text strong style={{ cursor: "pointer" }}>
+            Top Up
+          </Text>
+        </Link>
       ),
     },
     ...(user
@@ -74,18 +81,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
             key: "dashboard",
             icon: <UserOutlined />,
             label: (
-              <Button type="link" href="/dashboard" style={{ padding: 0 }}>
-                Dashboard
-              </Button>
+              <Link href="/dashboard" passHref legacyBehavior>
+                <Text strong style={{ cursor: "pointer" }}>
+                  Dashboard
+                </Text>
+              </Link>
             ),
           },
           {
             key: "logout",
             icon: <LogoutOutlined />,
             label: (
-              <Button type="link" onClick={handleLogout} style={{ padding: 0 }}>
+              <Text strong onClick={handleLogout} style={{ cursor: "pointer" }}>
                 Logout
-              </Button>
+              </Text>
             ),
           },
         ]
@@ -94,9 +103,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
             key: "login",
             icon: <UserOutlined />,
             label: (
-              <Button type="link" href="/login" style={{ padding: 0 }}>
-                Login
-              </Button>
+              <Link href="/login" passHref legacyBehavior>
+                <Text strong style={{ cursor: "pointer" }}>
+                  Login
+                </Text>
+              </Link>
             ),
           },
         ]),
@@ -108,11 +119,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         style={{
           display: "flex",
           alignItems: "center",
-          background: "#ffffff", // Set background to white
+          background: "#ffffff",
           justifyContent: "space-between",
           height: "100px",
           padding: "0 20px",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)", // Add shadow to give depth
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
         }}
       >
         <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
@@ -151,9 +162,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
           ) : (
             <Menu
               mode="horizontal"
-              theme="light" // Set theme to light for white background
+              theme="light"
               items={menuItems}
-              style={{ background: "#ffffff", color: "#000" }} // Set menu text color
+              style={{ background: "#ffffff", color: "#000" }}
             />
           )}
           {!isMobile && user && (
@@ -174,49 +185,44 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
 
       <Footer
         style={{
-          backgroundColor: "#ffffff", // Light background color for footer
-          color: "#000", // Dark text color for footer
+          backgroundColor: "#ffffff",
+          color: "#000",
           textAlign: "center",
           padding: "20px 20px",
         }}
       >
         <div style={{ marginBottom: "20px" }}>
           <Space size="large">
-            <Button
-              type="link"
-              href="https://facebook.com"
-              icon={<FacebookOutlined />}
-              target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
-              href="https://twitter.com"
-              icon={<TwitterOutlined />}
-              target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
-              href="https://instagram.com"
-              icon={<InstagramOutlined />}
-              target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
-              href="https://linkedin.com"
-              icon={<LinkedinOutlined />}
-              target="_blank"
-              style={{ color: "#000" }}
-            />
-            <Button
-              type="link"
-              href="https://github.com"
-              icon={<GithubOutlined />}
-              target="_blank"
-              style={{ color: "#000" }}
-            />
+            <Link href="https://facebook.com" passHref legacyBehavior>
+              <Text strong style={{ cursor: "pointer" }}>
+                <FacebookOutlined style={{ marginRight: "8px" }} />
+                Facebook
+              </Text>
+            </Link>
+            <Link href="https://twitter.com" passHref legacyBehavior>
+              <Text strong style={{ cursor: "pointer" }}>
+                <TwitterOutlined style={{ marginRight: "8px" }} />
+                Twitter
+              </Text>
+            </Link>
+            <Link href="https://instagram.com" passHref legacyBehavior>
+              <Text strong style={{ cursor: "pointer" }}>
+                <InstagramOutlined style={{ marginRight: "8px" }} />
+                Instagram
+              </Text>
+            </Link>
+            <Link href="https://linkedin.com" passHref legacyBehavior>
+              <Text strong style={{ cursor: "pointer" }}>
+                <LinkedinOutlined style={{ marginRight: "8px" }} />
+                LinkedIn
+              </Text>
+            </Link>
+            <Link href="https://github.com" passHref legacyBehavior>
+              <Text strong style={{ cursor: "pointer" }}>
+                <GithubOutlined style={{ marginRight: "8px" }} />
+                GitHub
+              </Text>
+            </Link>
           </Space>
         </div>
 

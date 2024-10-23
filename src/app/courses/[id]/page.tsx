@@ -17,7 +17,7 @@ const CoursePage: React.FC = () => {
 
   const [course, setCourse] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null); // Track error as a string message
+  const [error, setError] = React.useState<string | null>(null);
 
   const fetchCourseData = useCallback(async () => {
     if (!courseId) return;
@@ -26,15 +26,14 @@ const CoursePage: React.FC = () => {
       setLoading(true);
       setError(null);
       const courseResponse = await axios.get(`/api/me/courses/${courseId}`);
-      
-      // If course is not found, handle 404 or empty data
+
       if (!courseResponse.data) {
         setError("not-found");
       } else {
         setCourse(courseResponse.data);
       }
     } catch (err) {
-      setError("network"); // Handle network or API errors
+      setError("network");
       message.error("Failed to load course data.");
     } finally {
       setLoading(false);
@@ -56,7 +55,6 @@ const CoursePage: React.FC = () => {
       return <LoadingSpinner />;
     }
 
-    // Handle network or API error
     if (error === "network") {
       return (
         <Card
@@ -68,7 +66,10 @@ const CoursePage: React.FC = () => {
           }}
         >
           <Title level={3}>Failed to Load Course</Title>
-          <Text>There was a problem fetching the course data. Please check your connection or try again later.</Text>
+          <Text>
+            There was a problem fetching the course data. Please check your
+            connection or try again later.
+          </Text>
           <Button
             onClick={fetchCourseData}
             type="primary"
@@ -80,7 +81,6 @@ const CoursePage: React.FC = () => {
       );
     }
 
-    // Handle course not found scenario
     if (error === "not-found" || !course) {
       return (
         <Card
@@ -93,7 +93,8 @@ const CoursePage: React.FC = () => {
         >
           <Title level={3}>Course Not Found</Title>
           <Text>
-            Sorry, we couldn&apos;t find the course you&apos;re looking for. It may have been removed or you don&apos;t have access.
+            Sorry, we couldn&apos;t find the course you&apos;re looking for. It
+            may have been removed or you don&apos;t have access.
           </Text>
           <Button
             type="primary"
@@ -111,7 +112,6 @@ const CoursePage: React.FC = () => {
       );
     }
 
-    // Render course content or purchase section
     return course.isEnrolled ? (
       <CourseContent course={course} />
     ) : (

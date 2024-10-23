@@ -161,7 +161,7 @@ const FeaturedCoursesSection: React.FC = () => {
                   </div>
                 </div>
 
-                <Link href={`/courses/${course._id}`} passHref>
+                <Link href={`/courses/${course._id}`}>
                   <Button
                     type="primary"
                     size="middle"
@@ -169,8 +169,8 @@ const FeaturedCoursesSection: React.FC = () => {
                       marginTop: "20px",
                       width: "100%",
                       borderRadius: "8px",
-                      background: "#1890ff",
-                      borderColor: "#1890ff",
+                      background: "#001529",
+                      borderColor: "#001529",
                     }}
                   >
                     {course.isEnrolled ? "View Course" : "Buy Course"}
@@ -184,14 +184,23 @@ const FeaturedCoursesSection: React.FC = () => {
 
       {courses.length > 4 && (
         <div style={{ textAlign: "center", marginTop: "40px" }}>
-          <Button
-            type="link"
-            size="large"
-            onClick={() => console.log("Navigating to /courses")}
-            href="/courses"
-          >
-            View All Courses
-          </Button>
+          <Link href={`/courses`}>
+            <Text
+              strong
+              style={{
+                fontSize: "16px",
+                cursor: "pointer",
+                padding: "10px 20px", 
+                borderColor: "#001529", 
+                border: "1px solid",
+                borderRadius: "8px",
+                color: "#001529",
+                display: "inline-block",
+              }}
+            >
+              View All Courses
+            </Text>
+          </Link>
         </div>
       )}
     </div>
