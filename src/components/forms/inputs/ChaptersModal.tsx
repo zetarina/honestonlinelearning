@@ -3,6 +3,7 @@ import { Modal, Button, Card, Input, Form } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { Chapter } from "@/models/CourseModel";
 import VideoModal from "./VideoModal";
+import ResourceModal from "./ResourceModal";
 
 interface ChaptersModalProps {
   isOpen: boolean;
@@ -18,10 +19,11 @@ const ChaptersModal: React.FC<ChaptersModalProps> = ({
   setChapters,
 }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
+  const [isResourceModalOpen, setIsResourceModalOpen] =
+    useState<boolean>(false);
   const [currentChapterIndex, setCurrentChapterIndex] = useState<number>(-1);
 
   const addChapter = () => {
-    // Ensure that each new chapter has initialized videos and resources arrays
     setChapters([...chapters, { title: "", videos: [], resources: [] }]);
   };
 
@@ -35,6 +37,11 @@ const ChaptersModal: React.FC<ChaptersModalProps> = ({
   const openVideoModal = (index: number) => {
     setCurrentChapterIndex(index);
     setIsVideoModalOpen(true);
+  };
+
+  const openResourceModal = (index: number) => {
+    setCurrentChapterIndex(index);
+    setIsResourceModalOpen(true);
   };
 
   return (
@@ -68,22 +75,43 @@ const ChaptersModal: React.FC<ChaptersModalProps> = ({
               }}
             />
           </Form.Item>
+
           <Button
             type="dashed"
             block
             onClick={() => openVideoModal(chapterIndex)}
             icon={<PlusOutlined />}
+            style={{ marginBottom: "8px" }}
           >
             Manage Videos
           </Button>
+
+          <Button
+            type="dashed"
+            block
+            onClick={() => openResourceModal(chapterIndex)}
+            icon={<PlusOutlined />}
+          >
+            Manage Resources
+          </Button>
         </Card>
       ))}
+
       <Button type="dashed" block onClick={addChapter} icon={<PlusOutlined />}>
         Add Chapter
       </Button>
+
       <VideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
+        chapterIndex={currentChapterIndex}
+        chapters={chapters}
+        setChapters={setChapters}
+      />
+
+      <ResourceModal
+        isOpen={isResourceModalOpen}
+        onClose={() => setIsResourceModalOpen(false)}
         chapterIndex={currentChapterIndex}
         chapters={chapters}
         setChapters={setChapters}

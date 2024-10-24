@@ -1,7 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Layout, Typography, List, Button, Divider, Menu, Alert } from "antd";
+import {
+  Layout,
+  Typography,
+  List,
+  Button,
+  Divider,
+  Menu,
+  Alert,
+  Space,
+  Card,
+  Row,
+  Col,
+} from "antd";
 import {
   LeftOutlined,
   RightOutlined,
@@ -10,7 +22,7 @@ import {
   DownloadOutlined,
   MenuOutlined,
 } from "@ant-design/icons";
-import { Course } from "@/models/CourseModel";
+import { Course, CourseType, VideoType } from "@/models/CourseModel";
 import ReactPlayer from "react-player";
 import useBreakpoint from "antd/lib/grid/hooks/useBreakpoint";
 
@@ -24,72 +36,128 @@ interface CourseContentProps {
 const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
   const [selectedChapterIndex, setSelectedChapterIndex] = useState<number>(0);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number>(0);
-  const [isMobileSidebarVisible, setIsMobileSidebarVisible] =
-    useState<boolean>(false);
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [isMobileSidebarVisible, setIsMobileSidebarVisible] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const screens = useBreakpoint();
-
   const currentChapter = course.chapters?.[selectedChapterIndex];
   const currentVideo = currentChapter?.videos[selectedVideoIndex];
 
-  if (course.isLive && course.liveCourseUrl) {
+  const renderVideoPlayer = (video: { key: string; type: string }) => (
+    <ReactPlayer
+      url={
+        video.type === VideoType.YOUTUBE
+          ? `https://youtu.be/${video.key}`
+          : `https://aws.bucket.url/${video.key}`
+      }
+      controls
+      width="100%"
+      height="500px"
+    />
+  );
+
+  const renderLiveCourse = () => {
+    const currentTime = Date.now(); // Get the current time
+
     return (
-      <Layout style={{ minHeight: "100vh", padding: "20px" }}>
-        <Content style={{ background: "#fff", padding: "20px" }}>
-          <Title level={2}>{course.title}</Title>
-          <Text>{course.description}</Text>
-          <Divider />
+      <Layout
+        style={{
+          minHeight: "100vh",
+          padding: "20px",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Content
+          style={{
+            background: "#fff",
+            padding: "20px",
+            borderRadius: "8px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Title level={2} style={{ marginBottom: "10px" }}>
+            {course.title}
+          </Title>
+          <Text style={{ fontSize: "16px", color: "#555" }}>
+            {course.description}
+          </Text>
+          <Divider style={{ margin: "20px 0" }} />
 
-          <Alert
-            message="This course is currently live."
-            description="You can join the live session using the link below."
-            type="info"
-            showIcon
-          />
+          <Row gutter={[16, 16]} style={{ display: "flex" }}>
+            {course.liveCourse?.sessions.map((session) => (
+              <Col key={session.dayOfWeek} span={8}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    height: "100%", // Ensure the card takes full height
+                    padding: "10px",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: "8px",
+                    background: "#f9f9f9",
+                  }}
+                >
+                  <Title
+                    level={4}
+                    style={{ marginBottom: "10px", textAlign: "center" }}
+                  >
+                    {session.dayOfWeek}
+                  </Title>
+                  <div>
+                    {session.slots.map((slot, index) => {
+                      const slotStartTime = new Date(
+                        slot.startTimeUTC
+                      ).getTime(); // Convert start time to timestamp
 
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <Button
-              type="primary"
-              icon={<VideoCameraOutlined />}
-              size="large"
-              href={course.liveCourseUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Join Live Session
-            </Button>
-          </div>
-
-          {course.zoomLinks && course.zoomLinks.length > 0 && (
-            <div style={{ marginTop: "20px" }}>
-              <Divider />
-              <Title level={4}>Other Zoom Links for Upcoming Sessions:</Title>
-              <List
-                itemLayout="horizontal"
-                dataSource={course.zoomLinks}
-                renderItem={(link, index) => (
-                  <List.Item>
-                    <List.Item.Meta
-                      title={
-                        <a
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                      return (
+                        <Space
+                          key={index}
+                          style={{
+                            marginBottom: 8,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
                         >
-                          Zoom Link {index + 1}
-                        </a>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            </div>
-          )}
+                          <Text
+                            style={{
+                              fontWeight: "500",
+                              color: "#333",
+                              flex: 1,
+                            }}
+                          >
+                            {`${slot.startTimeUTC} - ${slot.endTimeUTC}`}
+                          </Text>
+                          {currentTime >= slotStartTime ? ( // Check if current time is past the slot start time
+                            <Button
+                              type="primary"
+                              href={slot.zoomLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              icon={<VideoCameraOutlined />}
+                              style={{ marginLeft: "10px" }}
+                              ghost
+                            >
+                              Join Session
+                            </Button>
+                          ) : (
+                            <Text style={{ color: "#999" }}>
+                              Session Not Started
+                            </Text>
+                          )}
+                        </Space>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Col>
+            ))}
+          </Row>
         </Content>
       </Layout>
     );
-  }
+  };
 
   const handleNextVideo = () => {
     if (selectedVideoIndex < (currentChapter?.videos.length || 0) - 1) {
@@ -105,15 +173,13 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
       setSelectedVideoIndex(selectedVideoIndex - 1);
     } else if (selectedChapterIndex > 0) {
       const previousChapter = course.chapters?.[selectedChapterIndex - 1];
-      if (previousChapter && previousChapter.videos.length > 0) {
-        setSelectedChapterIndex(selectedChapterIndex - 1);
-        setSelectedVideoIndex(previousChapter.videos.length - 1);
-      }
+      setSelectedChapterIndex(selectedChapterIndex - 1);
+      setSelectedVideoIndex(previousChapter.videos.length - 1);
     }
   };
 
-  const handleChapterChange = (chapterIndex: number) => {
-    setSelectedChapterIndex(chapterIndex);
+  const handleChapterChange = (index: number) => {
+    setSelectedChapterIndex(index);
     setSelectedVideoIndex(0);
   };
 
@@ -124,25 +190,23 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
     onClick: () => handleChapterChange(index),
   }));
 
+  if (course.courseType === CourseType.LIVE) {
+    return renderLiveCourse();
+  }
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* Hamburger Menu for Mobile */}
       {!screens.lg && (
         <Button
           icon={<MenuOutlined />}
           type="primary"
-          style={{
-            margin: "20px",
-            position: "relative",
-            zIndex: 1000,
-          }}
           onClick={() => setIsMobileSidebarVisible(true)}
+          style={{ margin: "20px" }}
         >
           Chapters
         </Button>
       )}
 
-      {/* Mobile Sidebar - Fixed and Fullscreen */}
       {isMobileSidebarVisible && (
         <div
           style={{
@@ -152,7 +216,6 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             width: "100vw",
             height: "100vh",
             backgroundColor: "#fff",
-            zIndex: 1001,
             overflowY: "scroll",
           }}
         >
@@ -160,34 +223,18 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             type="text"
             icon={<MenuOutlined />}
             onClick={() => setIsMobileSidebarVisible(false)}
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              zIndex: 1002,
-              fontSize: "18px",
-            }}
+            style={{ position: "absolute", top: "20px", right: "20px" }}
           />
-          <Sider
-            width="100%"
-            style={{
-              background: "#fff",
-              padding: "40px 20px",
-            }}
-          >
-            <Title level={4}>{collapsed ? <MenuOutlined /> : "Chapters"}</Title>
-
+          <Sider width="100%" style={{ background: "#fff", padding: "20px" }}>
             <Menu
               mode="inline"
               selectedKeys={[`${selectedChapterIndex}`]}
               items={menuItems}
-              onClick={() => setIsMobileSidebarVisible(false)}
             />
           </Sider>
         </div>
       )}
 
-      {/* Sidebar for larger screens */}
       {screens.lg && (
         <Sider
           width={250}
@@ -204,27 +251,8 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             type="primary"
             icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{
-              position: "absolute",
-              top: "50%",
-              right: collapsed ? "-20px" : "-10px",
-              transform: "translateY(-50%)",
-              zIndex: 1000,
-              backgroundColor: "#1890ff",
-              borderRadius: "50%",
-            }}
+            style={{ marginBottom: 16 }}
           />
-          <Title
-            level={4}
-            style={{
-              textAlign: "center", // Centers the text or icon
-              width: "100%", // Ensures full width
-              marginBottom: "20px", // Optional: removes extra margin for better centering
-            }}
-          >
-            {collapsed ? <MenuOutlined /> : "Chapters"}
-          </Title>
-
           <Menu
             mode="inline"
             selectedKeys={[`${selectedChapterIndex}`]}
@@ -233,30 +261,20 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
         </Sider>
       )}
 
-      {/* Content Area */}
       <Layout style={{ padding: "20px" }}>
         <Content style={{ background: "#fff", padding: "20px" }}>
           <Title level={3}>{currentChapter?.title}</Title>
           <Divider />
 
-          {/* Video Player */}
-          <div style={{ position: "relative", marginBottom: "20px" }}>
-            {currentVideo && (
-              <ReactPlayer
-                url={currentVideo.url}
-                controls={true}
-                width="100%"
-                height="500px"
-                config={{
-                  youtube: { playerVars: { showinfo: 1 } },
-                  vimeo: { playerOptions: { title: true } },
-                }}
-              />
-            )}
-          </div>
+          {currentVideo && renderVideoPlayer(currentVideo)}
 
-          {/* Navigation Buttons */}
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: "20px",
+            }}
+          >
             <Button
               type="primary"
               disabled={selectedChapterIndex === 0 && selectedVideoIndex === 0}
@@ -267,10 +285,6 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             </Button>
             <Button
               type="primary"
-              disabled={
-                selectedChapterIndex === course.chapters!.length - 1 &&
-                selectedVideoIndex === currentChapter!.videos.length - 1
-              }
               onClick={handleNextVideo}
               icon={<RightOutlined />}
             >
@@ -279,56 +293,23 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
           </div>
 
           <Divider />
-          {/* List of videos in current chapter */}
-          <Title level={4}>Videos in this Chapter</Title>
+          <Title level={4}>Resources</Title>
           <List
-            itemLayout="horizontal"
-            dataSource={currentChapter?.videos}
-            renderItem={(video, index) => (
-              <List.Item
-                onClick={() => setSelectedVideoIndex(index)}
-                style={{
-                  cursor: "pointer",
-                  background:
-                    index === selectedVideoIndex ? "#e6f7ff" : "transparent",
-                }}
-              >
-                <List.Item.Meta
-                  title={video.title}
-                  description={`Duration: ${video.duration} mins`}
-                />
+            dataSource={currentChapter?.resources || []}
+            renderItem={(resource) => (
+              <List.Item>
+                <Button
+                  type="link"
+                  href={resource.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  icon={<DownloadOutlined />}
+                >
+                  {resource.name}
+                </Button>
               </List.Item>
             )}
           />
-
-          <Divider />
-          {/* Resources */}
-          <Title level={4}>Resources</Title>
-          {currentChapter?.resources.length ? (
-            <List
-              itemLayout="horizontal"
-              dataSource={currentChapter.resources}
-              renderItem={(resource, index) => (
-                <List.Item>
-                  <List.Item.Meta
-                    title={
-                      <a
-                        href={resource}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button type="link" icon={<DownloadOutlined />}>
-                          Download Resource {index + 1}
-                        </Button>
-                      </a>
-                    }
-                  />
-                </List.Item>
-              )}
-            />
-          ) : (
-            <Text>No resources available for this chapter.</Text>
-          )}
         </Content>
       </Layout>
     </Layout>

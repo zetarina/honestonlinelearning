@@ -18,6 +18,7 @@ import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { UsergroupAddOutlined } from "@ant-design/icons";
 import ExpandableContent from "./ExpandableContent";
+import moment from "moment";
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -69,6 +70,12 @@ const FeaturedCoursesSection: React.FC = () => {
         {displayedCourses.map((course) => {
           const imageUrl =
             course.thumbnailUrl || "/images/default-thumbnail.jpg";
+
+          const isEnrollmentActive = !course.enrollmentExpired
+            ? true
+            : moment().isBefore(moment.utc(course.enrollmentExpired));
+
+          const buttonLabel = isEnrollmentActive ? "View Course" : "Buy Course";
 
           return (
             <Col xs={24} sm={12} lg={6} key={course._id.toString()}>
@@ -169,11 +176,12 @@ const FeaturedCoursesSection: React.FC = () => {
                       marginTop: "20px",
                       width: "100%",
                       borderRadius: "8px",
-                      background: "#001529",
-                      borderColor: "#001529",
+                      background: isEnrollmentActive ? "#001529" : "#ff4d4f",
+                      borderColor: isEnrollmentActive ? "#001529" : "#ff4d4f",
                     }}
+                    disabled={!isEnrollmentActive}
                   >
-                    {course.isEnrolled ? "View Course" : "Buy Course"}
+                    {buttonLabel}
                   </Button>
                 </Link>
               </Card>
@@ -190,8 +198,8 @@ const FeaturedCoursesSection: React.FC = () => {
               style={{
                 fontSize: "16px",
                 cursor: "pointer",
-                padding: "10px 20px", 
-                borderColor: "#001529", 
+                padding: "10px 20px",
+                borderColor: "#001529",
                 border: "1px solid",
                 borderRadius: "8px",
                 color: "#001529",

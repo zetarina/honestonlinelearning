@@ -1,49 +1,25 @@
-import React, { useEffect, useState } from "react";
-import {
-  Form,
-  Input,
-  List,
-  Select,
-  Space,
-  Divider,
-  TimePicker,
-  Button,
-  Card,
-} from "antd";
+import React, { useState } from "react";
+import { Modal, Button, Card, Space, TimePicker, Input, Select } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { LiveSession, ZoomSlot } from "@/models/CourseModel";
 
-const { Option } = Select;
-
-interface ZoomSlot {
-  startTimeUTC: string;
-  endTimeUTC: string;
-  zoomLink: string;
+interface LiveSessionsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  sessions: LiveSession[];
+  setSessions: React.Dispatch<React.SetStateAction<LiveSession[]>>;
 }
 
-interface LiveSession {
-  dayOfWeek: string;
-  slots: ZoomSlot[];
-}
-
-interface LiveCourseInfoProps {
-  initialSessions: LiveSession[];
-  onSessionsChange: (sessions: LiveSession[]) => void;
-}
-
-const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
-  initialSessions,
-  onSessionsChange,
+const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
+  isOpen,
+  onClose,
+  sessions,
+  setSessions,
 }) => {
-  const [sessions, setSessions] = useState<LiveSession[]>(initialSessions);
-
-  useEffect(() => {
-    setSessions(initialSessions);
-  }, [initialSessions]);
-
-  const addSlot = (day: string) => {
+  const addSlotToDay = (dayOfWeek: string) => {
     const existingSession = sessions.find(
-      (session) => session.dayOfWeek === day
+      (session) => session.dayOfWeek === dayOfWeek
     );
 
     if (existingSession) {
@@ -54,15 +30,13 @@ const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
       });
       setSessions([...sessions]);
     } else {
-      const newSessions = [
+      setSessions([
         ...sessions,
         {
-          dayOfWeek: day,
+          dayOfWeek,
           slots: [{ startTimeUTC: "", endTimeUTC: "", zoomLink: "" }],
         },
-      ];
-      setSessions(newSessions);
-      onSessionsChange(newSessions);
+      ]);
     }
   };
 
@@ -70,10 +44,9 @@ const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
     const updatedSessions = [...sessions];
     updatedSessions[dayIndex].slots.splice(slotIndex, 1);
     if (updatedSessions[dayIndex].slots.length === 0) {
-      updatedSessions.splice(dayIndex, 1);
+      updatedSessions.splice(dayIndex, 1); // Remove day if no slots left
     }
     setSessions(updatedSessions);
-    onSessionsChange(updatedSessions);
   };
 
   const updateSlot = (
@@ -85,15 +58,20 @@ const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
     const updatedSessions = [...sessions];
     updatedSessions[dayIndex].slots[slotIndex][field] = value;
     setSessions(updatedSessions);
-    onSessionsChange(updatedSessions);
   };
 
   return (
-    <div style={{ padding: "16px" }}>
+    <Modal
+      title="Manage Live Sessions"
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={800}
+    >
       <Select
         placeholder="Select a Day to Add"
+        onChange={(day) => addSlotToDay(day)}
         style={{ width: "100%", marginBottom: "16px" }}
-        onChange={(day) => addSlot(day)}
       >
         {[
           "Monday",
@@ -104,19 +82,24 @@ const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
           "Saturday",
           "Sunday",
         ].map((day) => (
-          <Option key={day} value={day}>
+          <Select.Option key={day} value={day}>
             {day}
-          </Option>
+          </Select.Option>
         ))}
       </Select>
-
-      <Divider>Zoom Slots by Day</Divider>
 
       {sessions.map((session, dayIndex) => (
         <Card
           key={session.dayOfWeek}
-          title={session.dayOfWeek}
+          title={`Sessions on ${session.dayOfWeek}`}
           style={{ marginBottom: "16px" }}
+          extra={
+            <Button
+              type="link"
+              icon={<MinusCircleOutlined />}
+              onClick={() => setSessions(sessions.filter((_, i) => i !== dayIndex))}
+            />
+          }
         >
           {session.slots.map((slot, slotIndex) => (
             <Space
@@ -158,7 +141,12 @@ const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
                 placeholder="Zoom Link"
                 value={slot.zoomLink}
                 onChange={(e) =>
-                  updateSlot(dayIndex, slotIndex, "zoomLink", e.target.value)
+                  updateSlot(
+                    dayIndex,
+                    slotIndex,
+                    "zoomLink",
+                    e.target.value
+                  )
                 }
                 style={{ flex: 2 }}
               />
@@ -172,7 +160,7 @@ const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
 
           <Button
             type="dashed"
-            onClick={() => addSlot(session.dayOfWeek)}
+            onClick={() => addSlotToDay(session.dayOfWeek)}
             icon={<PlusOutlined />}
             style={{ width: "100%", marginTop: "8px" }}
           >
@@ -180,8 +168,8 @@ const LiveCourseInfo: React.FC<LiveCourseInfoProps> = ({
           </Button>
         </Card>
       ))}
-    </div>
+    </Modal>
   );
 };
 
-export default LiveCourseInfo;
+export default LiveSessionsModal;

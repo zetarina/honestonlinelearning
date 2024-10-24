@@ -16,13 +16,14 @@ export interface Enrollment extends Document {
   course_id: Types.ObjectId | string;
   enrolled_at: Date;
   expires_at?: Date;
+  isPermanent: boolean;
   status: EnrollmentStatus;
   pointsSpent: number;
   user?: User;
   course?: Course;
 }
 
-const enrollmentSchema = new Schema(
+const enrollmentSchema = new Schema<Enrollment>(
   {
     user_id: {
       type: Schema.Types.ObjectId,
@@ -36,6 +37,7 @@ const enrollmentSchema = new Schema(
     },
     enrolled_at: { type: Date, default: Date.now },
     expires_at: { type: Date, default: null },
+    isPermanent: { type: Boolean, default: false },
     pointsSpent: { type: Number, required: true },
     status: {
       type: String,

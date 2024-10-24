@@ -16,6 +16,102 @@ interface ImageSelectionProps {
   onChange?: (value: string) => void;
 }
 
+const localImages: Image[] = [
+  // Root level images
+  {
+    _id: "1",
+    url: "/images/android-chrome-192x192.png",
+    name: "Android Chrome 192",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "2",
+    url: "/images/android-chrome-512x512.png",
+    name: "Android Chrome 512",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "3",
+    url: "/images/apple-touch-icon.png",
+    name: "Apple Touch Icon",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "4",
+    url: "/images/default-avatar.webp",
+    name: "Default Avatar",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "5",
+    url: "/images/favicon-16x16.png",
+    name: "Favicon 16x16",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "6",
+    url: "/images/favicon-32x32.png",
+    name: "Favicon 32x32",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "7",
+    url: "/images/favicon.ico",
+    name: "Favicon ICO",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "8",
+    url: "/images/hero.jpg",
+    name: "Hero Image",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "9",
+    url: "/images/logo.png",
+    name: "Logo",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  // Courses directory images
+  {
+    _id: "11",
+    url: "/images/courses/ItCC.png",
+    name: "ITCC Course",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "12",
+    url: "/images/courses/MYS.png",
+    name: "MYS Course",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "13",
+    url: "/images/courses/PGtHR.png",
+    name: "PGtHR Course",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "14",
+    url: "/images/courses/SHC.png",
+    name: "SHC Course",
+    service: "Local",
+    createdAt: new Date().toISOString(),
+  },
+];
+
 const ImageSelection: React.FC<ImageSelectionProps> = ({
   value = "",
   onChange,
@@ -46,9 +142,10 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
       setLoading(true);
       try {
         const response = await axios.get("/api/images");
-        setImages(response.data);
-        setFilteredImages(response.data);
-        setVisibleImages(response.data.slice(0, batchSize));
+        const allImages = [...response.data, ...localImages]; // Combine API and local images
+        setImages(allImages);
+        setFilteredImages(allImages);
+        setVisibleImages(allImages.slice(0, batchSize));
         setImageIndex(batchSize);
       } catch (error) {
         message.error("Failed to fetch images.");
@@ -120,12 +217,19 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
 
   return (
     <>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
         <Input
           value={url}
           placeholder="image URL or path (e.g. /images/my-image.jpg)"
           onChange={handleUrlChange}
-          style={{ borderRadius: "4px", width: "70%" }}
+          style={{ borderRadius: "4px", flexGrow: 1 }} // Apply flex-grow here
         />
         <Button
           icon={<PictureOutlined />}

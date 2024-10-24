@@ -100,7 +100,7 @@ userSchema.set("toObject", { virtuals: true });
 userSchema.set("toJSON", { virtuals: true });
 
 const User =
-  mongoose.models[usersModelName] ||
+  mongoose.models?.[usersModelName] ||
   mongoose.model<User>(usersModelName, userSchema);
 
 export default User;

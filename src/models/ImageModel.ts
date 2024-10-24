@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
-
+export const imageModelName = "images";
 export interface Image extends Document {
   url: string;
   name: string;
@@ -15,5 +15,6 @@ const ImageSchema = new Schema<Image>({
 });
 
 const ImageModel =
-  mongoose.models.Image || mongoose.model<Image>("Image", ImageSchema);
+  mongoose.models?.[imageModelName] ||
+  mongoose.model<Image>(imageModelName, ImageSchema);
 export default ImageModel;

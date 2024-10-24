@@ -5,76 +5,94 @@ import {
   Button,
   Card,
   InputNumber,
-  Checkbox,
   Select,
+  DatePicker,
   message,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { Course, CourseLevel, DurationType } from "@/models/CourseModel";
 import axios from "axios";
-import { CheckboxChangeEvent } from "antd/es/checkbox";
-import moment from "moment";
+import dayjs, { Dayjs } from "dayjs";
+import {
+  ApplicationLevelCourse,
+  CourseLevel,
+  CourseType,
+  SubscriptionDurationType,
+  LiveSession,
+} from "@/models/CourseModel";
+import { useRouter } from "next/navigation";
 import ChaptersModal from "@/components/forms/inputs/ChaptersModal";
 import ImageSelection from "@/components/forms/inputs/ImageSelection";
 import InstructorSelection from "@/components/forms/inputs/InstructorSelection";
 import LiveCourseInfo from "@/components/forms/inputs/LiveCourseInfo";
 import RichTextEditor from "@/components/forms/inputs/RichTextEditor";
-import { useRouter } from "next/navigation";
+import LiveSessionsModal from "./inputs/LiveSessionsModal";
 
 const { Option } = Select;
+const { RangePicker } = DatePicker;
 
 interface CourseFormProps {
-  course?: Course;
+  course?: ApplicationLevelCourse;
 }
 
 const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
   const [form] = Form.useForm();
-  const [chapters, setChapters] = useState(course?.chapters || []);
-  const [isLive, setIsLive] = useState<boolean>(course?.isLive || false);
-  const [isChaptersModalOpen, setIsChaptersModalOpen] = useState(false);
   const router = useRouter();
+  const [chapters, setChapters] = useState(course?.chapters || []);
+  const [sessions, setSessions] = useState(course?.liveCourse?.sessions || []);
+  const [isChaptersModalOpen, setIsChaptersModalOpen] = useState(false);
+  const [isLiveSessionsModalOpen, setIsLiveSessionsModalOpen] = useState(false);
 
   useEffect(() => {
     if (course) {
       form.setFieldsValue({
         ...course,
-        startDate: course.startDate ? moment(course.startDate) : null,
-        endDate: course.endDate ? moment(course.endDate) : null,
-        recurrence: course.recurrence || "1",
-        thumbnailUrl: course.thumbnailUrl,
+        subscription: {
+          dateRange: course.subscription?.startDate
+            ? [
+                dayjs(course.subscription.startDate),
+                dayjs(course.subscription.endDate),
+              ]
+            : [],
+          recurrenceType:
+            course.subscription?.recurrenceType ||
+            SubscriptionDurationType.PERMANENT,
+        },
       });
-      setChapters(course.chapters || []);
-      setIsLive(course.isLive || false);
     }
   }, [course, form]);
 
-  const handleLiveChange = (e: CheckboxChangeEvent) => {
-    setIsLive(e.target.checked);
-    if (e.target.checked) {
-      setChapters([]);
-    }
+  const handleCourseTypeChange = (value: CourseType) => {
+    if (value === CourseType.LIVE) setChapters([]);
   };
 
-  const handleDurationTypeChange = (value: DurationType) => {
-    if (value === DurationType.PERMANENT) {
-      form.setFieldsValue({ recurrence: undefined });
-    }
+  const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
+    form.setFieldsValue({
+      "subscription.startDate": dates ? dates[0] : null,
+      "subscription.endDate": dates ? dates[1] : null,
+    });
+  };
+
+  const onSessionsChange = (updatedSessions: LiveSession[]) => {
+    setSessions(updatedSessions);
   };
 
   const onFinish = async (values: any) => {
-    const courseData = {
+    const { dateRange, ...otherSubscription } = values.subscription || {};
+    const startDate = dateRange ? dateRange[0]?.toISOString() : null;
+    const endDate = dateRange ? dateRange[1]?.toISOString() : null;
+
+    const courseData: ApplicationLevelCourse = {
       ...values,
-      chapters: isLive ? [] : chapters,
-      liveCourseUrl: isLive ? values.liveCourseUrl : undefined,
-      startDate: values.startDate
-        ? moment(values.startDate).toISOString()
-        : null,
-      endDate: values.endDate ? moment(values.endDate).toISOString() : null,
+      chapters,
+      subscription: {
+        ...otherSubscription,
+        startDate,
+        endDate,
+      },
+      liveCourse: { sessions },
     };
 
-    if (values.durationType === DurationType.PERMANENT) {
-      delete courseData.recurrence;
-    }
+    console.log(courseData); // Debugging output
 
     try {
       if (course?._id) {
@@ -86,9 +104,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
       }
       router.push("/dashboard/courses");
     } catch (error) {
-      message.error(
-        "An error occurred while saving the course. Please try again."
-      );
+      message.error("An error occurred while saving the course.");
     }
   };
 
@@ -111,14 +127,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
           name="description"
           rules={[
             { required: true, message: "Please provide a course description." },
-          ]}
-        />
-
-        <RichTextEditor
-          label="Course Highlights"
-          name="highlights"
-          rules={[
-            { required: true, message: "Please provide course highlights." },
           ]}
         />
 
@@ -145,6 +153,20 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         </Form.Item>
 
         <Form.Item
+          label="Course Type"
+          name="courseType"
+          rules={[{ required: true }]}
+        >
+          <Select onChange={handleCourseTypeChange}>
+            {Object.values(CourseType).map((type) => (
+              <Option key={type} value={type}>
+                {type.replace("-", " ").toUpperCase()}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
           label="Thumbnail"
           name="thumbnailUrl"
           rules={[{ required: true, message: "Please select a thumbnail!" }]}
@@ -155,61 +177,113 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         <InstructorSelection />
 
         <Form.Item
-          label="Course Duration"
-          name="durationType"
+          label="Subscription Type"
+          name={["subscription", "recurrenceType"]}
           rules={[
-            {
-              required: true,
-              message: "Please select the course duration type!",
-            },
+            { required: true, message: "Please select the subscription type!" },
           ]}
         >
-          <Select
-            onChange={handleDurationTypeChange}
-            placeholder="Select duration type"
-          >
-            {Object.values(DurationType).map((type) => (
+          <Select placeholder="Select subscription type">
+            {Object.values(SubscriptionDurationType).map((type) => (
               <Option key={type} value={type}>
-                {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
+                {type.replace("_", " ").toUpperCase()}
               </Option>
             ))}
           </Select>
         </Form.Item>
 
-        {form.getFieldValue("durationType") !== DurationType.PERMANENT && (
-          <Form.Item
-            label="Recurrence"
-            name="recurrence"
-            rules={[
-              { required: true, message: "Please specify the recurrence!" },
-            ]}
-          >
-            <InputNumber
-              min={1}
-              placeholder="e.g. 1"
-              style={{ width: "100%" }}
-            />
-          </Form.Item>
-        )}
-
-        <Form.Item name="isLive" valuePropName="checked">
-          <Checkbox onChange={handleLiveChange}>
-            Is this a live course?
-          </Checkbox>
+        <Form.Item
+          noStyle
+          shouldUpdate={(prevValues, curValues) =>
+            prevValues.subscription?.recurrenceType !==
+            curValues.subscription?.recurrenceType
+          }
+        >
+          {({ getFieldValue }) => {
+            const type = getFieldValue(["subscription", "recurrenceType"]);
+            if (
+              type &&
+              type !== SubscriptionDurationType.PERMANENT &&
+              type !== SubscriptionDurationType.SCHOOL_YEAR &&
+              type !== SubscriptionDurationType.FIXED
+            ) {
+              return (
+                <Form.Item
+                  label="Recurrence"
+                  name={["subscription", "recurrence"]}
+                  rules={[
+                    { required: true, message: "Please enter recurrence!" },
+                  ]}
+                >
+                  <InputNumber
+                    min={1}
+                    placeholder="e.g. 1"
+                    style={{ width: "100%" }}
+                  />
+                </Form.Item>
+              );
+            }
+            return null;
+          }}
         </Form.Item>
 
-        {isLive ? (
-          <LiveCourseInfo />
-        ) : (
+        <Form.Item
+          noStyle
+          shouldUpdate={(prevValues, curValues) =>
+            prevValues.subscription?.recurrenceType !==
+            curValues.subscription?.recurrenceType
+          }
+        >
+          {({ getFieldValue }) =>
+            getFieldValue(["subscription", "recurrenceType"]) ==
+              SubscriptionDurationType.FIXED && (
+              <Form.Item
+                label="Date Range"
+                name={["subscription", "dateRange"]}
+                rules={[
+                  { required: true, message: "Please select the date range!" },
+                ]}
+              >
+                <RangePicker
+                  style={{ width: "100%" }}
+                  onChange={handleDateRangeChange}
+                />
+              </Form.Item>
+            )
+          }
+        </Form.Item>
+
+        {form.getFieldValue("courseType") === CourseType.LIVE && (
           <>
             <Button
               type="dashed"
+              style={{ marginTop: 20 }}
+              onClick={() => setIsLiveSessionsModalOpen(true)}
+              block
+              icon={<PlusOutlined />}
+            >
+              Manage Live Sessions
+            </Button>
+            <LiveSessionsModal
+              isOpen={isLiveSessionsModalOpen}
+              onClose={() => setIsLiveSessionsModalOpen(false)}
+              sessions={sessions}
+              setSessions={setSessions}
+            />
+          </>
+        )}
+        {form.getFieldValue("courseType") === CourseType.SELF_PACED && (
+          <>
+            <Button
+              type="dashed"
+              style={{ marginTop: 20 }}
               onClick={() => setIsChaptersModalOpen(true)}
               block
               icon={<PlusOutlined />}
             >
               Manage Chapters
             </Button>
+
             <ChaptersModal
               isOpen={isChaptersModalOpen}
               onClose={() => setIsChaptersModalOpen(false)}

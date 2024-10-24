@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Button, Card, Input, Form, InputNumber, Select } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { Chapter, VideoType } from "@/models/CourseModel";
+import { Chapter, Video, VideoType } from "@/models/CourseModel";
 
 const { Option } = Select;
 
@@ -20,20 +20,16 @@ const VideoModal: React.FC<VideoModalProps> = ({
   chapters,
   setChapters,
 }) => {
-  // Safeguard: Ensure the chapter exists before accessing its videos
+  // Ensure the chapter exists before rendering
   const chapter = chapters[chapterIndex];
-
-  if (!chapter) {
-    return null; // Return null or handle the error when chapter is invalid
-  }
+  if (!chapter) return null;
 
   const addVideo = () => {
     const updatedChapters = [...chapters];
     updatedChapters[chapterIndex].videos.push({
       title: "",
-      url: "",
+      key: "", // Updated to align with your Video model (replacing `url`)
       type: VideoType.YOUTUBE,
-      duration: 0,
     });
     setChapters(updatedChapters);
   };
@@ -43,6 +39,16 @@ const VideoModal: React.FC<VideoModalProps> = ({
     updatedChapters[chapterIndex].videos = updatedChapters[
       chapterIndex
     ].videos.filter((_, index) => index !== videoIndex);
+    setChapters(updatedChapters);
+  };
+
+  const updateVideoField = (
+    videoIndex: number,
+    field: keyof Video,
+    value: any
+  ) => {
+    const updatedChapters = [...chapters];
+    updatedChapters[chapterIndex].videos[videoIndex][field] = value;
     setChapters(updatedChapters);
   };
 
@@ -67,56 +73,42 @@ const VideoModal: React.FC<VideoModalProps> = ({
           }
           style={{ marginBottom: "16px" }}
         >
-          <Form.Item label="Video Title">
+          <Form.Item
+            label="Video Title"
+            rules={[{ required: true, message: "Please enter a video title." }]}
+          >
             <Input
               value={video.title}
-              onChange={(e) => {
-                const updatedChapters = [...chapters];
-                updatedChapters[chapterIndex].videos[videoIndex].title =
-                  e.target.value;
-                setChapters(updatedChapters);
-              }}
+              onChange={(e) =>
+                updateVideoField(videoIndex, "title", e.target.value)
+              }
             />
           </Form.Item>
-          <Form.Item label="Video URL">
+
+          <Form.Item
+            label="Video Key (URL or Identifier)"
+            rules={[{ required: true, message: "Please enter a valid key!" }]}
+          >
             <Input
-              value={video.url}
-              onChange={(e) => {
-                const updatedChapters = [...chapters];
-                updatedChapters[chapterIndex].videos[videoIndex].url =
-                  e.target.value;
-                setChapters(updatedChapters);
-              }}
+              value={video.key}
+              onChange={(e) =>
+                updateVideoField(videoIndex, "key", e.target.value)
+              }
             />
           </Form.Item>
-          <Form.Item label="Duration (seconds)">
-            <InputNumber
-              value={video.duration}
-              min={1}
-              onChange={(value) => {
-                const updatedChapters = [...chapters];
-                updatedChapters[chapterIndex].videos[videoIndex].duration =
-                  value || 0;
-                setChapters(updatedChapters);
-              }}
-            />
-          </Form.Item>
+
           <Form.Item label="Video Type">
             <Select
               value={video.type}
-              onChange={(value) => {
-                const updatedChapters = [...chapters];
-                updatedChapters[chapterIndex].videos[videoIndex].type = value;
-                setChapters(updatedChapters);
-              }}
+              onChange={(value) => updateVideoField(videoIndex, "type", value)}
             >
               <Option value={VideoType.YOUTUBE}>YouTube</Option>
-              <Option value={VideoType.VIMEO}>Vimeo</Option>
-              <Option value={VideoType.UPLOAD}>Upload</Option>
+              <Option value={VideoType.AWS}>AWS</Option>
             </Select>
           </Form.Item>
         </Card>
       ))}
+
       <Button type="dashed" block onClick={addVideo} icon={<PlusOutlined />}>
         Add Video
       </Button>

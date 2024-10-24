@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useEffect, useCallback, useMemo, useContext } from "react";
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useContext,
+  useState,
+} from "react";
 import { useParams } from "next/navigation";
 import { message, Card, Typography, Button } from "antd";
 import CourseContent from "@/components/CourseContent";
@@ -8,6 +14,7 @@ import CoursePurchase from "@/components/CoursePurchase";
 import UserContext from "@/contexts/UserContext";
 import axios from "axios";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import moment from "moment";
 
 const { Title, Text } = Typography;
 
@@ -15,9 +22,9 @@ const CoursePage: React.FC = () => {
   const { id: courseId } = useParams();
   const { refreshUser, user } = useContext(UserContext);
 
-  const [course, setCourse] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCourseData = useCallback(async () => {
     if (!courseId) return;
@@ -49,6 +56,14 @@ const CoursePage: React.FC = () => {
     fetchCourseData();
     refreshUser();
   }, [fetchCourseData, refreshUser]);
+
+  const isEnrollmentActive = useMemo(() => {
+    return (
+      course &&
+      (!course.enrollmentExpired ||
+        moment().isBefore(moment.utc(course.enrollmentExpired)))
+    );
+  }, [course]);
 
   const courseContent = useMemo(() => {
     if (loading) {
@@ -112,7 +127,7 @@ const CoursePage: React.FC = () => {
       );
     }
 
-    return course.isEnrolled ? (
+    return isEnrollmentActive ? (
       <CourseContent course={course} />
     ) : (
       <CoursePurchase
@@ -120,7 +135,14 @@ const CoursePage: React.FC = () => {
         onPurchaseSuccess={handlePurchaseSuccess}
       />
     );
-  }, [loading, error, course, fetchCourseData, handlePurchaseSuccess]);
+  }, [
+    loading,
+    error,
+    course,
+    fetchCourseData,
+    handlePurchaseSuccess,
+    isEnrollmentActive,
+  ]);
 
   return (
     <div style={{ backgroundColor: "#f9f9f9", paddingBottom: "60px" }}>

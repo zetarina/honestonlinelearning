@@ -1,10 +1,13 @@
-import React from 'react';
-import SettingsProvider from '@/providers/SettingsProvider';
-import SettingService from '@/services/SettingService';
-import AntdStyleRegistry from '@/components/AntdStyleRegistry';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import React from "react";
+import SettingsProvider from "@/providers/SettingsProvider";
+import SettingService from "@/services/SettingService";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   // Fetch settings on the server-side since layout is a server component
   const settingService = new SettingService();
   const settings = await settingService.getPublicSettings();
@@ -17,11 +20,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           style={{
             margin: 0,
             padding: 0,
-            width: '100%',
-            minHeight: '100vh',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
+            width: "100%",
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
           <LoadingSpinner />
@@ -35,7 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <html lang="en">
       <head>
-        <title>{settings.siteName || 'Online Learning App'}</title>
+        <title>{settings.siteName || "Online Learning App"}</title>
         <link rel="icon" href="/images/favicon.ico" />
         <link rel="prefetch" href="/_next/static/css/app/page.css" />
       </head>
@@ -43,17 +46,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         style={{
           margin: 0,
           padding: 0,
-          width: '100%',
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
+          width: "100%",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <AntdStyleRegistry>
-          <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
-            {children}
-          </SettingsProvider>
-        </AntdStyleRegistry>
+        <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
+          {children}
+        </SettingsProvider>
       </body>
     </html>
   );

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/utils/db";
 import EnrollmentService from "@/services/EnrollmentService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { UserRole } from "@/models/UserModel";
@@ -28,14 +27,7 @@ async function handleCreateEnrollmentRequest(
 ) {
   try {
     const body = await request.json();
-    const {
-      userId: frontendUserId,
-      courseId,
-      isPermanent,
-      durationType,
-      durationCount,
-      expiresAt,
-    } = body;
+    const { userId: frontendUserId, courseId, isPermanent, expiresAt } = body;
 
     if (!frontendUserId || !courseId) {
       return NextResponse.json(
@@ -48,19 +40,10 @@ async function handleCreateEnrollmentRequest(
       frontendUserId,
       courseId
     );
+
     if (existingEnrollment) {
       return NextResponse.json(
         { error: "User is already enrolled in this course" },
-        { status: 400 }
-      );
-    }
-
-    if (!isPermanent && !expiresAt && (!durationType || !durationCount)) {
-      return NextResponse.json(
-        {
-          error:
-            "Either isPermanent must be true, or a valid combination of durationType and durationCount, or an expiresAt date must be provided.",
-        },
         { status: 400 }
       );
     }
@@ -69,9 +52,7 @@ async function handleCreateEnrollmentRequest(
       frontendUserId,
       courseId,
       isPermanent,
-      durationType,
-      durationCount,
-      expiresAt
+      expiresAt ? new Date(expiresAt) : undefined
     );
 
     return NextResponse.json(newEnrollment, { status: 201 });

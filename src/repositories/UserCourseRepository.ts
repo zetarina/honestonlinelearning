@@ -4,8 +4,6 @@ import { enrollmentsModelName } from "../models/EnrollmentModel";
 import dbConnect from "@/utils/db";
 import CourseModel from "../models/CourseModel";
 
-const SERVER_URL = process.env.SERVER_URL || "https://your-server.com";
-
 class UserCourseRepository {
   private courseModel: Model<Course>;
 
@@ -13,14 +11,10 @@ class UserCourseRepository {
     this.courseModel = CourseModel;
   }
 
-  private appendServerUrl(url: string | undefined): string | null {
-    if (!url) return null;
-    return url.startsWith("/") ? `${SERVER_URL}${url}` : url;
-  }
-
-  async getAllUserCourses(userId?: string | null): Promise<ApplicationLevelCourse[]> {
+  async getAllUserCourses(
+    userId?: string | null
+  ): Promise<ApplicationLevelCourse[]> {
     await dbConnect();
-
     const userIdObj = userId ? new Types.ObjectId(userId) : null;
 
     const result = await this.courseModel.aggregate([
@@ -45,13 +39,16 @@ class UserCourseRepository {
                 as: "userEnrollment",
               },
             },
-            { $unwind: { path: "$userEnrollment", preserveNullAndEmptyArrays: true } },
+            {
+              $unwind: {
+                path: "$userEnrollment",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
           ]
         : []),
-
       {
         $addFields: {
-          isEnrolled: { $gt: ["$userEnrollment", null] },
           enrollmentExpired: {
             $and: [
               { $ne: ["$userEnrollment.expires_at", null] },
@@ -59,13 +56,7 @@ class UserCourseRepository {
             ],
           },
           expires_at: { $ifNull: ["$userEnrollment.expires_at", null] },
-          thumbnailUrl: {
-            $cond: {
-              if: { $regexMatch: { input: "$thumbnailUrl", regex: /^\/.*/ } },
-              then: { $concat: [SERVER_URL, "$thumbnailUrl"] },
-              else: "$thumbnailUrl",
-            },
-          },
+          isenrollmentPermanent: "$userEnrollment.isPermanent",
           chapters: {
             $map: {
               input: "$chapters",
@@ -74,7 +65,12 @@ class UserCourseRepository {
                 title: "$$chapter.title",
                 resources: {
                   $cond: [
-                    { $and: [{ $eq: ["$isEnrolled", true] }, { $eq: ["$enrollmentExpired", false] }] },
+                    {
+                      $and: [
+                        { $eq: ["$enrollmentExpired", false] },
+                        { $eq: ["$userEnrollment", {}] },
+                      ],
+                    },
                     "$$chapter.resources",
                     [],
                   ],
@@ -85,8 +81,7 @@ class UserCourseRepository {
                     as: "video",
                     in: {
                       title: "$$video.title",
-                      duration: "$$video.duration",
-                      url: this.appendServerUrl("$$video.url"),
+                      key: "$$video.key", // No transformation, using `key` directly.
                       type: "$$video.type",
                     },
                   },
@@ -102,7 +97,10 @@ class UserCourseRepository {
     return result as ApplicationLevelCourse[];
   }
 
-  async getUserCourseById(courseId: string, userId?: string | null): Promise<ApplicationLevelCourse | null> {
+  async getUserCourseById(
+    courseId: string,
+    userId?: string | null
+  ): Promise<ApplicationLevelCourse | null> {
     await dbConnect();
 
     const courseIdObj = new Types.ObjectId(courseId);
@@ -110,7 +108,6 @@ class UserCourseRepository {
 
     const result = await this.courseModel.aggregate([
       { $match: { _id: courseIdObj } },
-
       ...(userIdObj
         ? [
             {
@@ -132,13 +129,16 @@ class UserCourseRepository {
                 as: "userEnrollment",
               },
             },
-            { $unwind: { path: "$userEnrollment", preserveNullAndEmptyArrays: true } },
+            {
+              $unwind: {
+                path: "$userEnrollment",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
           ]
         : []),
-
       {
         $addFields: {
-          isEnrolled: { $gt: ["$userEnrollment", null] },
           enrollmentExpired: {
             $and: [
               { $ne: ["$userEnrollment.expires_at", null] },
@@ -146,6 +146,7 @@ class UserCourseRepository {
             ],
           },
           expires_at: { $ifNull: ["$userEnrollment.expires_at", null] },
+          isenrollmentPermanent: "$userEnrollment.isPermanent",
           chapters: {
             $map: {
               input: "$chapters",
@@ -154,7 +155,12 @@ class UserCourseRepository {
                 title: "$$chapter.title",
                 resources: {
                   $cond: [
-                    { $and: [{ $eq: ["$isEnrolled", true] }, { $eq: ["$enrollmentExpired", false] }] },
+                    {
+                      $and: [
+                        { $eq: ["$enrollmentExpired", false] },
+                        { $eq: ["$userEnrollment", {}] },
+                      ],
+                    },
                     "$$chapter.resources",
                     [],
                   ],
@@ -165,8 +171,7 @@ class UserCourseRepository {
                     as: "video",
                     in: {
                       title: "$$video.title",
-                      duration: "$$video.duration",
-                      url: this.appendServerUrl("$$video.url"),
+                      key: "$$video.key", // Keeping `key` intact.
                       type: "$$video.type",
                     },
                   },

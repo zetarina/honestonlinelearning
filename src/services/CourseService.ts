@@ -1,4 +1,8 @@
-import { Course, DurationType } from "../models/CourseModel";
+import {
+  Course,
+  Subscription,
+  SubscriptionDurationType,
+} from "../models/CourseModel";
 import { PointTransactionType } from "../models/UserModel";
 import { Types } from "mongoose";
 import { EnrollmentStatus } from "../models/EnrollmentModel";
@@ -15,7 +19,7 @@ class CourseService {
   }
 
   async getCourseById(id: string): Promise<Course | null> {
-    return courseRepository.findById(id);
+    return courseRepository.findById(new Types.ObjectId(id));
   }
 
   async createCourse(courseData: Partial<Course>): Promise<Course> {
@@ -26,12 +30,12 @@ class CourseService {
     id: string,
     updateData: Partial<Course>
   ): Promise<Course | null> {
-    console.log(updateData)
-    return courseRepository.update(id, updateData);
+    console.log(updateData);
+    return courseRepository.update(new Types.ObjectId(id), updateData);
   }
 
   async deleteCourse(id: string): Promise<Course | null> {
-    return courseRepository.delete(id);
+    return courseRepository.delete(new Types.ObjectId(id));
   }
 
   async purchaseCourse(
@@ -43,9 +47,6 @@ class CourseService {
     );
     if (!course) throw new Error("Course not found");
 
-    const { durationType, recurrence } = course;
-    const durationCount = parseInt(recurrence || "1", 10);
-
     const user = await userRepository.manipulatePoints(
       userId,
       PointTransactionType.COURSE_PURCHASE,
@@ -55,33 +56,17 @@ class CourseService {
 
     if (!user) throw new Error("Failed to deduct points from the user");
 
-    let expires_at: Date | undefined = undefined;
-
-    if (durationType && durationType !== DurationType.PERMANENT) {
-      expires_at = new Date();
-      switch (durationType) {
-        case DurationType.DAY:
-          expires_at.setDate(expires_at.getDate() + durationCount);
-          break;
-        case DurationType.WEEK:
-          expires_at.setDate(expires_at.getDate() + durationCount * 7);
-          break;
-        case DurationType.MONTH:
-          expires_at.setMonth(expires_at.getMonth() + durationCount);
-          break;
-        case DurationType.YEAR:
-          expires_at.setFullYear(expires_at.getFullYear() + durationCount);
-          break;
-        default:
-          throw new Error("Invalid duration type");
-      }
-    }
+    const expires_at = this.calculateExpiry(course.subscription);
 
     const enrollment = await enrollmentRepository.create({
       user_id: new Types.ObjectId(userId),
       course_id: new Types.ObjectId(courseId),
       pointsSpent: course.price,
       expires_at,
+      isPermanent:
+        course.subscription.recurrenceType ===
+        SubscriptionDurationType.PERMANENT,
+      status: EnrollmentStatus.ACTIVE,
     });
 
     if (!enrollment) throw new Error("Failed to create enrollment");
@@ -130,6 +115,74 @@ class CourseService {
     enrollment.status = EnrollmentStatus.COMPLETED;
     await enrollmentRepository.update(enrollment._id, enrollment);
     return true;
+  }
+
+  /**
+   * Calculate the expiry date for a subscription.
+   */
+  private calculateExpiry(subscription: Subscription): Date | null {
+    const { recurrenceType, startDate, endDate, recurrence } = subscription;
+
+    switch (recurrenceType) {
+      case SubscriptionDurationType.PERMANENT:
+        return null; // No expiration for permanent subscriptions
+
+      case SubscriptionDurationType.FIXED:
+        if (!startDate || !endDate) {
+          throw new Error(
+            "Start date and end date are required for fixed subscriptions"
+          );
+        }
+        if (endDate <= startDate) {
+          throw new Error("End date must be after the start date");
+        }
+        return endDate; // Use the fixed end date for expiry
+
+      case SubscriptionDurationType.SCHOOL_YEAR:
+        return this.getSchoolYearEndDate(new Date());
+
+      default:
+        // Handle recurring subscriptions
+        const expires_at = new Date();
+        const recurrenceCount = parseInt(recurrence || "1", 10);
+
+        switch (recurrenceType) {
+          case SubscriptionDurationType.DAY:
+            expires_at.setDate(expires_at.getDate() + recurrenceCount);
+            break;
+          case SubscriptionDurationType.WEEK:
+            expires_at.setDate(expires_at.getDate() + recurrenceCount * 7);
+            break;
+          case SubscriptionDurationType.MONTH:
+            expires_at.setMonth(expires_at.getMonth() + recurrenceCount);
+            break;
+          case SubscriptionDurationType.YEAR:
+            expires_at.setFullYear(expires_at.getFullYear() + recurrenceCount);
+            break;
+          default:
+            throw new Error("Invalid subscription duration type");
+        }
+
+        return expires_at;
+    }
+  }
+
+  private getSchoolYearEndDate(currentDate: Date): Date {
+    const schoolYearEndMonth = 2; // March (0-indexed)
+    const schoolYearEndDay = 10;
+
+    const endDate = new Date(
+      currentDate.getFullYear(),
+      schoolYearEndMonth,
+      schoolYearEndDay
+    );
+
+    // If the current date is past January, extend to next year's March 10
+    if (currentDate > new Date(currentDate.getFullYear(), 0, 1)) {
+      endDate.setFullYear(currentDate.getFullYear() + 1);
+    }
+
+    return endDate;
   }
 }
 
