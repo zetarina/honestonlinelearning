@@ -14,7 +14,7 @@ import {
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Enrollment } from "@/models/EnrollmentModel";
-import moment from "moment";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
@@ -52,7 +52,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
       form.setFieldsValue({
         userId: enrollment.user_id,
         courseId: enrollment.course_id,
-        expiresAt: enrollment.expires_at ? moment(enrollment.expires_at) : null,
+        expiresAt: enrollment.expires_at ? dayjs(enrollment.expires_at) : null,
         status: enrollment.status,
         pointsSpent: enrollment.pointsSpent,
         isPermanent: enrollment.isPermanent,
@@ -67,9 +67,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
       const payload = {
         userId: values.userId,
         courseId: values.courseId,
-        expires_at: values.expiresAt
-          ? moment(values.expiresAt).toISOString()
-          : null,
+        expires_at: values.expiresAt ? values.expiresAt.toISOString() : null,
         status: values.status,
         pointsSpent: values.pointsSpent,
         isPermanent: values.isPermanent,

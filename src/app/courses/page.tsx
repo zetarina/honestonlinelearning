@@ -8,7 +8,11 @@ import { ApplicationLevelCourse } from "@/models/CourseModel";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import CacheImage from "@/components/CacheImage";
 import ExpandableContent from "@/components/ExpandableContent";
-import moment from "moment";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+// Extend Day.js with the UTC plugin
+dayjs.extend(utc);
 
 const { Meta } = Card;
 const { Title, Text } = Typography;
@@ -41,7 +45,7 @@ const CoursesPage: React.FC = () => {
   }
 
   if (!courses || courses.length === 0) {
-    return <p>No courses available.</p>; // Handle no courses scenario
+    return <p>No courses available.</p>;
   }
 
   return (
@@ -62,7 +66,7 @@ const CoursesPage: React.FC = () => {
           {courses.map((course) => {
             const isEnrollmentActive = !course.enrollmentExpired
               ? true
-              : moment().isBefore(moment.utc(course.enrollmentExpired));
+              : dayjs().isBefore(dayjs.utc(course.enrollmentExpired));
 
             const buttonLabel = course.isenrollmentPermanent
               ? "Lifetime Access"

@@ -18,8 +18,10 @@ const SettingsPage: React.FC = () => {
   const [editingSetting, setEditingSetting] = useState<Setting | null>(null);
   const [missingKeysQueue, setMissingKeysQueue] = useState<string[]>([]);
   const [isAddingMissingKey, setIsAddingMissingKey] = useState(false);
-  const [currentMissingKey, setCurrentMissingKey] = useState<string | null>(null);
-  const [isMissingKeysLoading, setIsMissingKeysLoading] = useState(false); // New loading state for missing keys
+  const [currentMissingKey, setCurrentMissingKey] = useState<string | null>(
+    null
+  );
+  const [isMissingKeysLoading, setIsMissingKeysLoading] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -36,7 +38,6 @@ const SettingsPage: React.FC = () => {
     fetchSettings();
   }, []);
 
-  // Open modal for adding a new setting
   const openAddModal = () => {
     setIsModalOpen(true);
     setEditingSetting(null);
@@ -44,14 +45,12 @@ const SettingsPage: React.FC = () => {
     setIsAddingMissingKey(false);
   };
 
-  // Check for missing keys and populate queue
   const missingKeys = Object.values(SETTINGS_KEYS).filter(
     (key) => !settings.some((setting) => setting.key === key)
   );
 
-  // Handle adding missing keys with loading state
   const handleAddMissingKeys = () => {
-    setIsMissingKeysLoading(true); // Start loading for missing keys
+    setIsMissingKeysLoading(true);
     setTimeout(() => {
       if (missingKeys.length > 0) {
         setMissingKeysQueue(missingKeys);
@@ -61,17 +60,16 @@ const SettingsPage: React.FC = () => {
       } else {
         message.info("No missing keys found.");
       }
-      setIsMissingKeysLoading(false); // Stop loading after calculating
-    }, 1000); // Simulate a delay to show loading
+      setIsMissingKeysLoading(false);
+    }, 1000);
   };
 
-  // Handle moving to the next missing key
   const onNextMissingKey = () => {
     const remainingKeys = missingKeysQueue.slice(1);
     setMissingKeysQueue(remainingKeys);
     setCurrentMissingKey(remainingKeys[0] || null);
     if (!remainingKeys.length) {
-      setIsModalOpen(false); // Close modal if no more missing keys
+      setIsModalOpen(false);
     }
   };
 
@@ -126,7 +124,7 @@ const SettingsPage: React.FC = () => {
           currentMissingKey={currentMissingKey}
           editingSetting={editingSetting}
           missingKeysQueue={missingKeysQueue}
-          onNextMissingKey={onNextMissingKey} // Pass onNextMissingKey as prop
+          onNextMissingKey={onNextMissingKey}
           setIsModalOpen={setIsModalOpen}
           setSettings={setSettings}
         />

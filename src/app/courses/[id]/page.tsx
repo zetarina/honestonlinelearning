@@ -14,7 +14,11 @@ import CoursePurchase from "@/components/CoursePurchase";
 import UserContext from "@/contexts/UserContext";
 import axios from "axios";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import moment from "moment";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+// Extend Day.js with the UTC plugin
+dayjs.extend(utc);
 
 const { Title, Text } = Typography;
 
@@ -61,7 +65,7 @@ const CoursePage: React.FC = () => {
     return (
       course &&
       (!course.enrollmentExpired ||
-        moment().isBefore(moment.utc(course.enrollmentExpired)))
+        dayjs().isBefore(dayjs.utc(course.enrollmentExpired)))
     );
   }, [course]);
 

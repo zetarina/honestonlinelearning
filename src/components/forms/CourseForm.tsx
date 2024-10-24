@@ -41,6 +41,9 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
   const [sessions, setSessions] = useState(course?.liveCourse?.sessions || []);
   const [isChaptersModalOpen, setIsChaptersModalOpen] = useState(false);
   const [isLiveSessionsModalOpen, setIsLiveSessionsModalOpen] = useState(false);
+  const [courseType, setCourseType] = useState<CourseType | undefined>(
+    course?.courseType
+  );
 
   useEffect(() => {
     if (course) {
@@ -60,10 +63,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
       });
     }
   }, [course, form]);
-
-  const handleCourseTypeChange = (value: CourseType) => {
-    if (value === CourseType.LIVE) setChapters([]);
-  };
 
   const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
     form.setFieldsValue({
@@ -92,8 +91,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
       liveCourse: { sessions },
     };
 
-    console.log(courseData); // Debugging output
-
     try {
       if (course?._id) {
         await axios.put(`/api/courses/${course._id}`, courseData);
@@ -113,7 +110,16 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
       title={course ? "Edit Course" : "Create Course"}
       style={{ maxWidth: 900, margin: "0 auto" }}
     >
-      <Form layout="vertical" form={form} onFinish={onFinish}>
+      <Form
+        layout="vertical"
+        form={form}
+        onFinish={onFinish}
+        onValuesChange={(changedValues) => {
+          if (changedValues.courseType) {
+            setCourseType(changedValues.courseType);
+          }
+        }}
+      >
         <Form.Item
           label="Course Title"
           name="title"
@@ -121,7 +127,13 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         >
           <Input />
         </Form.Item>
-
+        <RichTextEditor
+          label="Course Highlights"
+          name="description"
+          rules={[
+            { required: true, message: "Please provide a course highligh." },
+          ]}
+        />
         <RichTextEditor
           label="Course Description"
           name="description"
@@ -157,7 +169,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
           name="courseType"
           rules={[{ required: true }]}
         >
-          <Select onChange={handleCourseTypeChange}>
+          <Select>
             {Object.values(CourseType).map((type) => (
               <Option key={type} value={type}>
                 {type.replace("-", " ").toUpperCase()}
@@ -176,84 +188,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
 
         <InstructorSelection />
 
-        <Form.Item
-          label="Subscription Type"
-          name={["subscription", "recurrenceType"]}
-          rules={[
-            { required: true, message: "Please select the subscription type!" },
-          ]}
-        >
-          <Select placeholder="Select subscription type">
-            {Object.values(SubscriptionDurationType).map((type) => (
-              <Option key={type} value={type}>
-                {type.replace("_", " ").toUpperCase()}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, curValues) =>
-            prevValues.subscription?.recurrenceType !==
-            curValues.subscription?.recurrenceType
-          }
-        >
-          {({ getFieldValue }) => {
-            const type = getFieldValue(["subscription", "recurrenceType"]);
-            if (
-              type &&
-              type !== SubscriptionDurationType.PERMANENT &&
-              type !== SubscriptionDurationType.SCHOOL_YEAR &&
-              type !== SubscriptionDurationType.FIXED
-            ) {
-              return (
-                <Form.Item
-                  label="Recurrence"
-                  name={["subscription", "recurrence"]}
-                  rules={[
-                    { required: true, message: "Please enter recurrence!" },
-                  ]}
-                >
-                  <InputNumber
-                    min={1}
-                    placeholder="e.g. 1"
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              );
-            }
-            return null;
-          }}
-        </Form.Item>
-
-        <Form.Item
-          noStyle
-          shouldUpdate={(prevValues, curValues) =>
-            prevValues.subscription?.recurrenceType !==
-            curValues.subscription?.recurrenceType
-          }
-        >
-          {({ getFieldValue }) =>
-            getFieldValue(["subscription", "recurrenceType"]) ==
-              SubscriptionDurationType.FIXED && (
-              <Form.Item
-                label="Date Range"
-                name={["subscription", "dateRange"]}
-                rules={[
-                  { required: true, message: "Please select the date range!" },
-                ]}
-              >
-                <RangePicker
-                  style={{ width: "100%" }}
-                  onChange={handleDateRangeChange}
-                />
-              </Form.Item>
-            )
-          }
-        </Form.Item>
-
-        {form.getFieldValue("courseType") === CourseType.LIVE && (
+        {courseType === CourseType.LIVE && (
           <>
             <Button
               type="dashed"
@@ -272,7 +207,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
             />
           </>
         )}
-        {form.getFieldValue("courseType") === CourseType.SELF_PACED && (
+
+        {courseType === CourseType.SELF_PACED && (
           <>
             <Button
               type="dashed"
@@ -283,7 +219,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
             >
               Manage Chapters
             </Button>
-
             <ChaptersModal
               isOpen={isChaptersModalOpen}
               onClose={() => setIsChaptersModalOpen(false)}

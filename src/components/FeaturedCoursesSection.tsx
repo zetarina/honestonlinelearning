@@ -18,7 +18,11 @@ import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { UsergroupAddOutlined } from "@ant-design/icons";
 import ExpandableContent from "./ExpandableContent";
-import moment from "moment";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+// Extend dayjs with the UTC plugin
+dayjs.extend(utc);
 
 const { Title, Text } = Typography;
 const { Meta } = Card;
@@ -73,7 +77,7 @@ const FeaturedCoursesSection: React.FC = () => {
 
           const isEnrollmentActive = !course.enrollmentExpired
             ? true
-            : moment().isBefore(moment.utc(course.enrollmentExpired));
+            : dayjs().isBefore(dayjs.utc(course.enrollmentExpired));
 
           const buttonLabel = isEnrollmentActive ? "View Course" : "Buy Course";
 
