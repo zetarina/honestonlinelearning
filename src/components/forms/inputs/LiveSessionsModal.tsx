@@ -44,7 +44,7 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
     const updatedSessions = [...sessions];
     updatedSessions[dayIndex].slots.splice(slotIndex, 1);
     if (updatedSessions[dayIndex].slots.length === 0) {
-      updatedSessions.splice(dayIndex, 1); // Remove day if no slots left
+      updatedSessions.splice(dayIndex, 1); 
     }
     setSessions(updatedSessions);
   };

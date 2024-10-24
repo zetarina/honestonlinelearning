@@ -36,7 +36,11 @@ const FeaturedCoursesSection: React.FC = () => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get("/api/me/courses");
-        setCourses(response.data);
+        if (response.data && Array.isArray(response.data)) {
+          setCourses(response.data);
+        } else {
+          throw new Error("Unexpected response format");
+        }
       } catch (error) {
         console.error("Failed to fetch courses:", error);
         message.error("Failed to load courses. Please try again later.");
@@ -82,7 +86,7 @@ const FeaturedCoursesSection: React.FC = () => {
           const buttonLabel = isEnrollmentActive ? "View Course" : "Buy Course";
 
           return (
-            <Col xs={24} sm={12} lg={6} key={course._id.toString()}>
+            <Col xs={24} sm={12} lg={6} key={course._id?.toString() || ""}>
               <Card
                 hoverable
                 cover={
@@ -95,7 +99,7 @@ const FeaturedCoursesSection: React.FC = () => {
                   >
                     <CacheImage
                       src={imageUrl}
-                      alt={course.title}
+                      alt={course.title || "Course Thumbnail"}
                       width={300}
                       height={300}
                       objectFit="cover"
@@ -140,7 +144,7 @@ const FeaturedCoursesSection: React.FC = () => {
                   }
                 />
                 <ExpandableContent
-                  content={course.highlights}
+                  content={course.highlights || "No highlights available"}
                   linesToShow={3}
                 />
 
@@ -194,7 +198,7 @@ const FeaturedCoursesSection: React.FC = () => {
         })}
       </Row>
 
-      {courses.length > 4 && (
+      {courses && courses.length && courses.length > 4 && (
         <div style={{ textAlign: "center", marginTop: "40px" }}>
           <Link href={`/courses`}>
             <Text

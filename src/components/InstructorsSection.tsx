@@ -29,7 +29,11 @@ const InstructorsSection: React.FC = () => {
     const fetchInstructors = async () => {
       try {
         const response = await axios.get<Instructor[]>("/api/instructors");
-        setInstructors(response.data);
+        if (response.data && Array.isArray(response.data)) {
+          setInstructors(response.data);
+        } else {
+          throw new Error("Unexpected response format");
+        }
       } catch (err: any) {
         console.error("Failed to fetch instructors:", err);
         setError("Unable to load instructors. Please try again later.");
@@ -75,11 +79,8 @@ const InstructorsSection: React.FC = () => {
       <Title level={2} style={{ textAlign: "center", color: "white" }}>
         Meet Our Instructors
       </Title>
-      {instructors.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "20px", color: "white" }}>
-          <Text>No instructors available at the moment.</Text>
-        </div>
-      ) : (
+
+      {instructors && instructors.length && instructors.length > 0 ? (
         <Carousel autoplay dots={true} style={{ marginTop: "40px" }}>
           {instructorGroups.map((group, index) => (
             <div key={index}>
@@ -120,6 +121,10 @@ const InstructorsSection: React.FC = () => {
             </div>
           ))}
         </Carousel>
+      ) : (
+        <div style={{ textAlign: "center", padding: "20px", color: "white" }}>
+          <Text>No instructors available at the moment.</Text>
+        </div>
       )}
     </div>
   );

@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Button } from "antd";
-import "./ExpandableContent.css"; // Import the CSS file
+import "./ExpandableContent.css";
 
 interface ExpandableContentProps {
-  content: string;
+  content?: string; // Make content optional to avoid errors
   linesToShow?: number;
   color?: string;
 }
 
 const ExpandableContent: React.FC<ExpandableContentProps> = ({
-  content,
+  content = "", // Default to an empty string if content is undefined
   linesToShow = 2,
   color = "#555",
 }) => {
@@ -22,19 +22,19 @@ const ExpandableContent: React.FC<ExpandableContentProps> = ({
   return (
     <div>
       <div
-        className="expandable-content" // Use the class to apply the external CSS
+        className="expandable-content"
         style={{
           color: color,
           marginBottom: "0",
           marginTop: "10px",
-          maxHeight: isExpanded ? "none" : `${linesToShow * 1.5}em`, // Adjust height dynamically
-          overflow: "hidden", // Hide overflow when not expanded
+          maxHeight: isExpanded ? "none" : `${linesToShow * 1.5}em`,
+          overflow: "hidden",
           whiteSpace: "normal",
         }}
         dangerouslySetInnerHTML={{ __html: content }}
       ></div>
 
-            {content.length > linesToShow * 100 && (
+      {content && content.length > linesToShow * 100 && (
         <Button
           type="link"
           onClick={toggleExpand}
