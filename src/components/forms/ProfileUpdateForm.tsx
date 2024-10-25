@@ -18,20 +18,28 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
   onCancel,
   onSuccess,
 }) => {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm(); // Create the form instance
   const [loading, setLoading] = useState(false);
 
+  // Reset form fields whenever the modal becomes visible
   useEffect(() => {
-    if (user) {
-      form.setFieldsValue({
-        name: user.name,
-        username: user.username,
-        email: user.email,
-      });
-    } else {
-      form.resetFields();
+    if (visible) {
+      if (user) {
+        form.setFieldsValue({
+          name: user.name,
+          username: user.username,
+          email: user.email,
+        });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [user, form]);
+  }, [visible, user, form]);
+
+  const handleCancel = () => {
+    form.resetFields(); // Ensure the form is reset on cancel
+    onCancel(); // Call the parent onCancel handler
+  };
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -39,17 +47,17 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
     try {
       const payload = { ...values };
       if (!values.password) {
-        delete payload.password;
+        delete payload.password; // If password is empty, don't send it
       }
 
-      await axios.put("/api/me", payload);
+      await axios.put("/api/me", payload); // Make the API call
 
       message.success("Profile updated successfully!");
-      form.resetFields(["password"]);
+      form.resetFields(["password"]); // Clear only the password field
       if (onSuccess) {
-        onSuccess();
+        onSuccess(); // Trigger onSuccess callback if provided
       }
-      onCancel();
+      handleCancel(); // Close the modal
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to update the profile";
@@ -61,15 +69,16 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
 
   return (
     <Modal
+      key={user?.id || "profile-modal"}
       open={visible}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       footer={null}
-      destroyOnClose
+      destroyOnClose={true} // Ensure modal is destroyed on close
       maskClosable={false}
       centered
     >
       <Form
-        form={form}
+        form={form} // Pass the form instance here
         layout="vertical"
         onFinish={onFinish}
         autoComplete="off"

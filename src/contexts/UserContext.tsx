@@ -15,8 +15,10 @@ import { User } from "@/models/UserModel";
 interface UserContextProps {
   user: User | null;
   initialLoading: boolean;
+  loading: boolean; // New loading state
   error: any;
-  refreshUser: () => void;
+  refreshUser: () => void; // Regular refresh
+  awaitRefreshUser: () => Promise<void>; // Awaitable refresh
 }
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
@@ -49,14 +51,24 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [isValidating, status]);
 
+  // Regular refresh
+  const refreshUser = () => mutate();
+
+  // Awaitable refresh
+  const awaitRefreshUser = async () => {
+    await mutate();
+  };
+
   const value = useMemo(
     () => ({
       user: userData,
       initialLoading,
+      loading: isValidating, // Expose loading state
       error,
-      refreshUser: mutate,
+      refreshUser,
+      awaitRefreshUser, // Expose both refresh functions
     }),
-    [userData, initialLoading, error, mutate]
+    [userData, initialLoading, isValidating, error, mutate]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

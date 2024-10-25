@@ -3,7 +3,6 @@ import { signIn } from "next-auth/react";
 import { Button, Input, Form, Alert, Typography, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useContext } from "react";
-import useSWR from "swr";
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
 
@@ -14,8 +13,11 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
-  const { refreshUser, user } = useContext(UserContext);
-  const { mutate } = useSWR("/api/me");
+  const {
+    awaitRefreshUser,
+    user,
+    loading: sessionLoading,
+  } = useContext(UserContext);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,13 +53,13 @@ export default function LoginPage() {
       });
 
       if (result?.ok) {
-        await mutate();
-        refreshUser();
-        handleRoleBasedRedirect();
+        await awaitRefreshUser(); // Ensure the user context refreshes
+        handleRoleBasedRedirect(); // Redirect based on the user's role
       } else {
         setError("Login failed! Please check your credentials.");
       }
     } catch (error) {
+      console.log(error);
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -94,7 +96,7 @@ export default function LoginPage() {
         >
           Login
         </Title>
-        {error && (
+        {error && !sessionLoading && (
           <Alert
             message={error}
             type="error"
