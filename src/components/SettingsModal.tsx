@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
-import { Modal, Form, Input, Button, Checkbox } from "antd";
+import { Modal, Form, Input, Button, Checkbox, message } from "antd";
 import { Setting } from "@/models/SettingModel";
+import axios from "axios";
 
 interface SettingsModalProps {
   isModalOpen: boolean;
@@ -10,7 +11,7 @@ interface SettingsModalProps {
   missingKeysQueue: string[];
   onNextMissingKey: () => void;
   setIsModalOpen: (value: boolean) => void;
-  setSettings: (settings: Setting[]) => void;
+  setSettings: React.Dispatch<React.SetStateAction<Setting[]>>; // Corrected type
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -30,20 +31,44 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       form.setFieldsValue({
         key: currentMissingKey,
         value: "",
+        isPublic: false, // Default value for the checkbox
       });
     } else if (editingSetting) {
       form.setFieldsValue({
         key: editingSetting.key,
         value: editingSetting.value,
+        environment: editingSetting.environment,
+        isPublic: editingSetting.isPublic ?? false, // Ensure it's boolean
       });
-    }
-  }, [currentMissingKey, editingSetting, form, isAddingMissingKey]);
-
-  const handleSaveSetting = async (values: any) => {
-    if (isAddingMissingKey) {
-      onNextMissingKey();
     } else {
+      form.resetFields();
+    }
+  }, [form, isAddingMissingKey, currentMissingKey, editingSetting]);
+
+  const handleSaveSetting = async (values: Setting) => {
+    try {
+      if (editingSetting) {
+        const response = await axios.put(`/api/settings/${editingSetting._id}`, values);
+        setSettings((prevSettings) =>
+          prevSettings.map((setting) =>
+            setting._id === editingSetting._id ? response.data : setting
+          )
+        );
+        message.success("Setting updated successfully");
+      } else {
+        const response = await axios.post("/api/settings", values);
+        setSettings((prevSettings) => [...prevSettings, response.data]);
+        message.success("Setting added successfully");
+
+        if (isAddingMissingKey) {
+          onNextMissingKey();
+        }
+      }
+
+      form.resetFields();
       setIsModalOpen(false);
+    } catch (error) {
+      message.error("Failed to save setting");
     }
   };
 
@@ -60,15 +85,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       onCancel={() => setIsModalOpen(false)}
       footer={null}
     >
-      <Form
-        form={form}
-        onFinish={handleSaveSetting}
-        layout="vertical"
-        initialValues={{
-          key: currentMissingKey || editingSetting?.key || "",
-          value: editingSetting?.value || "",
-        }}
-      >
+      <Form form={form} onFinish={handleSaveSetting} layout="vertical">
         <Form.Item
           label="Key"
           name="key"
@@ -79,9 +96,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         <Form.Item
           label="Value"
           name="value"
-          rules={[
-            { required: true, message: "Please enter the setting value" },
-          ]}
+          rules={[{ required: true, message: "Please enter the setting value" }]}
         >
           <Input />
         </Form.Item>
@@ -89,7 +104,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
           <Input placeholder="production" />
         </Form.Item>
         <Form.Item name="isPublic" valuePropName="checked">
-          <Checkbox /> Is Public?
+          <Checkbox>Is Public?</Checkbox>
         </Form.Item>
         <Form.Item>
           <Button type="primary" htmlType="submit">

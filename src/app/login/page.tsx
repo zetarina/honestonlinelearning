@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useContext } from "react";
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
+import axios from "axios";
 
 const { Title } = Typography;
 
@@ -13,11 +14,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
-  const {
-    awaitRefreshUser,
-    user,
-    loading: sessionLoading,
-  } = useContext(UserContext);
+  const { awaitRefreshUser, user, loading: sessionLoading } = useContext(UserContext);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +31,8 @@ export default function LoginPage() {
       return;
     }
 
-    if (user.role === UserRole.STUDENT) {
+    // Ensure user is defined before accessing its properties
+    if (user?.role === UserRole.STUDENT) {
       router.push("/profile");
     } else {
       router.push("/dashboard");
@@ -55,12 +53,25 @@ export default function LoginPage() {
       if (result?.ok) {
         await awaitRefreshUser(); // Ensure the user context refreshes
         handleRoleBasedRedirect(); // Redirect based on the user's role
-      } else {
-        setError("Login failed! Please check your credentials.");
+      } else if (result?.error) {
+        // Handle specific authentication error
+        setError(
+          result.error === "CredentialsSignin"
+            ? "Invalid email or password. Please try again."
+            : "Login failed! Please check your credentials."
+        );
       }
-    } catch (error) {
-      console.log(error);
-      setError("An unexpected error occurred. Please try again.");
+    } catch (error: any) {
+      console.error("Login Error:", error);
+
+      // Check for network error or specific axios error
+      if (axios.isAxiosError(error) && !error.response) {
+        setError("Network error! Please check your internet connection.");
+      } else {
+        setError(
+          error.message || "An unexpected error occurred. Please try again later."
+        );
+      }
     } finally {
       setLoading(false);
     }

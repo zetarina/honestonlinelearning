@@ -45,6 +45,13 @@ const SettingsPage: React.FC = () => {
     setIsAddingMissingKey(false);
   };
 
+  const handleEdit = (setting: Setting) => {
+    setCurrentMissingKey(null);
+    setIsAddingMissingKey(false);
+    setEditingSetting(setting);
+    setIsModalOpen(true);
+  };
+
   const missingKeys = Object.values(SETTINGS_KEYS).filter(
     (key) => !settings.some((setting) => setting.key === key)
   );
@@ -112,7 +119,7 @@ const SettingsPage: React.FC = () => {
       <SettingsTable
         settings={settings}
         loading={loading}
-        onEdit={setEditingSetting}
+        onEdit={handleEdit}
         onDelete={handleDelete}
         onOpenModal={() => setIsModalOpen(true)}
       />
