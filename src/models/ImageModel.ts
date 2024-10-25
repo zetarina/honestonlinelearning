@@ -1,13 +1,15 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema, Types } from "mongoose";
 export const imageModelName = "images";
-export interface Image extends Document {
+
+export interface ImageObj extends Document {
+  _id: Types.ObjectId | string;
   url: string;
   name: string;
   service: string;
   createdAt: Date;
 }
 
-const ImageSchema = new Schema<Image>({
+const ImageSchema = new Schema<ImageObj>({
   url: { type: String, required: true },
   name: { type: String, required: true },
   service: { type: String, required: true },
@@ -16,5 +18,5 @@ const ImageSchema = new Schema<Image>({
 
 const ImageModel =
   mongoose.models?.[imageModelName] ||
-  mongoose.model<Image>(imageModelName, ImageSchema);
+  mongoose.model<ImageObj>(imageModelName, ImageSchema);
 export default ImageModel;

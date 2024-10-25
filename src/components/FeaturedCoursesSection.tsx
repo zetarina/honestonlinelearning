@@ -21,7 +21,6 @@ import ExpandableContent from "./ExpandableContent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
-// Extend dayjs with the UTC plugin
 dayjs.extend(utc);
 
 const { Title, Text } = Typography;
@@ -92,7 +91,7 @@ const FeaturedCoursesSection: React.FC = () => {
                 cover={
                   <div
                     style={{
-                      height: "440px",
+                      height: "200px",
                       width: "100%",
                       position: "relative",
                     }}
@@ -117,6 +116,15 @@ const FeaturedCoursesSection: React.FC = () => {
                   boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
                   transition: "transform 0.3s ease",
                   position: "relative",
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                }}
+                bodyStyle={{
+                  flex: "1 0 auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
                 }}
                 onMouseEnter={(e) =>
                   ((e.currentTarget as HTMLElement).style.transform =
@@ -166,14 +174,12 @@ const FeaturedCoursesSection: React.FC = () => {
                       ? "Free"
                       : `${course.price.toLocaleString()} Points`}
                   </div>
-                  <div>
-                    <Tooltip title="Number of students enrolled">
-                      <UsergroupAddOutlined style={{ marginRight: "4px" }} />
-                      <Text type="secondary">
-                        {Math.floor(Math.random() * 500) + 50}
-                      </Text>
-                    </Tooltip>
-                  </div>
+                  <Tooltip title="Number of students enrolled">
+                    <UsergroupAddOutlined style={{ marginRight: "4px" }} />
+                    <Text type="secondary">
+                      {Math.floor(Math.random() * 500) + 50}
+                    </Text>
+                  </Tooltip>
                 </div>
 
                 <Link href={`/courses/${course._id}`}>
@@ -181,9 +187,10 @@ const FeaturedCoursesSection: React.FC = () => {
                     type="primary"
                     size="middle"
                     style={{
-                      marginTop: "20px",
+                      marginTop: "10px",
                       width: "100%",
                       borderRadius: "8px",
+                      color: "white",
                       background: isEnrollmentActive ? "#001529" : "#ff4d4f",
                       borderColor: isEnrollmentActive ? "#001529" : "#ff4d4f",
                     }}

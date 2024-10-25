@@ -1,314 +1,230 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Modal, Button, List, Card, message, Spin, Input } from "antd";
-import { PictureOutlined } from "@ant-design/icons";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Modal,
+  Button,
+  List,
+  Card,
+  message,
+  Spin,
+  Input,
+  Tooltip,
+} from "antd";
+import { PictureOutlined, EyeOutlined, SyncOutlined } from "@ant-design/icons";
 import axios from "axios";
-
-interface Image {
-  _id: string;
-  url: string;
-  name: string;
-  service: string;
-  createdAt: string;
-}
+import { ImageObj } from "@/models/ImageModel";
 
 interface ImageSelectionProps {
   value?: string;
   onChange?: (value: string) => void;
 }
 
-const localImages: Image[] = [
-  // Root level images
-  {
-    _id: "1",
-    url: "/images/android-chrome-192x192.png",
-    name: "Android Chrome 192",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "2",
-    url: "/images/android-chrome-512x512.png",
-    name: "Android Chrome 512",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "3",
-    url: "/images/apple-touch-icon.png",
-    name: "Apple Touch Icon",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "4",
-    url: "/images/default-avatar.webp",
-    name: "Default Avatar",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "5",
-    url: "/images/favicon-16x16.png",
-    name: "Favicon 16x16",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "6",
-    url: "/images/favicon-32x32.png",
-    name: "Favicon 32x32",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "7",
-    url: "/images/favicon.ico",
-    name: "Favicon ICO",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "8",
-    url: "/images/hero.jpg",
-    name: "Hero Image",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "9",
-    url: "/images/logo.png",
-    name: "Logo",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  // Courses directory images
-  {
-    _id: "11",
-    url: "/images/courses/ItCC.png",
-    name: "ITCC Course",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "12",
-    url: "/images/courses/MYS.png",
-    name: "MYS Course",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "13",
-    url: "/images/courses/PGtHR.png",
-    name: "PGtHR Course",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "14",
-    url: "/images/courses/SHC.png",
-    name: "SHC Course",
-    service: "Local",
-    createdAt: new Date().toISOString(),
-  },
-];
-
 const ImageSelection: React.FC<ImageSelectionProps> = ({
   value = "",
   onChange,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [images, setImages] = useState<Image[]>([]);
-  const [filteredImages, setFilteredImages] = useState<Image[]>([]);
+  const [images, setImages] = useState<ImageObj[]>([]);
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [url, setUrl] = useState<string>(value);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [visibleImages, setVisibleImages] = useState<Image[]>([]);
-  const [imageIndex, setImageIndex] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const scrollableContainerRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<HTMLDivElement>(null); // Intersection observer ref
+  const batchSize = 12;
 
-  const batchSize = 8;
-
-  useEffect(() => {
-    if (value !== url) {
-      setUrl(value);
-    }
-  }, [value]);
-
-  useEffect(() => {
-    const fetchImages = async () => {
+  // Fetch images from the API
+  const fetchImages = async (search: string, page: number) => {
+    try {
       setLoading(true);
-      try {
-        const response = await axios.get("/api/images");
-        const allImages = [...response.data, ...localImages]; // Combine API and local images
-        setImages(allImages);
-        setFilteredImages(allImages);
-        setVisibleImages(allImages.slice(0, batchSize));
-        setImageIndex(batchSize);
-      } catch (error) {
-        message.error("Failed to fetch images.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isModalOpen) {
-      fetchImages();
-    }
-  }, [isModalOpen]);
-
-  const loadMoreImages = () => {
-    const nextBatch = filteredImages.slice(imageIndex, imageIndex + batchSize);
-    setVisibleImages((prevImages) => [...prevImages, ...nextBatch]);
-    setImageIndex((prevIndex) => prevIndex + batchSize);
-  };
-
-  useEffect(() => {
-    if (observerRef.current) observerRef.current.disconnect();
-
-    observerRef.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && imageIndex < filteredImages.length) {
-        loadMoreImages();
-      }
-    });
-
-    const sentinel = sentinelRef.current;
-    if (sentinel) observerRef.current.observe(sentinel);
-
-    return () => {
-      if (observerRef.current) observerRef.current.disconnect();
-    };
-  }, [imageIndex, filteredImages]);
-
-  const handleSelect = (url: string) => {
-    setUrl(url);
-    if (onChange) onChange(url);
-    setIsModalOpen(false);
-  };
-
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setUrl(value);
-    if (onChange) onChange(value);
-
-    const urlPattern = /^(\/|https?:\/\/)/;
-    if (!urlPattern.test(value)) {
-      setError(
-        "Please enter a valid URL or path starting with '/' or 'http(s)://'"
+      const response = await axios.get(
+        `/api/images?search=${search}&page=${page}&limit=${batchSize}`
       );
-    } else {
-      setError(null);
+
+      const newImages = response.data.images;
+      setImages((prev) => (page === 1 ? newImages : [...prev, ...newImages]));
+      setHasMore(response.data.hasMore);
+    } catch (error) {
+      message.error("Failed to fetch images.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sync images with the backend
+  const syncImages = async () => {
+    setSyncing(true);
+    try {
+      const response = await axios.post("/api/images/sync");
+      message.success(response.data.message);
+      setPage(1);
+      fetchImages(searchTerm, 1);
+    } catch (error) {
+      message.error("Failed to sync images.");
+    } finally {
+      setSyncing(false);
     }
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const searchValue = e.target.value.toLowerCase();
-    setSearchTerm(searchValue);
-
-    const filtered = images.filter((image) =>
-      image.name.toLowerCase().includes(searchValue)
-    );
-    setFilteredImages(filtered);
-    setVisibleImages(filtered.slice(0, batchSize));
-    setImageIndex(batchSize);
+    const value = e.target.value;
+    setSearchTerm(value);
+    setPage(1);
+    fetchImages(value, 1);
   };
+
+  // Initialize IntersectionObserver to load more images
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      {
+        root: scrollableContainerRef.current, // Use scrollable container as root
+        rootMargin: "100px", // Trigger slightly before reaching the bottom
+        threshold: 0.1,
+      }
+    );
+
+    if (observerRef.current) observer.observe(observerRef.current);
+
+    return () => {
+      if (observerRef.current) observer.unobserve(observerRef.current);
+    };
+  }, [hasMore, loading]);
+
+  // Fetch images when page changes
+  useEffect(() => {
+    if (page > 1) fetchImages(searchTerm, page);
+  }, [page]);
+
+  useEffect(() => {
+    if (isModalOpen) fetchImages(searchTerm, 1);
+  }, [isModalOpen, searchTerm]);
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          width: "100%",
-          alignItems: "center",
-          gap: "8px",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <Input
           value={url}
-          placeholder="image URL or path (e.g. /images/my-image.jpg)"
-          onChange={handleUrlChange}
-          style={{ borderRadius: "4px", flexGrow: 1 }} // Apply flex-grow here
+          placeholder="Image URL or path"
+          onChange={(e) => setUrl(e.target.value)}
+          size="large"
+          style={{ flexGrow: 1 }}
         />
+        <Tooltip title="Sync Images">
+          <Button
+            icon={<SyncOutlined spin={syncing} />}
+            onClick={syncImages}
+            size="large"
+            disabled={syncing}
+          />
+        </Tooltip>
         <Button
           icon={<PictureOutlined />}
           onClick={() => setIsModalOpen(true)}
-          style={{
-            borderRadius: "4px",
-            padding: "4px 12px",
-            border: "1px solid #d9d9d9",
-          }}
-        ></Button>
+          size="large"
+        />
       </div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <Modal
         title="Select Image"
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
-        width={800}
+        width="80%"
+        bodyStyle={{ padding: "16px", height: "75vh", overflow: "hidden" }}
+        centered
       >
         <Input
           placeholder="Search images..."
           value={searchTerm}
           onChange={handleSearch}
+          size="large"
           style={{ marginBottom: "16px" }}
         />
 
-        {loading ? (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              minHeight: "200px",
-            }}
-          >
-            <Spin size="large" />
-          </div>
-        ) : filteredImages.length === 0 ? (
-          <p>No images found.</p>
-        ) : (
-          <>
-            <List
-              grid={{ gutter: 16, column: 4 }}
-              dataSource={visibleImages}
-              renderItem={(image) => (
-                <List.Item key={image._id}>
+        <div
+          ref={scrollableContainerRef}
+          style={{
+            height: "calc(75vh - 120px)",
+            overflowY: "scroll",
+            overflowX: "hidden",
+            position: "relative",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          <style>
+            {`
+              div::-webkit-scrollbar {
+                display: none;
+              }
+            `}
+          </style>
+
+          <List
+            grid={{ gutter: 16, column: 4 }}
+            dataSource={images}
+            renderItem={(image) => (
+              <List.Item key={image._id.toString()}>
+                <div style={{ position: "relative" }}>
                   <Card
                     hoverable
                     cover={
                       <img
                         alt={image.name}
                         src={image.url}
-                        style={{ height: "150px", objectFit: "cover" }}
+                        style={{
+                          width: "100%",
+                          height: "180px",
+                          objectFit: "contain",
+                          borderRadius: "8px",
+                        }}
                       />
                     }
-                    onClick={() => handleSelect(image.url)}
+                    onClick={() => {
+                      setUrl(image.url);
+                      onChange?.(image.url);
+                      setIsModalOpen(false);
+                    }}
                   >
                     <Card.Meta title={image.name} description={image.service} />
                   </Card>
-                </List.Item>
-              )}
-            />
-            {imageIndex < filteredImages.length && (
-              <div
-                ref={sentinelRef}
-                style={{
-                  height: "50px",
-                  width: "100%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Spin />
-              </div>
+                  <Button
+                    icon={<EyeOutlined />}
+                    shape="circle"
+                    onClick={() => window.open(image.url, "_blank")}
+                    style={{
+                      position: "absolute",
+                      top: "8px",
+                      right: "8px",
+                      background: "rgba(0, 0, 0, 0.5)",
+                      color: "#fff",
+                      border: "none",
+                    }}
+                  />
+                </div>
+              </List.Item>
             )}
-          </>
-        )}
+          />
+
+          <div ref={observerRef} style={{ height: "1px" }} />
+
+          {loading && (
+            <Spin size="large" style={{ display: "block", margin: "auto" }} />
+          )}
+
+          {!hasMore && (
+            <p style={{ textAlign: "center", marginTop: "12px" }}>
+              No more images
+            </p>
+          )}
+        </div>
       </Modal>
     </>
   );
