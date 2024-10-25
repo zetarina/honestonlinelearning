@@ -125,7 +125,9 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
         onCancel={() => setIsModalOpen(false)}
         footer={null}
         width="80%"
-        bodyStyle={{ height: "75vh", padding: 16, overflow: "hidden" }}
+        styles={{
+          body: { height: "75vh", padding: 16, overflow: "hidden" },
+        }}
       >
         <Input
           placeholder="Search images..."

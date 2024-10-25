@@ -19,6 +19,8 @@ import { useMediaQuery } from "react-responsive";
 import { signOut } from "next-auth/react";
 import UserContext from "@/contexts/UserContext";
 import Image from "next/image";
+import type { MenuProps } from "antd";
+import { UserRole } from "@/models/UserModel";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -36,58 +38,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
 
   const handleLogout = async () => {
-    await signOut({
-      callbackUrl: "/",
-    });
+    await signOut({ callbackUrl: "/" });
   };
 
-  const menuItems = [
+  const menuItems: MenuProps["items"] = [
     {
       key: "home",
       icon: <HomeOutlined />,
-      label: (
-        <Link href="/" passHref legacyBehavior>
-          <Text strong style={{ cursor: "pointer" }}>
-            Home
-          </Text>
-        </Link>
-      ),
+      label: <Link href="/">Home</Link>,
     },
     {
       key: "courses",
       icon: <BookOutlined />,
-      label: (
-        <Link href="/courses" passHref legacyBehavior>
-          <Text strong style={{ cursor: "pointer" }}>
-            Courses
-          </Text>
-        </Link>
-      ),
+      label: <Link href="/courses">Courses</Link>,
     },
     {
       key: "top-up",
       icon: <WalletOutlined />,
-      label: (
-        <Link href="/top-up" passHref legacyBehavior>
-          <Text strong style={{ cursor: "pointer" }}>
-            Top Up
-          </Text>
-        </Link>
-      ),
+      label: <Link href="/top-up">Top Up</Link>,
     },
-    ...(user
+    ...(user && user?.role !== UserRole.STUDENT
       ? [
           {
             key: "dashboard",
             icon: <UserOutlined />,
-            label: (
-              <Link href="/dashboard" passHref legacyBehavior>
-                <Text strong style={{ cursor: "pointer" }}>
-                  Dashboard
-                </Text>
-              </Link>
-            ),
+            label: <Link href="/dashboard">Dashboard</Link>,
           },
+        ]
+      : []),
+    ...(user
+      ? [
           {
             key: "logout",
             icon: <LogoutOutlined />,
@@ -102,16 +82,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
           {
             key: "login",
             icon: <UserOutlined />,
-            label: (
-              <Link href="/login" passHref legacyBehavior>
-                <Text strong style={{ cursor: "pointer" }}>
-                  Login
-                </Text>
-              </Link>
-            ),
+            label: <Link href="/login">Login</Link>,
           },
         ]),
-  ];
+  ].flat();
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -119,25 +93,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         style={{
           display: "flex",
           alignItems: "center",
-          background: "#ffffff",
+          backgroundColor: "#ffffff",
           justifyContent: "space-between",
-          height: "100px",
+          height: "80px",
           padding: "0 20px",
           boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <div style={{ color: "#000", fontSize: "18px", textAlign: "center" }}>
-          <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-            <Image
-              src="/images/logo.png"
-              alt={settings.siteName || "Site Logo"}
-              width={150}
-              height={150}
-              priority
-              style={{ objectFit: "contain" }}
-            />
-          </Link>
-        </div>
+        <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+          <Image
+            src="/images/logo.png"
+            alt={settings.siteName || "Site Logo"}
+            width={120}
+            height={120}
+            priority
+            style={{ objectFit: "contain" }}
+          />
+        </Link>
 
         <Space>
           {isMobile ? (
@@ -145,6 +117,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
               <Avatar
                 src={user?.avatar || "/images/default-avatar.webp"}
                 onClick={toggleDrawer}
+                style={{ cursor: "pointer" }}
               />
               <Drawer
                 title="Menu"
@@ -160,77 +133,49 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
               </Drawer>
             </>
           ) : (
-            <Menu
-              mode="horizontal"
-              theme="light"
-              items={menuItems}
-              style={{ background: "#ffffff", color: "#000" }}
-            />
+            <Menu mode="horizontal" items={menuItems} />
           )}
           {!isMobile && user && (
             <Space>
-              <Avatar src={user?.avatar || "/images/default-avatar.webp"} />
-              <Text style={{ color: "#000" }}>{user.username}</Text>
-              <Text style={{ color: "#000" }}>
-                Points: {user.pointsBalance || 0}
-              </Text>
+              <Avatar src={user.avatar || "/images/default-avatar.webp"} />
+              <Text>{user.username}</Text>
+              <Text>Points: {user.pointsBalance || 0}</Text>
             </Space>
           )}
         </Space>
       </Header>
 
       <Content>
-        <div style={{ minHeight: 360 }}>{children}</div>
+        <div style={{ minHeight: "360px" }}>{children}</div>
       </Content>
 
       <Footer
         style={{
           backgroundColor: "#ffffff",
-          color: "#000",
           textAlign: "center",
-          padding: "20px 20px",
+          padding: "20px",
         }}
       >
-        <div style={{ marginBottom: "20px" }}>
-          <Space size="large">
-            <Link href="https://facebook.com" passHref legacyBehavior>
-              <Text strong style={{ cursor: "pointer" }}>
-                <FacebookOutlined style={{ marginRight: "8px" }} />
-                Facebook
-              </Text>
-            </Link>
-            <Link href="https://twitter.com" passHref legacyBehavior>
-              <Text strong style={{ cursor: "pointer" }}>
-                <TwitterOutlined style={{ marginRight: "8px" }} />
-                Twitter
-              </Text>
-            </Link>
-            <Link href="https://instagram.com" passHref legacyBehavior>
-              <Text strong style={{ cursor: "pointer" }}>
-                <InstagramOutlined style={{ marginRight: "8px" }} />
-                Instagram
-              </Text>
-            </Link>
-            <Link href="https://linkedin.com" passHref legacyBehavior>
-              <Text strong style={{ cursor: "pointer" }}>
-                <LinkedinOutlined style={{ marginRight: "8px" }} />
-                LinkedIn
-              </Text>
-            </Link>
-            <Link href="https://github.com" passHref legacyBehavior>
-              <Text strong style={{ cursor: "pointer" }}>
-                <GithubOutlined style={{ marginRight: "8px" }} />
-                GitHub
-              </Text>
-            </Link>
-          </Space>
-        </div>
-
-        <div>
-          <Text style={{ color: "#000" }}>
-            {settings.siteName} ©{new Date().getFullYear()} All rights reserved.
-          </Text>
-        </div>
+        <Space size="large" style={{ marginBottom: "20px" }}>
+          <Link href="https://facebook.com" target="_blank">
+            <FacebookOutlined />
+          </Link>
+          <Link href="https://twitter.com" target="_blank">
+            <TwitterOutlined />
+          </Link>
+          <Link href="https://instagram.com" target="_blank">
+            <InstagramOutlined />
+          </Link>
+          <Link href="https://linkedin.com" target="_blank">
+            <LinkedinOutlined />
+          </Link>
+          <Link href="https://github.com" target="_blank">
+            <GithubOutlined />
+          </Link>
+        </Space>
+        <Text>
+          {settings.siteName} ©{new Date().getFullYear()} All rights reserved.
+        </Text>
       </Footer>
     </Layout>
   );

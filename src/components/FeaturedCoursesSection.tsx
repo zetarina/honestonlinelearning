@@ -120,11 +120,13 @@ const FeaturedCoursesSection: React.FC = () => {
                   flexDirection: "column",
                   height: "100%",
                 }}
-                bodyStyle={{
-                  flex: "1 0 auto",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
+                styles={{
+                  body: {
+                    flex: "1 0 auto",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  },
                 }}
                 onMouseEnter={(e) =>
                   ((e.currentTarget as HTMLElement).style.transform =

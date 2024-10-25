@@ -1,172 +1,29 @@
 "use client";
 import React, { useState, useContext } from "react";
-import { Layout, Menu, Drawer, Avatar, Button } from "antd";
 import {
-  HomeOutlined,
-  PlusOutlined,
-  UploadOutlined,
+  Layout,
+  Menu,
+  Drawer,
+  Avatar,
+  Button,
+  Dropdown,
+  Space,
+  Typography,
+} from "antd";
+import {
   DashboardOutlined,
-  BookOutlined,
-  FormOutlined,
-  PictureOutlined,
-  SettingOutlined,
-  TeamOutlined,
   UserOutlined,
-  FileOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
 import UserContext from "@/contexts/UserContext";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { getHeaderItems, getMenuItems, menuData } from "@/config/navigations";
 
 const { Sider, Content, Header, Footer } = Layout;
-
-interface MenuItem {
-  key: string;
-  icon?: string;
-  label: string;
-  link?: string;
-  children?: MenuItem[];
-}
-
-const menuData: MenuItem[] = [
-  {
-    key: "courses",
-    icon: "BookOutlined",
-    label: "Courses",
-    children: [
-      {
-        key: "create-course",
-        label: "Create Course",
-        link: "/dashboard/courses/create",
-        icon: "FormOutlined",
-      },
-      {
-        key: "course-list",
-        label: "Courses List",
-        link: "/dashboard/courses",
-        icon: "BookOutlined",
-      },
-    ],
-  },
-  {
-    key: "users",
-    icon: "TeamOutlined",
-    label: "Users",
-    children: [
-      {
-        key: "create-user",
-        label: "Create User",
-        link: "/dashboard/users/create",
-        icon: "UserOutlined",
-      },
-      {
-        key: "user-list",
-        label: "Users List",
-        link: "/dashboard/users",
-        icon: "TeamOutlined",
-      },
-    ],
-  },
-  {
-    key: "images",
-    icon: "PictureOutlined",
-    label: "Images",
-    children: [
-      {
-        key: "upload-image",
-        label: "Upload Image",
-        link: "/dashboard/images/upload",
-        icon: "UploadOutlined",
-      },
-      {
-        key: "images-list",
-        label: "Images List",
-        link: "/dashboard/images",
-        icon: "PictureOutlined",
-      },
-    ],
-  },
-  {
-    key: "enrollments",
-    icon: "FileOutlined",
-    label: "Enrollments",
-    children: [
-      {
-        key: "create-enrollment",
-        label: "Create Enrollment",
-        link: "/dashboard/enrollments/create",
-        icon: "FormOutlined",
-      },
-      {
-        key: "enrollments-list",
-        label: "Enrollments List",
-        link: "/dashboard/enrollments",
-        icon: "FileOutlined",
-      },
-    ],
-  },
-  {
-    key: "add-points",
-    icon: "PlusOutlined",
-    label: "Add Points",
-    link: "/dashboard/add-points",
-  },
-  {
-    key: "settings",
-    icon: "SettingOutlined",
-    label: "Settings",
-    link: "/dashboard/settings",
-  },
-];
-
-const iconMapper: { [key: string]: React.ReactNode } = {
-  HomeOutlined: <HomeOutlined />,
-  UserOutlined: <UserOutlined />,
-  TeamOutlined: <TeamOutlined />,
-  BookOutlined: <BookOutlined />,
-  PictureOutlined: <PictureOutlined />,
-  PlusOutlined: <PlusOutlined />,
-  UploadOutlined: <UploadOutlined />,
-  SettingOutlined: <SettingOutlined />,
-  FormOutlined: <FormOutlined />,
-  FileOutlined: <FileOutlined />,
-};
-
-const getMenuItems = (menuData: MenuItem[]) => {
-  return menuData.map((menu) => {
-    if (menu.children && menu.children.length > 0) {
-      return {
-        key: menu.key,
-        icon: iconMapper[menu.icon || ""],
-        label: <span style={{ color: "white" }}>{menu.label}</span>,
-        children: menu.children.map((child) => ({
-          key: child.key,
-          icon: iconMapper[child.icon || ""],
-          label: (
-            <Link href={child.link || "#"} passHref>
-              <Button type="link" style={{ padding: 0, color: "white" }}>
-                {child.label}
-              </Button>
-            </Link>
-          ),
-        })),
-      };
-    } else {
-      return {
-        key: menu.key,
-        icon: iconMapper[menu.icon || ""],
-        label: (
-          <Link href={menu.link || "#"} passHref>
-            <Button type="link" style={{ padding: 0, color: "white" }}>
-              {menu.label}
-            </Button>
-          </Link>
-        ),
-      };
-    }
-  });
-};
+const { Text } = Typography;
 
 const DashboardLayout: React.FC<{
   children: React.ReactNode;
@@ -182,6 +39,9 @@ const DashboardLayout: React.FC<{
     .find((item) => pathname.startsWith(item.link || ""))?.key;
   const handleDrawerToggle = () => {
     setDrawerVisible((prevState) => !prevState);
+  };
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
@@ -291,6 +151,7 @@ const DashboardLayout: React.FC<{
           <div style={{ fontSize: "18px", fontWeight: "bold" }}>
             {settings.siteName}
           </div>
+
           {isMobile ? (
             <Avatar
               src={user?.avatar || "/images/default-avatar.png"}
@@ -298,7 +159,16 @@ const DashboardLayout: React.FC<{
               onClick={handleDrawerToggle}
             />
           ) : (
-            <div>Welcome, {user?.username || "User"}</div>
+            <Dropdown
+              menu={{ items: getHeaderItems(handleLogout) }}
+              trigger={["click"]}
+              placement="bottomRight"
+            >
+              <Space style={{ cursor: "pointer" }}>
+                <Avatar src={user?.avatar || "/images/default-avatar.webp"} />
+                <Text>{user?.name || user?.username || "User"}</Text>
+              </Space>
+            </Dropdown>
           )}
         </Header>
         <Content

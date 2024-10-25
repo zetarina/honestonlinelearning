@@ -30,7 +30,6 @@ class CourseService {
     id: string,
     updateData: Partial<Course>
   ): Promise<Course | null> {
-    console.log(updateData);
     return courseRepository.update(new Types.ObjectId(id), updateData);
   }
 

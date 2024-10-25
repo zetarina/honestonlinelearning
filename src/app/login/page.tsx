@@ -2,70 +2,96 @@
 import { signIn } from "next-auth/react";
 import { Button, Input, Form, Alert, Typography, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, useEffect, useContext } from "react";
 import useSWR from "swr";
+import UserContext from "@/contexts/UserContext";
+import { UserRole } from "@/models/UserModel";
 
 const { Title } = Typography;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+
+  const { refreshUser, user } = useContext(UserContext);
+  const { mutate } = useSWR("/api/me");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm
-        router={router}
-        loading={loading}
-        setLoading={setLoading}
-        error={error}
-        setError={setError}
-      />
-    </Suspense>
-  );
-}
+  useEffect(() => {
+    if (user) {
+      handleRoleBasedRedirect();
+    }
+  }, [user, router]);
 
-function LoginForm({
-  router,
-  loading,
-  setLoading,
-  error,
-  setError,
-}: {
-  router: ReturnType<typeof useRouter>;
-  loading: boolean;
-  setLoading: (loading: boolean) => void;
-  error: string | null;
-  setError: (error: string | null) => void;
-}) {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/dashboard";
+  const handleRoleBasedRedirect = () => {
+    if (redirect) {
+      router.push(redirect);
+      return;
+    }
 
-  const { mutate } = useSWR("/api/me");
+    if (user.role === UserRole.STUDENT) {
+      router.push("/profile");
+    } else {
+      router.push("/dashboard");
+    }
+  };
 
   const onFinish = async (values: any) => {
     setLoading(true);
     setError(null);
 
-    const result = await signIn("credentials", {
-      redirect: false,
-      email: values.email,
-      password: values.password,
-    });
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: values.email,
+        password: values.password,
+      });
 
-    if (result?.ok) {
-      await mutate();
-      router.push(redirect);
-    } else {
-      setError("Login failed! Please check your credentials.");
+      if (result?.ok) {
+        await mutate();
+        refreshUser();
+        handleRoleBasedRedirect();
+      } else {
+        setError("Login failed! Please check your credentials.");
+      }
+    } catch (error) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-md relative transform transition-all duration-300 hover:shadow-lg">
-        <Title level={2} className="text-center mb-6">
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        width: "100vw",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "400px",
+          backgroundColor: "white",
+          padding: "32px",
+          borderRadius: "8px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+        }}
+      >
+        <Title
+          level={2}
+          style={{
+            textAlign: "center",
+            marginBottom: "24px",
+          }}
+        >
           Login
         </Title>
         {error && (
@@ -74,7 +100,7 @@ function LoginForm({
             type="error"
             showIcon
             closable
-            className="mb-4"
+            style={{ marginBottom: "16px" }}
           />
         )}
         <Form layout="vertical" onFinish={onFinish}>
@@ -105,7 +131,12 @@ function LoginForm({
             </Button>
           </Form.Item>
         </Form>
-        <div className="text-center mt-4">
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "16px",
+          }}
+        >
           Don&apos;t have an account? <a href="/signup">Sign Up</a>
         </div>
       </div>

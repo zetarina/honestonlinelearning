@@ -10,7 +10,7 @@ async function handleGetAllCoursesRequest(
   request: Request,
   userId: string | null
 ) {
-  try {  
+  try {
     const courses = await courseService.getAllCourses();
     return NextResponse.json(courses);
   } catch (error) {
@@ -27,8 +27,8 @@ async function handleCreateCourseRequest(
   userId: string | null
 ) {
   try {
-
     const body = await request.json();
+    console.log(body)
     const newCourse = await courseService.createCourse(body);
     return NextResponse.json(newCourse, { status: 201 });
   } catch (error) {

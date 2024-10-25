@@ -1,24 +1,35 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Button, Card, Descriptions, Spin, Alert } from "antd";
 import axios from "axios";
-import { User } from "@/models/UserModel";
 import ProfileUpdateForm from "@/components/forms/ProfileUpdateForm";
+import UserContext from "@/contexts/UserContext";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const UserProfile: React.FC = () => {
+  const { user, refreshUser } = useContext(UserContext);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user, redirect, router]);
 
   const fetchUserData = async () => {
     setLoading(true);
     setError(null);
     try {
       const { data } = await axios.get("/api/me", { withCredentials: true });
-      setCurrentUser(data);
-    } catch (error) {
+      refreshUser();
+    } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Failed to fetch user data.";
       setError(errorMessage);
@@ -41,14 +52,14 @@ const UserProfile: React.FC = () => {
 
   const handleSuccess = () => {
     setIsModalVisible(false);
-    fetchUserData(); // Refresh user data after update
+    fetchUserData();
   };
 
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "50px 0" }}>
         <Spin size="large" tip="Loading user profile...">
-                    <div style={{ height: "100px" }}></div>
+          <div style={{ height: "100px" }}></div>
         </Spin>
       </div>
     );
@@ -69,7 +80,7 @@ const UserProfile: React.FC = () => {
     );
   }
 
-  if (!currentUser) {
+  if (!user) {
     return (
       <div style={{ maxWidth: 600, margin: "50px auto" }}>
         <Alert
@@ -95,29 +106,22 @@ const UserProfile: React.FC = () => {
           borderRadius: "10px",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
         }}
-        styles={{
-          body: {
-            padding: "20px 40px",
-          },
-        }}
       >
         <Descriptions column={1} bordered>
-          <Descriptions.Item label="Name">{currentUser.name}</Descriptions.Item>
+          <Descriptions.Item label="Name">{user.name}</Descriptions.Item>
           <Descriptions.Item label="Username">
-            {currentUser.username}
+            {user.username}
           </Descriptions.Item>
-          <Descriptions.Item label="Email">
-            {currentUser.email}
-          </Descriptions.Item>
-          <Descriptions.Item label="Role">{currentUser.role}</Descriptions.Item>
+          <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
+          <Descriptions.Item label="Role">{user.role}</Descriptions.Item>
           <Descriptions.Item label="Points Balance">
-            {currentUser.pointsBalance || 0}
+            {user.pointsBalance || 0}
           </Descriptions.Item>
         </Descriptions>
       </Card>
 
       <ProfileUpdateForm
-        user={currentUser}
+        user={user}
         visible={isModalVisible}
         onCancel={handleCancel}
         onSuccess={handleSuccess}

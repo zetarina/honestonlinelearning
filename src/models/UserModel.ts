@@ -33,8 +33,8 @@ export interface PointTransaction {
 
 export interface User extends Document {
   _id: Types.ObjectId | string;
-  name: string;
-  bio: string;
+  name?: string;
+  bio?: string;
   username: string;
   email: string;
   password?: string;
@@ -69,9 +69,9 @@ const deviceTokenSchema = new Schema({
 
 const userSchema = new Schema(
   {
-    name: { type: String, required: true, trim: true },
-    bio: { type: String, required: true, trim: true },
-    username: { type: String, required: true, trim: true },
+    name: { type: String, trim: true },
+    bio: { type: String, trim: true },
+    username: { type: String, unique: true, required: true, trim: true },
     email: { type: String, unique: true, required: true, trim: true },
     hashedPassword: { type: String, required: true },
     salt: { type: String, required: true },

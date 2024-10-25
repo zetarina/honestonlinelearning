@@ -23,7 +23,6 @@ import { useRouter } from "next/navigation";
 import ChaptersModal from "@/components/forms/inputs/ChaptersModal";
 import ImageSelection from "@/components/forms/inputs/ImageSelection";
 import InstructorSelection from "@/components/forms/inputs/InstructorSelection";
-import LiveCourseInfo from "@/components/forms/inputs/LiveCourseInfo";
 import RichTextEditor from "@/components/forms/inputs/RichTextEditor";
 import LiveSessionsModal from "./inputs/LiveSessionsModal";
 
@@ -44,6 +43,10 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
   const [courseType, setCourseType] = useState<CourseType | undefined>(
     course?.courseType
   );
+  const [recurrenceType, setRecurrenceType] =
+    useState<SubscriptionDurationType>(
+      course?.subscription?.recurrenceType || SubscriptionDurationType.PERMANENT
+    );
 
   useEffect(() => {
     if (course) {
@@ -59,6 +62,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
           recurrenceType:
             course.subscription?.recurrenceType ||
             SubscriptionDurationType.PERMANENT,
+          recurrence: course.subscription?.recurrence || "1",
         },
       });
     }
@@ -66,27 +70,31 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
 
   const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
     form.setFieldsValue({
-      "subscription.startDate": dates ? dates[0] : null,
-      "subscription.endDate": dates ? dates[1] : null,
+      "subscription.startDate": dates ? dates[0].toISOString() : null,
+      "subscription.endDate": dates ? dates[1].toISOString() : null,
     });
   };
 
-  const onSessionsChange = (updatedSessions: LiveSession[]) => {
-    setSessions(updatedSessions);
+  const handleRecurrenceTypeChange = (value: SubscriptionDurationType) => {
+    setRecurrenceType(value);
+    form.setFieldsValue({ "subscription.recurrenceType": value });
   };
 
   const onFinish = async (values: any) => {
-    const { dateRange, ...otherSubscription } = values.subscription || {};
-    const startDate = dateRange ? dateRange[0]?.toISOString() : null;
-    const endDate = dateRange ? dateRange[1]?.toISOString() : null;
+    const { dateRange, recurrenceType, recurrence, ...otherSubscription } =
+      values.subscription || {};
+    const startDate = dateRange ? dateRange[0]?.toISOString() : undefined;
+    const endDate = dateRange ? dateRange[1]?.toISOString() : undefined;
 
     const courseData: ApplicationLevelCourse = {
       ...values,
       chapters,
       subscription: {
         ...otherSubscription,
+        recurrenceType,
         startDate,
         endDate,
+        recurrence,
       },
       liveCourse: { sessions },
     };
@@ -127,11 +135,12 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         >
           <Input />
         </Form.Item>
+
         <RichTextEditor
           label="Course Highlights"
           name="highlights"
           rules={[
-            { required: true, message: "Please provide a course highligh." },
+            { required: true, message: "Please provide course highlights." },
           ]}
         />
         <RichTextEditor
@@ -187,12 +196,85 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         </Form.Item>
 
         <InstructorSelection />
+        <Form.Item label="Subscription" required>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {/* Recurrence Type Select */}
+            <Form.Item
+              name={["subscription", "recurrenceType"]}
+              style={{ flex: "1 1 50%" }}
+              rules={[
+                { required: true, message: "Please select a recurrence type." },
+              ]}
+            >
+              <Select
+                placeholder="Recurrence Type"
+                onChange={(value: SubscriptionDurationType) => {
+                  handleRecurrenceTypeChange(value);
+                  form.setFieldsValue({
+                    subscription: { recurrenceType: value },
+                  });
+                }}
+                options={Object.values(SubscriptionDurationType).map(
+                  (type) => ({
+                    label: type.replace("_", " ").toUpperCase(),
+                    value: type,
+                  })
+                )}
+                style={{ width: "100%" }}
+              />
+            </Form.Item>
+
+            {/* Start/End Dates (Only for Fixed Type) */}
+            {recurrenceType === SubscriptionDurationType.FIXED && (
+              <Form.Item
+                name={["subscription", "dateRange"]}
+                style={{ flex: "1 1 50%" }}
+                rules={[
+                  { required: true, message: "Please select a date range." },
+                ]}
+              >
+                <RangePicker
+                  onChange={handleDateRangeChange}
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            )}
+
+            {/* Recurrence Input (Only for Recurring Types) */}
+            {[
+              SubscriptionDurationType.DAY,
+              SubscriptionDurationType.WEEK,
+              SubscriptionDurationType.MONTH,
+              SubscriptionDurationType.YEAR,
+            ].includes(recurrenceType) && (
+              <Form.Item
+                name={["subscription", "recurrence"]}
+                style={{ flex: "1 1 50%" }}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter a recurrence value.",
+                  },
+                ]}
+              >
+                <Input
+                  placeholder="Recurrence (e.g., 1, 2...)"
+                  onChange={(e) =>
+                    form.setFieldsValue({
+                      subscription: { recurrence: e.target.value },
+                    })
+                  }
+                  style={{ width: "100%" }}
+                />
+              </Form.Item>
+            )}
+          </div>
+        </Form.Item>
 
         {courseType === CourseType.LIVE && (
           <>
             <Button
               type="dashed"
-              style={{ marginTop: 20 }}
               onClick={() => setIsLiveSessionsModalOpen(true)}
               block
               icon={<PlusOutlined />}
@@ -212,7 +294,6 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
           <>
             <Button
               type="dashed"
-              style={{ marginTop: 20 }}
               onClick={() => setIsChaptersModalOpen(true)}
               block
               icon={<PlusOutlined />}
