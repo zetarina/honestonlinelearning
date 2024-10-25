@@ -21,6 +21,7 @@ import {
   VideoCameraOutlined,
   DownloadOutlined,
   MenuOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { Course, CourseType, VideoType } from "@/models/CourseModel";
 import ReactPlayer from "react-player";
@@ -181,6 +182,7 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
   const handleChapterChange = (index: number) => {
     setSelectedChapterIndex(index);
     setSelectedVideoIndex(0);
+    setIsMobileSidebarVisible(false); // Close sidebar on chapter selection
   };
 
   const menuItems = course.chapters?.map((chapter, index) => ({
@@ -213,23 +215,49 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
             position: "fixed",
             top: 0,
             left: 0,
-            width: "100vw",
+            width: "100%",
             height: "100vh",
             backgroundColor: "#fff",
-            overflowY: "scroll",
+            overflowY: "auto",
+            zIndex: 80,
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <Button
             type="text"
-            icon={<MenuOutlined />}
+            icon={<CloseOutlined />}
             onClick={() => setIsMobileSidebarVisible(false)}
-            style={{ position: "absolute", top: "20px", right: "20px" }}
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "10px",
+              zIndex: 1,
+              color: "black",
+              background: "transparent",
+            }}
           />
-          <Sider width="100%" style={{ background: "#fff", padding: "20px" }}>
+
+          <Sider
+            width="90%"
+            style={{
+              background: "#fff",
+              padding: "10px 20px",
+              overflowY: "auto",
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <Menu
               mode="inline"
               selectedKeys={[`${selectedChapterIndex}`]}
               items={menuItems}
+              style={{
+                background: "transparent",
+                border: "none",
+                flexGrow: 1,
+              }}
             />
           </Sider>
         </div>
