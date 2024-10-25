@@ -19,7 +19,7 @@ const UserProfile: React.FC = () => {
 
   useEffect(() => {
     if (!user) {
-      router.push("/login");
+      router.push("/login?redirect=/profile");
     }
   }, [user, redirect, router]);
 

@@ -1,19 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
-import { Form, Input, Upload, Button, message, Typography, Card, Image } from "antd";
+import React, { useState, useEffect, useContext } from "react";
+import {
+  Form,
+  Input,
+  Upload,
+  Button,
+  message,
+  Typography,
+  Card,
+  Image,
+  Spin,
+  Alert,
+} from "antd";
 import { InboxOutlined } from "@ant-design/icons";
-import { useSession } from "next-auth/react";
 import axios from "axios";
+import UserContext from "@/contexts/UserContext";
+import { useRouter } from "next/navigation";
 
 const { Dragger } = Upload;
 const { Title, Paragraph } = Typography;
 
 const TopUpPage: React.FC = () => {
-  const { data: session } = useSession();
+  const { user, refreshUser } = useContext(UserContext);
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [fileBase64, setFileBase64] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null); // For image preview
+  const [preview, setPreview] = useState<string | null>(null);
+  const [fileList, setFileList] = useState<any[]>([]);
+  const [fetchingUserData, setFetchingUserData] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login?redirect=/top-up");
+    } else {
+      refreshUser();
+    }
+  }, [user, router]);
 
   const handleFileChange = (info: any) => {
     const file = info.file.originFileObj;
@@ -22,14 +46,15 @@ const TopUpPage: React.FC = () => {
     reader.onloadend = () => {
       const base64 = reader.result as string;
       setFileBase64(base64);
-      setPreview(base64); // Show the preview of the image
+      setPreview(base64);
     };
 
     reader.readAsDataURL(file);
+    setFileList(info.fileList);
   };
 
   const handleSubmit = async (values: any) => {
-    if (!session?.user) {
+    if (!user) {
       message.error("You need to log in first.");
       return;
     }
@@ -44,13 +69,14 @@ const TopUpPage: React.FC = () => {
       const response = await axios.post("/api/top-up", {
         amount: values.amount,
         screenshot: fileBase64,
-        userId: session.user.id,
+        userId: user.id,
       });
 
       if (response.status === 200) {
         message.success("Top-up request submitted!");
-        setPreview(null); // Clear the preview after successful submission
+        setPreview(null);
         setFileBase64(null);
+        setFileList([]);
       } else {
         message.error("Failed to submit top-up request.");
       }
@@ -61,6 +87,24 @@ const TopUpPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (fetchingUserData) {
+    return (
+      <div style={{ textAlign: "center", padding: "50px 0" }}>
+        <Spin size="large" tip="Loading user profile...">
+          <div style={{ height: "100px" }}></div>
+        </Spin>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ maxWidth: 600, margin: "50px auto" }}>
+        <Alert message="Error" description={error} type="error" showIcon />
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 600, margin: "auto", padding: "40px 20px" }}>
@@ -75,7 +119,8 @@ const TopUpPage: React.FC = () => {
           Top-Up Your Account
         </Title>
         <Paragraph style={{ textAlign: "center", marginBottom: "40px" }}>
-          Securely upload your payment screenshot to top up your account balance.
+          Securely upload your payment screenshot to top up your account
+          balance.
         </Paragraph>
 
         <Form layout="vertical" onFinish={handleSubmit}>
@@ -94,9 +139,10 @@ const TopUpPage: React.FC = () => {
           >
             <Dragger
               name="screenshot"
+              fileList={fileList}
               multiple={false}
               accept="image/*"
-              beforeUpload={() => false} // Prevent automatic upload
+              beforeUpload={() => false}
               onChange={handleFileChange}
             >
               <p className="ant-upload-drag-icon">
@@ -106,7 +152,8 @@ const TopUpPage: React.FC = () => {
                 Click or drag an image to this area to upload
               </p>
               <p className="ant-upload-hint">
-                Ensure the screenshot is clear and includes the transaction details.
+                Ensure the screenshot is clear and includes the transaction
+                details.
               </p>
             </Dragger>
           </Form.Item>
