@@ -154,6 +154,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
           backgroundColor: "#ffffff",
           textAlign: "center",
           padding: "20px",
+          flexDirection: "column",
+          display: "flex",
+          alignItems: "center",
         }}
       >
         <Space size="large" style={{ marginBottom: "20px" }}>
