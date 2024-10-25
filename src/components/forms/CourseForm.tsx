@@ -129,7 +129,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         </Form.Item>
         <RichTextEditor
           label="Course Highlights"
-          name="description"
+          name="highlights"
           rules={[
             { required: true, message: "Please provide a course highligh." },
           ]}
