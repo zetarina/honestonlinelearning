@@ -45,11 +45,15 @@ export async function POST(request: Request) {
 
     await settingService.setSettingByKey(
       SETTINGS_KEYS.SITE_NAME,
-      data.settings[SETTINGS_KEYS.SITE_NAME]
+      data.settings[SETTINGS_KEYS.SITE_NAME],
+      "production",
+      true
     );
     await settingService.setSettingByKey(
       SETTINGS_KEYS.SITE_URL,
-      data.settings[SETTINGS_KEYS.SITE_URL]
+      data.settings[SETTINGS_KEYS.SITE_URL],
+      "production",
+      true
     );
 
     return NextResponse.json(

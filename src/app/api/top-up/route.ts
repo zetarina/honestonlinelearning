@@ -14,19 +14,7 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
   try {
     const { amount, screenshot, paymentMethod } = await req.json();
 
-    console.log("Top-up request received:", {
-      amount,
-      screenshot,
-      paymentMethod,
-      userId,
-    });
-
     if (!amount || !userId || !paymentMethod) {
-      console.error("Missing required fields:", {
-        amount,
-        userId,
-        paymentMethod,
-      });
       return NextResponse.json(
         { error: "Amount, userId, and paymentMethod are required" },
         { status: 400 }

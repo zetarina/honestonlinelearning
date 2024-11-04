@@ -63,7 +63,7 @@ const SetupPage: React.FC = () => {
           if (response.status === 201) {
             message.success("Setup completed successfully!");
             setSetupCompleted(true);
-            router.push("/dashboard");
+            window.location.reload(); // Reload the page after setup completes
           } else {
             setError(
               response.data?.error || "Setup failed! Please check your details."
