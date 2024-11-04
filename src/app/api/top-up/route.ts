@@ -14,10 +14,19 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
   try {
     const { amount, screenshot, paymentMethod } = await req.json();
 
-    console.log("Top-up request received:", { amount, screenshot, paymentMethod, userId });
+    console.log("Top-up request received:", {
+      amount,
+      screenshot,
+      paymentMethod,
+      userId,
+    });
 
     if (!amount || !userId || !paymentMethod) {
-      console.error("Missing required fields:", { amount, userId, paymentMethod });
+      console.error("Missing required fields:", {
+        amount,
+        userId,
+        paymentMethod,
+      });
       return NextResponse.json(
         { error: "Amount, userId, and paymentMethod are required" },
         { status: 400 }
@@ -29,7 +38,6 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
       // ...
     } else if (paymentMethod === "offline") {
       if (!screenshot) {
-        console.error("Screenshot is required for offline payments.");
         return NextResponse.json(
           { error: "Please upload a screenshot for offline payment." },
           { status: 400 }
@@ -37,9 +45,15 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
       }
 
       // Fetch email configuration settings
-      const gmailUserSetting = await settingService.getSettingByKey(SETTINGS_KEYS.GMAIL_USER);
-      const gmailPasswordSetting = await settingService.getSettingByKey(SETTINGS_KEYS.GMAIL_PASSWORD);
-      const adminEmailSetting = await settingService.getSettingByKey(SETTINGS_KEYS.ADMIN_EMAIL);
+      const gmailUserSetting = await settingService.getSettingByKey(
+        SETTINGS_KEYS.GMAIL_USER
+      );
+      const gmailPasswordSetting = await settingService.getSettingByKey(
+        SETTINGS_KEYS.GMAIL_PASSWORD
+      );
+      const adminEmailSetting = await settingService.getSettingByKey(
+        SETTINGS_KEYS.ADMIN_EMAIL
+      );
 
       const GMAIL_USER = gmailUserSetting?.value;
       const GMAIL_PASSWORD = gmailPasswordSetting?.value;
@@ -47,10 +61,10 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
 
       // Check if email settings are missing
       if (!GMAIL_USER || !GMAIL_PASSWORD || !ADMIN_EMAIL) {
-        console.warn("Incomplete email configuration:", { GMAIL_USER, GMAIL_PASSWORD, ADMIN_EMAIL });
         return NextResponse.json(
           {
-            error: "Server email configuration is incomplete. Please contact the admin to set up email functionality for offline payments.",
+            error:
+              "Server email configuration is incomplete. Please contact the admin to set up email functionality for offline payments.",
           },
           { status: 400 }
         );
