@@ -12,35 +12,47 @@ import {
   Image,
   Spin,
   Alert,
+  Radio,
 } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import axios from "axios";
 import UserContext from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
+import { useSettings } from "@/contexts/SettingsContext";
+import { loadStripe } from "@stripe/stripe-js";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const { Dragger } = Upload;
 const { Title, Paragraph } = Typography;
 
 const TopUpPage: React.FC = () => {
   const { user, refreshUser } = useContext(UserContext);
+  const { settings } = useSettings();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [fileBase64, setFileBase64] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileList, setFileList] = useState<any[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState(
+    settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY] ? "stripe" : "offline"
+  );
   const [fetchingUserData, setFetchingUserData] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const stripePromise = settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY]
+    ? loadStripe(settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY])
+    : null;
 
   useEffect(() => {
     if (!user) {
       router.push("/login?redirect=/top-up");
     } else {
       refreshUser();
+      setFetchingUserData(false);
     }
   }, [user, router]);
 
-  const handleFileChange = (info: any) => {
-    const file = info.file.originFileObj;
+  const handleFileChange = async (file: File) => {
     const reader = new FileReader();
 
     reader.onloadend = () => {
@@ -50,7 +62,17 @@ const TopUpPage: React.FC = () => {
     };
 
     reader.readAsDataURL(file);
-    setFileList(info.fileList);
+  };
+
+  const handlePaymentMethodChange = (e: any) => {
+    setPaymentMethod(e.target.value);
+    resetFileState();
+  };
+
+  const resetFileState = () => {
+    setPreview(null);
+    setFileBase64(null);
+    setFileList([]);
   };
 
   const handleSubmit = async (values: any) => {
@@ -59,30 +81,54 @@ const TopUpPage: React.FC = () => {
       return;
     }
 
-    if (!fileBase64) {
-      message.error("Please upload a screenshot.");
+    if (paymentMethod === "offline" && !fileBase64) {
+      message.error("Please upload a screenshot for offline payment.");
       return;
     }
 
     try {
       setLoading(true);
-      const response = await axios.post("/api/top-up", {
+      setError(null); // Clear any previous error
+
+      const payload = {
         amount: values.amount,
-        screenshot: fileBase64,
         userId: user.id,
-      });
+        paymentMethod,
+        ...(paymentMethod === "offline" && { screenshot: fileBase64 }),
+      };
+
+      const response = await axios.post("/api/top-up", payload);
 
       if (response.status === 200) {
-        message.success("Top-up request submitted!");
-        setPreview(null);
-        setFileBase64(null);
-        setFileList([]);
+        if (paymentMethod === "stripe") {
+          const { client_secret } = response.data;
+          if (client_secret) {
+            message.success("Redirecting to Stripe for payment...");
+            const stripe = await stripePromise;
+            const { error } = await stripe!.redirectToCheckout({
+              sessionId: client_secret,
+            });
+
+            if (error) {
+              message.error(error.message || "Stripe redirection failed.");
+            }
+          } else {
+            message.error("Failed to initiate Stripe payment.");
+          }
+        } else {
+          message.success("Top-up request submitted!");
+          resetFileState();
+        }
       } else {
-        message.error("Failed to submit top-up request.");
+        message.error("Failed to process top-up request.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Top-up error:", error);
-      message.error("An error occurred during top-up.");
+      if (error.response && error.response.data && error.response.data.error) {
+        setError(error.response.data.error); // Set specific server error message
+      } else {
+        setError("An unexpected error occurred during top-up.");
+      }
     } finally {
       setLoading(false);
     }
@@ -90,18 +136,16 @@ const TopUpPage: React.FC = () => {
 
   if (fetchingUserData) {
     return (
-      <div style={{ textAlign: "center", padding: "50px 0" }}>
-        <Spin size="large" tip="Loading user profile...">
-          <div style={{ height: "100px" }}></div>
-        </Spin>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ maxWidth: 600, margin: "50px auto" }}>
-        <Alert message="Error" description={error} type="error" showIcon />
+      <div
+        style={{
+          textAlign: "center",
+          display: "flex",
+          justifyContent: "center",
+          minHeight: "100vh",
+          alignItems: "center",
+        }}
+      >
+        <Spin size="large" tip="Loading user profile..." />
       </div>
     );
   }
@@ -119,9 +163,18 @@ const TopUpPage: React.FC = () => {
           Top-Up Your Account
         </Title>
         <Paragraph style={{ textAlign: "center", marginBottom: "40px" }}>
-          Securely upload your payment screenshot to top up your account
-          balance.
+          Select your preferred payment method to top up your account balance.
         </Paragraph>
+
+        {error && (
+          <Alert
+            message="Error"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: "20px" }}
+          />
+        )}
 
         <Form layout="vertical" onFinish={handleSubmit}>
           <Form.Item
@@ -132,33 +185,52 @@ const TopUpPage: React.FC = () => {
             <Input type="number" placeholder="Enter amount" />
           </Form.Item>
 
-          <Form.Item
-            label="Payment Screenshot"
-            name="screenshot"
-            rules={[{ required: true, message: "Please upload a screenshot" }]}
-          >
-            <Dragger
-              name="screenshot"
-              fileList={fileList}
-              multiple={false}
-              accept="image/*"
-              beforeUpload={() => false}
-              onChange={handleFileChange}
+          <Form.Item label="Payment Method">
+            <Radio.Group
+              onChange={handlePaymentMethodChange}
+              value={paymentMethod}
             >
-              <p className="ant-upload-drag-icon">
-                <InboxOutlined />
-              </p>
-              <p className="ant-upload-text">
-                Click or drag an image to this area to upload
-              </p>
-              <p className="ant-upload-hint">
-                Ensure the screenshot is clear and includes the transaction
-                details.
-              </p>
-            </Dragger>
+              {settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY] && (
+                <Radio value="stripe">Stripe (Visa/PayPal)</Radio>
+              )}
+              <Radio value="offline">Offline (Upload Screenshot)</Radio>
+            </Radio.Group>
           </Form.Item>
 
-          {preview && (
+          {paymentMethod === "offline" && (
+            <Form.Item
+              label="Payment Screenshot"
+              name="screenshot"
+              rules={[
+                { required: true, message: "Please upload a screenshot" },
+              ]}
+            >
+              <Dragger
+                name="screenshot"
+                fileList={fileList}
+                multiple={false}
+                accept="image/*"
+                beforeUpload={(file) => {
+                  handleFileChange(file);
+                  setFileList([file]);
+                  return false;
+                }}
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  Click or drag an image to this area to upload
+                </p>
+                <p className="ant-upload-hint">
+                  Ensure the screenshot is clear and includes the transaction
+                  details.
+                </p>
+              </Dragger>
+            </Form.Item>
+          )}
+
+          {preview && paymentMethod === "offline" && (
             <div style={{ marginTop: "20px", textAlign: "center" }}>
               <Image
                 src={preview}

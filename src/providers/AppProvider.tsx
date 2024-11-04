@@ -6,26 +6,18 @@ import { UserProvider } from "@/contexts/UserContext";
 import LayoutRouter from "@/components/LayoutRouter";
 import SetupPage from "@/components/SetupPage";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { GlobalSettings, SETTINGS_KEYS } from "@/config/settingKeys";
+import { useSettings } from "@/contexts/SettingsContext";
 
-interface SettingsProviderProps {
+interface AppProviderProps {
   children: React.ReactNode;
-  settings: Record<string, any>;
-  isSetupRequired: boolean;
 }
 
-const SettingsProvider: React.FC<SettingsProviderProps> = ({
-  children,
-  settings,
-  isSetupRequired,
-}) => {
+const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  const extractedSettings: GlobalSettings = {
-    siteName: settings[SETTINGS_KEYS.SITE_NAME]?.toString() ?? "Online App",
-    siteUrl: settings[SETTINGS_KEYS.SITE_URL]?.toString() ?? "",
-  };
+  // Access settings and isSetupRequired directly from SettingsContext
+  const { isSetupRequired } = useSettings();
 
   useEffect(() => {
     const onLoad = () => {
@@ -46,10 +38,12 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
     };
   }, []);
 
+  // Show loading spinner on initial page load
   if (!isPageLoaded && isFirstLoad) {
     return <LoadingSpinner />;
   }
 
+  // Render setup page if setup is required
   if (isSetupRequired) {
     return <SetupPage />;
   }
@@ -57,10 +51,10 @@ const SettingsProvider: React.FC<SettingsProviderProps> = ({
   return (
     <SessionProvider>
       <UserProvider>
-        <LayoutRouter settings={extractedSettings}>{children}</LayoutRouter>
+        <LayoutRouter>{children}</LayoutRouter>
       </UserProvider>
     </SessionProvider>
   );
 };
 
-export default SettingsProvider;
+export default AppProvider;

@@ -21,17 +21,20 @@ import UserContext from "@/contexts/UserContext";
 import Image from "next/image";
 import type { MenuProps } from "antd";
 import { UserRole } from "@/models/UserModel";
+import MessengerChat from "./MessengerChat";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  settings: Record<string, any>;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { user } = useContext(UserContext);
+  const { settings } = useSettings();
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
 
@@ -147,6 +150,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
 
       <Content>
         <div style={{ minHeight: "360px" }}>{children}</div>
+        <MessengerChat />
       </Content>
 
       <Footer
@@ -160,21 +164,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, settings }) => {
         }}
       >
         <Space size="large" style={{ marginBottom: "20px" }}>
-          <Link href="https://facebook.com" target="_blank">
-            <FacebookOutlined />
-          </Link>
-          <Link href="https://twitter.com" target="_blank">
-            <TwitterOutlined />
-          </Link>
-          <Link href="https://instagram.com" target="_blank">
-            <InstagramOutlined />
-          </Link>
-          <Link href="https://linkedin.com" target="_blank">
-            <LinkedinOutlined />
-          </Link>
-          <Link href="https://github.com" target="_blank">
-            <GithubOutlined />
-          </Link>
+          {settings[SETTINGS_KEYS.FACEBOOK_URL] && (
+            <Link href={settings[SETTINGS_KEYS.FACEBOOK_URL]} target="_blank">
+              <FacebookOutlined />
+            </Link>
+          )}
+          {settings[SETTINGS_KEYS.TWITTER_URL] && (
+            <Link href={settings[SETTINGS_KEYS.TWITTER_URL]} target="_blank">
+              <TwitterOutlined />
+            </Link>
+          )}
+          {settings[SETTINGS_KEYS.INSTAGRAM_URL] && (
+            <Link href={settings[SETTINGS_KEYS.INSTAGRAM_URL]} target="_blank">
+              <InstagramOutlined />
+            </Link>
+          )}
+          {settings[SETTINGS_KEYS.LINKEDIN_URL] && (
+            <Link href={settings[SETTINGS_KEYS.LINKEDIN_URL]} target="_blank">
+              <LinkedinOutlined />
+            </Link>
+          )}
+          {settings[SETTINGS_KEYS.GITHUB_URL] && (
+            <Link href={settings[SETTINGS_KEYS.GITHUB_URL]} target="_blank">
+              <GithubOutlined />
+            </Link>
+          )}
         </Space>
         <Text>
           {settings.siteName} ©{new Date().getFullYear()} All rights reserved.

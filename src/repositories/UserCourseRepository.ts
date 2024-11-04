@@ -56,7 +56,7 @@ class UserCourseRepository {
             ],
           },
           expires_at: { $ifNull: ["$userEnrollment.expires_at", null] },
-          isenrollmentPermanent: "$userEnrollment.isPermanent",
+          isEnrollmentPermanent: "$userEnrollment.isPermanent",
           chapters: {
             $map: {
               input: "$chapters",
@@ -146,7 +146,7 @@ class UserCourseRepository {
             ],
           },
           expires_at: { $ifNull: ["$userEnrollment.expires_at", null] },
-          isenrollmentPermanent: "$userEnrollment.isPermanent",
+          isEnrollmentPermanent: "$userEnrollment.isPermanent",
           chapters: {
             $map: {
               input: "$chapters",

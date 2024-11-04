@@ -92,7 +92,7 @@ export interface Course extends Document {
 
 export interface ApplicationLevelCourse extends Course {
   enrollmentExpired?: Date;
-  isenrollmentPermanent?: boolean;
+  isEnrollmentPermanent?: boolean;
 }
 
 // ZoomSlot schema to capture individual slots with times and links

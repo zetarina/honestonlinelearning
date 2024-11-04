@@ -7,15 +7,15 @@ import MainLayout from "./MainLayout";
 import LoadingSpinner from "./LoadingSpinner";
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
-import { GlobalSettings } from "@/config/settingKeys";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface LayoutRouterProps {
   children: React.ReactNode;
-  settings: GlobalSettings;
 }
 
-const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
+const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
   const { user, initialLoading } = useContext(UserContext);
+  const { settings } = useSettings(); 
   const pathname = usePathname();
   const router = useRouter();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
@@ -27,13 +27,13 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
     const handleRouteChangeStart = () => setLoading(true);
     const handleRouteChangeComplete = () => setLoading(false);
 
-    // Manually control loading states by detecting pathname changes
+    
     setLoading(true);
     handleRouteChangeStart();
 
     const timeoutId = setTimeout(() => {
       handleRouteChangeComplete();
-    }, 500); // Simulated delay, adjust as needed
+    }, 500); 
 
     return () => {
       clearTimeout(timeoutId);
@@ -69,10 +69,10 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children, settings }) => {
   }
 
   if (isDashboardRoute && user) {
-    return <DashboardLayout settings={settings}>{children}</DashboardLayout>;
+    return <DashboardLayout>{children}</DashboardLayout>;
   }
 
-  return <MainLayout settings={settings}>{children}</MainLayout>;
+  return <MainLayout>{children}</MainLayout>;
 };
 
 export default LayoutRouter;

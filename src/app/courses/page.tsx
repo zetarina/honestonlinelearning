@@ -68,7 +68,7 @@ const CoursesPage: React.FC = () => {
               ? true
               : dayjs().isBefore(dayjs.utc(course.enrollmentExpired));
 
-            const buttonLabel = course.isenrollmentPermanent
+            const buttonLabel = course.isEnrollmentPermanent
               ? "Lifetime Access"
               : isEnrollmentActive
               ? "View Course"

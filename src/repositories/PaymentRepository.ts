@@ -18,7 +18,12 @@ class PaymentRepository {
     await dbConnect();
     return this.paymentModel.findById(id).populate("user_id").exec();
   }
-
+  async findByTransactionId(
+    transactionId: string | Types.ObjectId
+  ): Promise<Payment | null> {
+    await dbConnect();
+    return this.paymentModel.findById(transactionId).populate("user_id").exec();
+  }
   async create(paymentData: Partial<Payment>): Promise<Payment> {
     await dbConnect();
     const payment = new this.paymentModel(paymentData);

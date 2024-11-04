@@ -1,18 +1,19 @@
 import React from "react";
-import SettingsProvider from "@/providers/SettingsProvider";
+import AppProvider from "@/providers/AppProvider";
 import SettingService from "@/services/SettingService";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Fetch settings on the server-side since layout is a server component
+  // Fetch settings server-side
   const settingService = new SettingService();
   const settings = await settingService.getPublicSettings();
 
-  // Handle the case where settings are unavailable
+  // Display a loading spinner if settings are unavailable
   if (!settings) {
     return (
       <html lang="en">
@@ -33,8 +34,6 @@ export default async function AppLayout({
     );
   }
 
-  const isSetupRequired = !settings.siteName || !settings.siteUrl;
-
   return (
     <html lang="en">
       <head>
@@ -52,8 +51,8 @@ export default async function AppLayout({
           flexDirection: "column",
         }}
       >
-        <SettingsProvider settings={settings} isSetupRequired={isSetupRequired}>
-          {children}
+        <SettingsProvider settings={settings}>
+          <AppProvider>{children}</AppProvider>
         </SettingsProvider>
       </body>
     </html>

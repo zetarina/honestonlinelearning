@@ -2,9 +2,8 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 import { usersModelName } from "./UserModel";
 
 export enum PaymentMethod {
-  VISA = "visa",
-  PAYPAL = "paypal",
-  BANK_TRANSFER = "bank_transfer",
+  STRIPE = "stripe",
+  OFFLINE = "offline",
 }
 
 export enum PaymentStatus {

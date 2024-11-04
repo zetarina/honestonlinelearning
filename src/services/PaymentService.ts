@@ -54,6 +54,32 @@ class PaymentService {
 
     return completedPayment;
   }
+  async processPaymentByTransactionId(
+    transactionId: string,
+    updateData: Partial<Payment>
+  ): Promise<Payment | null> {
+    const payment = await paymentRepository.findByTransactionId(transactionId);
+    if (!payment) {
+      console.error(`Payment with transaction ID ${transactionId} not found.`);
+      return null;
+    }
+
+    const updatedPayment = await paymentRepository.update(
+      payment._id,
+      updateData
+    );
+
+    // Award points if payment is marked as completed
+    if (updateData.status === PaymentStatus.COMPLETED && updatedPayment) {
+      await userRepository.manipulatePoints(
+        updatedPayment.user_id.toString(),
+        PointTransactionType.PURCHASED_POINTS,
+        updatedPayment.amount
+      );
+    }
+
+    return updatedPayment;
+  }
 }
 
 export default PaymentService;

@@ -10,26 +10,24 @@ import {
   Space,
   Typography,
 } from "antd";
-import {
-  DashboardOutlined,
-  UserOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
+import { DashboardOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
 import UserContext from "@/contexts/UserContext";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { getHeaderItems, getMenuItems, menuData } from "@/config/navigations";
+import Image from "next/image";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const { Sider, Content, Header, Footer } = Layout;
 const { Text } = Typography;
 
 const DashboardLayout: React.FC<{
   children: React.ReactNode;
-  settings: Record<string, any>;
-}> = ({ children, settings }) => {
+}> = ({ children}) => {
   const { user } = useContext(UserContext);
+  const { settings } = useSettings();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: 767 });
@@ -88,41 +86,49 @@ const DashboardLayout: React.FC<{
           <div
             className="logo"
             style={{
-              height: "64px",
-              margin: "16px",
+              margin: "0", // Remove outer margins
+              padding: "16px 0", // Optional: add padding only on top and bottom
               display: "flex",
               alignItems: "center",
-              justifyContent: collapsed ? "center" : "center",
-              transition: "all 0.2s",
-              cursor: "pointer",
-              padding: "0 16px",
+              justifyContent: "center",
+              width: "100%",
+              backgroundColor: "#f1f1f1",
+              paddingBlock: "1px",
             }}
           >
             <Link href="/" passHref>
-              <Button
-                type="link"
-                aria-label="Go to Home"
-                style={{ padding: 0 }}
-              >
-                {collapsed ? (
-                  <DashboardOutlined
-                    style={{ fontSize: "24px", color: "#fff" }}
-                  />
-                ) : (
-                  <span
+              {collapsed ? (
+                <DashboardOutlined
+                  style={{
+                    fontSize: "24px",
+                    color: "#fff",
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%", // Ensure inner div also spans full width
+                  }}
+                >
+                  <Image
+                    src="/images/logo.png"
+                    alt={settings.siteName || "Site Logo"}
+                    width={240}
+                    height={96}
+                    priority
                     style={{
-                      color: "#fff",
-                      fontSize: "18px",
-                      fontWeight: "bold",
-                      whiteSpace: "nowrap",
+                      objectFit: "contain",
+                      marginRight: "10px",
+                      maxWidth: "200px",
                     }}
-                  >
-                    {settings.siteName}
-                  </span>
-                )}
-              </Button>
+                  />
+                </div>
+              )}
             </Link>
           </div>
+
           <Menu
             theme="dark"
             mode="inline"
