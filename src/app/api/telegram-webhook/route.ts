@@ -1,4 +1,3 @@
-// app/api/telegram-webhook/route.ts
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
 import TelegramService from "@/services/TelegramService";
@@ -6,7 +5,8 @@ import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const settingService = new SettingService();
 
-// GET handler for webhook verification
+const BOT_NAME_SUFFIX = "@honest_online_learning_bot";
+
 export const GET = async () => {
   console.log("Received GET request - webhook is active.");
   return NextResponse.json({
@@ -14,7 +14,6 @@ export const GET = async () => {
   });
 };
 
-// POST handler for Telegram messages
 export const POST = async (req: Request) => {
   try {
     const body = await req.json();
@@ -32,23 +31,28 @@ export const POST = async (req: Request) => {
     console.log("Received message from chat ID:", chatId);
     console.log("Message text:", text);
 
-    // Retrieve bot token and chat ID settings from the database
+    if (!text.startsWith("/")) {
+      console.log("Message does not start with '/' - ignoring.");
+      return NextResponse.json({ status: "Non-command message ignored" });
+    }
+
     const settings = await settingService.getSettingsByKeys(
       [SETTINGS_KEYS.TELEGRAM_BOT_TOKEN, SETTINGS_KEYS.TELEGRAM_CHAT_ID],
       "production"
     );
-    console.log(settings);
+
     const botToken = settings[SETTINGS_KEYS.TELEGRAM_BOT_TOKEN];
     const defaultChatId = settings[SETTINGS_KEYS.TELEGRAM_CHAT_ID];
 
-    // Instantiate TelegramService with config values
     const telegramService = new TelegramService(botToken, defaultChatId);
 
     const availableCommands = {
       "/groupid": `The group ID is: ${chatId}`,
+      [`/groupid${BOT_NAME_SUFFIX}`]: `The group ID is: ${chatId}`,
       "/chatid": `The chat ID is: ${chatId}`,
-      "/help":
-        "Available commands:\n/groupid or /chatid - Get the chat ID\n/help - Show available commands",
+      [`/chatid${BOT_NAME_SUFFIX}`]: `The chat ID is: ${chatId}`,
+      "/help": `Available commands:\n/groupid or /chatid - Get the chat ID\n/help - Show available commands`,
+      [`/help${BOT_NAME_SUFFIX}`]: `Available commands:\n/groupid or /chatid - Get the chat ID\n/help - Show available commands`,
     };
 
     if (availableCommands[text]) {
@@ -86,7 +90,6 @@ export const POST = async (req: Request) => {
   }
 };
 
-// OPTIONS handler for unsupported HTTP methods
 export const OPTIONS = async () => {
   return NextResponse.json(
     { status: "OK" },

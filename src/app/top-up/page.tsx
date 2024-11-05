@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect, useContext } from "react";
 import {
   Form,
@@ -30,8 +29,8 @@ const TopUpPage: React.FC = () => {
   const { settings } = useSettings();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [fileBase64, setFileBase64] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [fileList, setFileList] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState(
     settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY] ? "stripe" : "offline"
@@ -52,18 +51,6 @@ const TopUpPage: React.FC = () => {
     }
   }, [user, router]);
 
-  const handleFileChange = async (file: File) => {
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
-      setFileBase64(base64);
-      setPreview(base64);
-    };
-
-    reader.readAsDataURL(file);
-  };
-
   const handlePaymentMethodChange = (e: any) => {
     setPaymentMethod(e.target.value);
     resetFileState();
@@ -71,8 +58,28 @@ const TopUpPage: React.FC = () => {
 
   const resetFileState = () => {
     setPreview(null);
-    setFileBase64(null);
+    setFile(null);
     setFileList([]);
+  };
+
+  const handleFileChange = async (file: File) => {
+    if (file.size > 20 * 1024 * 1024) {
+      message.error("File size exceeds the maximum limit of 20MB.");
+      return;
+    }
+
+    setFile(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+
+    reader.onerror = () => {
+      message.error("Failed to read file. Please try again.");
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (values: any) => {
@@ -81,54 +88,59 @@ const TopUpPage: React.FC = () => {
       return;
     }
 
-    if (paymentMethod === "offline" && !fileBase64) {
+    if (paymentMethod === "offline" && !file) {
       message.error("Please upload a screenshot for offline payment.");
       return;
     }
 
     try {
       setLoading(true);
-      setError(null); // Clear any previous error
+      setError(null);
 
-      const payload = {
-        amount: values.amount,
-        userId: user.id,
-        paymentMethod,
-        ...(paymentMethod === "offline" && { screenshot: fileBase64 }),
-      };
+      if (paymentMethod === "offline" && file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("amount", values.amount);
+        formData.append("userId", user.id);
+        formData.append("paymentMethod", paymentMethod);
 
-      const response = await axios.post("/api/top-up", payload);
+        const response = await axios.post("/api/top-up", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
-      if (response.status === 200) {
-        if (paymentMethod === "stripe") {
-          const { client_secret } = response.data;
-          if (client_secret) {
-            message.success("Redirecting to Stripe for payment...");
-            const stripe = await stripePromise;
-            const { error } = await stripe!.redirectToCheckout({
-              sessionId: client_secret,
-            });
+        if (response.status === 201) {
+          message.success("Top-up request submitted successfully!");
+          resetFileState();
+        } else {
+          message.error("Failed to process top-up request.");
+        }
+      } else if (paymentMethod === "stripe") {
+        const response = await axios.post("/api/top-up", {
+          amount: values.amount,
+          userId: user.id,
+          paymentMethod: paymentMethod,
+        });
 
-            if (error) {
-              message.error(error.message || "Stripe redirection failed.");
-            }
-          } else {
-            message.error("Failed to initiate Stripe payment.");
+        const { client_secret } = response.data;
+        if (client_secret) {
+          message.success("Redirecting to Stripe for payment...");
+          const stripe = await stripePromise;
+          const { error } = await stripe!.redirectToCheckout({
+            sessionId: client_secret,
+          });
+
+          if (error) {
+            message.error(error.message || "Stripe redirection failed.");
           }
         } else {
-          message.success("Top-up request submitted!");
-          resetFileState();
+          message.error("Failed to initiate Stripe payment.");
         }
-      } else {
-        message.error("Failed to process top-up request.");
       }
     } catch (error: any) {
       console.error("Top-up error:", error);
-      if (error.response && error.response.data && error.response.data.error) {
-        setError(error.response.data.error); // Set specific server error message
-      } else {
-        setError("An unexpected error occurred during top-up.");
-      }
+      setError(error.response?.data?.error || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }

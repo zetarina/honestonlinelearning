@@ -1,4 +1,3 @@
-// services/TelegramService.ts
 import TelegramBot from "node-telegram-bot-api";
 
 export default class TelegramService {
@@ -15,7 +14,6 @@ export default class TelegramService {
     this.defaultChatId = defaultChatId;
   }
 
-  // Send a message to Telegram
   public async sendMessage(text: string, chatId?: string) {
     const targetChatId = chatId || this.defaultChatId;
 
@@ -38,8 +36,13 @@ export default class TelegramService {
       throw error;
     }
   }
-  public async sendPhoto(photo: Buffer, caption?: string, chatId?: string) {
+  public async sendPhoto(
+    photo: Buffer | string,
+    caption?: string,
+    chatId?: string
+  ) {
     const targetChatId = chatId || this.defaultChatId;
+    console.log(targetChatId);
 
     if (!this.bot) {
       console.error("Telegram bot is not initialized properly.");
@@ -52,17 +55,20 @@ export default class TelegramService {
     }
 
     try {
-      // Provide a filename explicitly to avoid deprecation warning
-      const response = await this.bot.sendPhoto(
-        targetChatId,
-        { source: photo }, // Explicitly set the filename
-        { caption }
-      );
+      const response = await this.bot.sendPhoto(targetChatId, photo, {
+        caption,
+      });
       console.log("Telegram photo response:", response);
       return response;
-    } catch (error) {
-      console.error("Error sending Telegram photo:", error);
-      throw error;
+    } catch (error: any) {
+      const errorDetails = {
+        message: error.message,
+        code: error.code,
+        statusCode: error.response?.statusCode,
+        statusMessage: error.response?.statusMessage,
+      };
+      console.error("Failed to send photo to Telegram:", errorDetails);
+      throw new Error("Failed to send photo to Telegram");
     }
   }
 }
