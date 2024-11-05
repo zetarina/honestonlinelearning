@@ -1,56 +1,22 @@
 // services/TelegramService.ts
 import TelegramBot from "node-telegram-bot-api";
-import SettingService from "@/services/SettingService";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
-
-const settingService = new SettingService();
 
 export default class TelegramService {
   private bot: TelegramBot | null = null;
   private defaultChatId: string | null = null;
-  private isInitialized = false;
 
-  constructor() {
-    this.init().catch((error) =>
-      console.error("Failed to initialize TelegramService:", error)
-    );
-  }
-
-  // Initialize bot with settings from the database
-  private async init() {
-    try {
-      const settings = await settingService.getSettingsByKeys(
-        [SETTINGS_KEYS.TELEGRAM_BOT_TOKEN, SETTINGS_KEYS.TELEGRAM_CHAT_ID],
-        "production"
-      );
-
-      const botToken = settings[SETTINGS_KEYS.TELEGRAM_BOT_TOKEN];
-      this.defaultChatId = settings[SETTINGS_KEYS.TELEGRAM_CHAT_ID];
-
-      if (botToken) {
-        // Initialize Telegram Bot with the fetched token
-        this.bot = new TelegramBot(botToken, { polling: false });
-        this.isInitialized = true;
-        console.log("Telegram bot initialized successfully.");
-      } else {
-        console.error("Telegram bot token is missing in the configuration.");
-      }
-    } catch (error) {
-      console.error("Error initializing TelegramService:", error);
+  constructor(botToken: string, defaultChatId: string | null) {
+    if (botToken) {
+      this.bot = new TelegramBot(botToken, { polling: false });
+      console.log("Telegram bot initialized successfully.");
+    } else {
+      console.error("Telegram bot token is missing in the configuration.");
     }
-  }
-
-  // Ensure the bot is initialized before sending a message
-  private async ensureInitialized() {
-    if (!this.isInitialized) {
-      console.log("Waiting for bot initialization...");
-      await this.init();
-    }
+    this.defaultChatId = defaultChatId;
   }
 
   // Send a message to Telegram
   public async sendMessage(text: string, chatId?: string) {
-    await this.ensureInitialized();
     const targetChatId = chatId || this.defaultChatId;
 
     if (!this.bot) {
@@ -75,7 +41,6 @@ export default class TelegramService {
 
   // Send a photo to Telegram
   public async sendPhoto(photo: Buffer, caption?: string, chatId?: string) {
-    await this.ensureInitialized();
     const targetChatId = chatId || this.defaultChatId;
 
     if (!this.bot) {
