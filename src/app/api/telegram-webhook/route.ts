@@ -37,7 +37,9 @@ export const POST = async (req: Request) => {
       [SETTINGS_KEYS.TELEGRAM_BOT_TOKEN, SETTINGS_KEYS.TELEGRAM_CHAT_ID],
       "production"
     );
+    console.log(settings);
     const botToken = settings[SETTINGS_KEYS.TELEGRAM_BOT_TOKEN];
+
     const defaultChatId = settings[SETTINGS_KEYS.TELEGRAM_CHAT_ID];
 
     // Instantiate TelegramService with config values
