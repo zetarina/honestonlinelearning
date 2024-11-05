@@ -38,8 +38,6 @@ export default class TelegramService {
       throw error;
     }
   }
-
-  // Send a photo to Telegram
   public async sendPhoto(photo: Buffer, caption?: string, chatId?: string) {
     const targetChatId = chatId || this.defaultChatId;
 
@@ -54,9 +52,12 @@ export default class TelegramService {
     }
 
     try {
-      const response = await this.bot.sendPhoto(targetChatId, photo, {
-        caption,
-      });
+      // Provide a filename explicitly to avoid deprecation warning
+      const response = await this.bot.sendPhoto(
+        targetChatId,
+        { source: photo, filename: "screenshot.png" }, // Explicitly set the filename
+        { caption }
+      );
       console.log("Telegram photo response:", response);
       return response;
     } catch (error) {
