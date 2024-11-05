@@ -6,7 +6,6 @@ import { PaymentMethod, PaymentStatus } from "@/models/PaymentModel";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { createStripePayment } from "@/utils/stripe-top-up-api";
 import { handleOfflinePayment } from "@/utils/offline-payment-api";
-import { writeFile } from "fs/promises";
 const settingService = new SettingService();
 const paymentService = new PaymentService();
 
@@ -66,8 +65,7 @@ async function handleTopUpRequest(
       }
 
       const arrayBuffer = await file.arrayBuffer();
-      const screenshotBuffer = Buffer.from(arrayBuffer);
-      await writeFile("test_image.png", screenshotBuffer);
+      const screenshotBuffer = Buffer.from(arrayBuffer);;
 
       return await handleOfflinePayment(
         userId,
