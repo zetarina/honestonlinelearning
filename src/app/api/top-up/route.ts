@@ -1,4 +1,3 @@
-// app/api/top-up/route.ts
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
@@ -68,13 +67,26 @@ async function handleTelegramNotification(
   }
 
   const telegramService = new TelegramService(botToken, chatId);
-
   const telegramMessage = `User with ID: ${userId} requested a top-up of ${amount} ${currency} (offline). Screenshot attached.`;
-  const screenshotBuffer = Buffer.from(
-    screenshot.split("base64,")[1],
-    "base64"
-  );
-  return telegramService.sendPhoto(screenshotBuffer, telegramMessage);
+
+  try {
+    const base64Data = screenshot.includes("base64,")
+      ? screenshot.split("base64,")[1]
+      : screenshot;
+
+    const screenshotBuffer = Buffer.from(base64Data, "base64");
+
+    const MAX_FILE_SIZE = 1024 * 1024 * 20;
+    if (screenshotBuffer.length > MAX_FILE_SIZE) {
+      console.error("File size is too large for Telegram upload.");
+      return;
+    }
+
+    return await telegramService.sendPhoto(screenshotBuffer, telegramMessage);
+  } catch (error) {
+    console.error("Error processing screenshot for Telegram:", error);
+    throw error;
+  }
 }
 
 async function handleEmailNotification(

@@ -55,7 +55,7 @@ export default class TelegramService {
       // Provide a filename explicitly to avoid deprecation warning
       const response = await this.bot.sendPhoto(
         targetChatId,
-        { source: photo, filename: "screenshot.png" }, // Explicitly set the filename
+        { source: photo }, // Explicitly set the filename
         { caption }
       );
       console.log("Telegram photo response:", response);
