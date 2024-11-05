@@ -1,16 +1,18 @@
+// app/api/top-up/route.ts
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import SettingService from "@/services/SettingService";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
-import Stripe from "stripe";
 import PaymentService from "@/services/PaymentService";
-import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { PaymentMethod, PaymentStatus } from "@/models/PaymentModel";
 import { initializeStripe } from "@/utils/stripe";
-import axios from "axios";
+import TelegramService from "@/services/TelegramService";
+import MailService from "@/services/MailService";
+import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 
 const settingService = new SettingService();
 const paymentService = new PaymentService();
+const telegramService = new TelegramService();
+const mailService = new MailService();
 
 async function handleTopUpRequest(req: Request, userId: string | null) {
   try {
@@ -30,7 +32,6 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
       return acc;
     }, {} as Record<string, string | undefined>);
 
-    // Retrieve the currency from settings and convert it to uppercase with a default of "USD"
     const CURRENCY = (
       settingsMap[SETTINGS_KEYS.CURRENCY] || "usd"
     ).toUpperCase();
@@ -55,10 +56,8 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
         line_items: [
           {
             price_data: {
-              currency: CURRENCY.toLowerCase(), // Stripe expects lowercase currency codes
-              product_data: {
-                name: "Top-up Payment",
-              },
+              currency: CURRENCY.toLowerCase(),
+              product_data: { name: "Top-up Payment" },
               unit_amount: amount * 100,
             },
             quantity: 1,
@@ -86,63 +85,37 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
         );
       }
 
-      const TELEGRAM_BOT_TOKEN = settingsMap[SETTINGS_KEYS.TELEGRAM_BOT_TOKEN];
-      const TELEGRAM_CHAT_ID = settingsMap[SETTINGS_KEYS.TELEGRAM_CHAT_ID];
+      const telegramMessage = `User with ID: ${userId} requested a top-up of ${amount} ${CURRENCY} (offline). Screenshot: [Uploaded]`;
 
-      if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-        try {
-          const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-          const telegramMessage = `User with ID: ${userId} requested a top-up of ${amount} ${CURRENCY} (offline). Screenshot: [Uploaded]`;
-
-          await axios.post(url, {
-            chat_id: TELEGRAM_CHAT_ID,
-            text: telegramMessage,
-          });
-
-          await paymentService.createPayment({
-            user_id: userId,
-            amount,
-            method: PaymentMethod.OFFLINE,
-            status: PaymentStatus.PENDING,
-          });
-
-          return NextResponse.json({
-            message: "Offline top-up request submitted and sent to Telegram!",
-          });
-        } catch (error) {
-          console.error("Error sending Telegram notification:", error);
-        }
+      // Try to send notification via Telegram
+      try {
+        await telegramService.sendMessage(telegramMessage);
+        await paymentService.createPayment({
+          user_id: userId,
+          amount,
+          method: PaymentMethod.OFFLINE,
+          status: PaymentStatus.PENDING,
+        });
+        return NextResponse.json({
+          message: "Offline top-up request submitted and sent to Telegram!",
+        });
+      } catch (error) {
+        console.error("Error sending Telegram notification:", error);
       }
 
-      // If Telegram is unavailable, try Gmail as a fallback
-      const GMAIL_USER = settingsMap[SETTINGS_KEYS.GMAIL_USER];
-      const GMAIL_PASSWORD = settingsMap[SETTINGS_KEYS.GMAIL_PASSWORD];
-      const ADMIN_EMAIL = settingsMap[SETTINGS_KEYS.ADMIN_EMAIL];
-
-      if (GMAIL_USER && GMAIL_PASSWORD && ADMIN_EMAIL) {
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: GMAIL_USER,
-            pass: GMAIL_PASSWORD,
+      // Fallback to email notification if Telegram fails
+      try {
+        const mailSubject = "New Offline Top-up Request";
+        const mailText = `User with ID: ${userId} requested a top-up of ${amount} ${CURRENCY}.`;
+        const attachments = [
+          {
+            filename: "screenshot.png",
+            content: screenshot.split("base64,")[1],
+            encoding: "base64",
           },
-        });
+        ];
 
-        const mailOptions = {
-          from: GMAIL_USER,
-          to: ADMIN_EMAIL,
-          subject: "New Offline Top-up Request",
-          text: `User with ID: ${userId} requested a top-up of ${amount} ${CURRENCY}.`,
-          attachments: [
-            {
-              filename: "screenshot.png",
-              content: screenshot.split("base64,")[1],
-              encoding: "base64",
-            },
-          ],
-        };
-
-        await transporter.sendMail(mailOptions);
+        await mailService.sendMail(mailSubject, mailText, attachments);
 
         await paymentService.createPayment({
           user_id: userId,
@@ -154,8 +127,8 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
         return NextResponse.json({
           message: "Offline top-up request submitted and sent via email!",
         });
-      } else {
-        // If neither Telegram nor Gmail are configured
+      } catch (error) {
+        console.error("Error sending email notification:", error);
         return NextResponse.json(
           {
             error:
