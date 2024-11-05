@@ -49,4 +49,21 @@ export default class TelegramService {
       throw error;
     }
   }
+
+  // Send a photo to Telegram
+  public async sendPhoto(photo: Buffer, caption?: string, chatId?: string) {
+    if (!this.bot || !this.chatId) {
+      console.error("Telegram configuration is incomplete.");
+      throw new Error("Telegram configuration is incomplete.");
+    }
+
+    try {
+      const targetChatId = chatId || this.chatId;
+      const response = await this.bot.sendPhoto(targetChatId, photo, { caption });
+      return response;
+    } catch (error) {
+      console.error("Error sending Telegram photo:", error);
+      throw error;
+    }
+  }
 }

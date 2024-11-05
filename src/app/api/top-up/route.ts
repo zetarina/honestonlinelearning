@@ -84,23 +84,28 @@ async function handleTopUpRequest(req: Request, userId: string | null) {
           { status: 400 }
         );
       }
+      const telegramMessage = `User with ID: ${userId} requested a top-up of ${amount} ${CURRENCY} (offline). Screenshot attached.`;
 
-      const telegramMessage = `User with ID: ${userId} requested a top-up of ${amount} ${CURRENCY} (offline). Screenshot: [Uploaded]`;
-
-      // Try to send notification via Telegram
+      // Try to send notification via Telegram with photo
       try {
-        await telegramService.sendMessage(telegramMessage);
+        const screenshotBuffer = Buffer.from(
+          screenshot.split("base64,")[1],
+          "base64"
+        );
+        await telegramService.sendPhoto(screenshotBuffer, telegramMessage);
+
         await paymentService.createPayment({
           user_id: userId,
           amount,
           method: PaymentMethod.OFFLINE,
           status: PaymentStatus.PENDING,
         });
+
         return NextResponse.json({
           message: "Offline top-up request submitted and sent to Telegram!",
         });
       } catch (error) {
-        console.error("Error sending Telegram notification:", error);
+        console.error("Error sending Telegram photo notification:", error);
       }
 
       // Fallback to email notification if Telegram fails
