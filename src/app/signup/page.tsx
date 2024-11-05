@@ -15,6 +15,7 @@ export default function SignupPage() {
 
   const { refreshUser, user } = useContext(UserContext);
 
+  const [form] = Form.useForm(); // Initialize form instance here
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +67,12 @@ export default function SignupPage() {
     }
   };
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Convert input to lowercase and remove spaces
+    const formattedUsername = e.target.value.toLowerCase().replace(/\s+/g, "");
+    form.setFieldsValue({ username: formattedUsername });
+  };
+
   return (
     <div
       style={{
@@ -105,13 +112,23 @@ export default function SignupPage() {
             style={{ marginBottom: "16px" }}
           />
         )}
-        <Form layout="vertical" onFinish={onFinish}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
             name="username"
             label="Username"
-            rules={[{ required: true, message: "Please input your username!" }]}
+            rules={[
+              { required: true, message: "Please input your username!" },
+              {
+                pattern: /^[a-z0-9]+$/,
+                message: "Username must be lowercase and contain no spaces",
+              },
+            ]}
           >
-            <Input placeholder="Username" size="large" />
+            <Input
+              placeholder="Username"
+              size="large"
+              onChange={handleUsernameChange}
+            />
           </Form.Item>
           <Form.Item
             name="email"

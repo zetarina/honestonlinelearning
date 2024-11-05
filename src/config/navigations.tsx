@@ -1,10 +1,3 @@
-interface MenuItem {
-  key: string;
-  icon?: string;
-  label: string;
-  link?: string;
-  children?: MenuItem[];
-}
 import {
   HomeOutlined,
   PlusOutlined,
@@ -18,11 +11,22 @@ import {
   UserOutlined,
   FileOutlined,
   LogoutOutlined,
+  LoginOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
+
 import { Button, Menu } from "antd";
 import { ItemType } from "antd/es/menu/interface";
 import Link from "next/link";
-
+import { signOut } from "next-auth/react";
+import { User, UserRole } from "@/models/UserModel";
+interface MenuItem {
+  key: string;
+  icon?: string;
+  label: string;
+  link?: string;
+  children?: MenuItem[];
+}
 export const iconMapper: { [key: string]: React.ReactNode } = {
   HomeOutlined: <HomeOutlined />,
   UserOutlined: <UserOutlined />,
@@ -34,8 +38,12 @@ export const iconMapper: { [key: string]: React.ReactNode } = {
   SettingOutlined: <SettingOutlined />,
   FormOutlined: <FormOutlined />,
   FileOutlined: <FileOutlined />,
+  WalletOutlined: <WalletOutlined />,
+  DashboardOutlined: <DashboardOutlined />,
+  LogoutOutlined: <LogoutOutlined />,
+  LoginOutlined: <LoginOutlined />,
 };
-export const menuData: MenuItem[] = [
+export const dashboardMenuData: MenuItem[] = [
   {
     key: "courses",
     icon: "BookOutlined",
@@ -126,9 +134,16 @@ export const menuData: MenuItem[] = [
   },
 ];
 
-export const getMenuItems = (menuData: MenuItem[]) => {
+export const mainMenuData: MenuItem[] = [
+  { key: "home", icon: "HomeOutlined", label: "Home", link: "/" },
+  { key: "courses", icon: "BookOutlined", label: "Courses", link: "/courses" },
+  { key: "top-up", icon: "WalletOutlined", label: "Top Up", link: "/top-up" },
+];
+// Common function to generate menu items for both desktop and mobile
+export const generateMenuItems = (menuData) => {
   return menuData.map((menu) => {
     if (menu.children && menu.children.length > 0) {
+      // For items with nested children (submenus)
       return {
         key: menu.key,
         icon: iconMapper[menu.icon || ""],
@@ -138,47 +153,130 @@ export const getMenuItems = (menuData: MenuItem[]) => {
           icon: iconMapper[child.icon || ""],
           label: (
             <Link href={child.link || "#"} passHref>
-              <Button type="link" style={{ padding: 0, color: "white" }}>
-                {child.label}
-              </Button>
+              <span style={{ color: "white" }}>{child.label}</span>
             </Link>
           ),
         })),
       };
     } else {
+      // For single-level items
       return {
         key: menu.key,
         icon: iconMapper[menu.icon || ""],
         label: (
           <Link href={menu.link || "#"} passHref>
-            <Button type="link" style={{ padding: 0, color: "white" }}>
-              {menu.label}
-            </Button>
+            <span style={{ color: "white" }}>{menu.label}</span>
           </Link>
         ),
       };
     }
   });
 };
-export const getHeaderItems = (
-  handleLogout: () => Promise<void>
-): ItemType[] => [
+
+// Desktop Menu Items
+export const getDashboardMenuItems = () => generateMenuItems(dashboardMenuData);
+
+// Mobile Menu Items - with uniform styling
+export const getMobileDashboardMenuItems = (user: User) => {
+  const mobileMenuData = generateMenuItems(dashboardMenuData);
+
+  // Add additional mobile-only items if necessary (e.g., logout or profile)
+  if (user) {
+    mobileMenuData.push({
+      key: "logout",
+      icon: iconMapper["LogoutOutlined"],
+      label: (
+        <span onClick={() => signOut({ callbackUrl: "/" })} style={{ color: "white" }}>
+          Logout
+        </span>
+      ),
+    });
+  }
+
+  return mobileMenuData;
+};
+
+export const getMainMenuItems = () => {
+  return mainMenuData.map((menu) => ({
+    key: menu.key,
+    icon: iconMapper[menu.icon] || null,
+    label: (
+      <Link href={menu.link || "#"} passHref>
+        <Button type="link" style={{ padding: 0, color: "black" }}>
+          {menu.label}
+        </Button>
+      </Link>
+    ),
+  }));
+};
+
+export const mobileMenuData = (user: User): MenuItem[] => [
+  ...mainMenuData,
+  ...(user && user.role !== UserRole.STUDENT
+    ? [
+        {
+          key: "dashboard",
+          icon: "DashboardOutlined",
+          label: "Dashboard",
+          link: "/dashboard",
+        },
+      ]
+    : []),
   {
     key: "profile",
-    icon: <UserOutlined />,
-    label: <Link href="/profile">Profile</Link>,
+    icon: "UserOutlined",
+    label: "Profile",
+    link: "/profile",
+  },
+  user
+    ? {
+        key: "logout",
+        icon: "LogoutOutlined",
+        label: "Logout",
+      }
+    : {
+        key: "login",
+        icon: "LoginOutlined",
+        label: "Login",
+        link: "/login",
+      },
+];
+
+export const getMobileMenuItems = (user: User) =>
+  mobileMenuData(user).map((menu) => ({
+    key: menu.key,
+    icon: iconMapper[menu.icon || ""] || null,
+    label: menu.link ? (
+      <Link href={menu.link} passHref>
+        <Button type="link" style={{ padding: 0, color: "black" }}>
+          {menu.label}
+        </Button>
+      </Link>
+    ) : (
+      <span
+        onClick={
+          menu.key === "logout"
+            ? () => signOut({ callbackUrl: "/" })
+            : undefined
+        }
+      >
+        <Button type="link" style={{ padding: 0, color: "black" }}>
+          {menu.label}
+        </Button>
+      </span>
+    ),
+  }));
+export const mobileDashboardMenuData = (user: User): MenuItem[] => [
+  ...dashboardMenuData,
+  {
+    key: "profile",
+    icon: "UserOutlined",
+    label: "Profile",
+    link: "/profile",
   },
   {
     key: "logout",
-    icon: <LogoutOutlined />,
-    label: (
-      <Button
-        type="text"
-        onClick={async () => await handleLogout()} // Call logout correctly
-        style={{ padding: 0, width: "100%", textAlign: "left" }}
-      >
-        Logout
-      </Button>
-    ),
+    icon: "LogoutOutlined",
+    label: "Logout",
   },
 ];

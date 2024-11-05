@@ -26,12 +26,12 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
   const observerRef = useRef<HTMLDivElement>(null);
   const batchSize = 12;
 
-  // Ensure the input value matches the provided prop value
+  
   useEffect(() => {
     setUrl(value);
   }, [value]);
 
-  // Fetch images from the API
+  
   const fetchImages = async (search: string, page: number) => {
     try {
       setLoading(true);
@@ -67,7 +67,7 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
     fetchImages(e.target.value, 1);
   };
 
-  // Intersection observer for infinite scrolling
+  
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -146,7 +146,14 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
           }}
         >
           <List
-            grid={{ gutter: 16, column: 4 }}
+            grid={{
+              gutter: 16,
+              xs: 1, 
+              sm: 2, 
+              md: 3, 
+              lg: 4, 
+              xl: 5, 
+            }}
             dataSource={images}
             renderItem={(image) => (
               <List.Item key={image._id.toString()}>

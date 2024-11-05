@@ -25,7 +25,7 @@ async function handleCoursePurchaseRequest(
     const user = await userService.getUserById(userId);
     if (!user || user.pointsBalance < course.price) {
       return NextResponse.json(
-        { error: "Insufficient points" },
+        { error: "Insufficient points", redirectUrl: "/top-up" },
         { status: 400 }
       );
     }

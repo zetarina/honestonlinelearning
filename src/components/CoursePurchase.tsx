@@ -21,6 +21,8 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import ExpandableContent from "./ExpandableContent";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const { Title, Text } = Typography;
 
@@ -35,6 +37,10 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
 }) => {
   const { data: session } = useSession();
   const router = useRouter();
+  const { settings } = useSettings();
+
+  // Retrieve the currency from settings, defaulting to USD if not set
+  const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   const handlePurchase = async () => {
     if (!session?.user) {
@@ -51,11 +57,23 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
       if (response.status === 200) {
         message.success("Course purchased successfully!");
         onPurchaseSuccess();
-      } else {
-        message.error("Failed to purchase course. Please try again.");
       }
     } catch (error) {
-      message.error("An error occurred while purchasing the course.");
+      if (error.response && error.response.status === 400) {
+        const errorMessage = error.response.data.error;
+        const redirectUrl = error.response.data.redirectUrl;
+
+        if (errorMessage === "Insufficient points") {
+          message.warning("Not enough points. Please top up your balance.");
+          router.push(redirectUrl);
+        } else {
+          message.error(
+            errorMessage || "Failed to purchase course. Please try again."
+          );
+        }
+      } else {
+        message.error("An error occurred while purchasing the course.");
+      }
     }
   };
 
@@ -99,9 +117,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
               </Tag>
               <Text strong>Instructor:</Text>{" "}
               <Tag color="purple" style={{ textTransform: "capitalize" }}>
-                {course.instructor?.name ||
-                  course.instructor?.username ||
-                  "N/A"}
+                {course.instructor?.name || course.instructor?.username || "N/A"}
               </Tag>
             </Space>
           </Card>
@@ -121,7 +137,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
           >
             <Space direction="vertical" style={{ width: "100%" }}>
               <Title level={4}>
-                Price: {course.price.toLocaleString()} MMK
+                Price: {course.price.toLocaleString()} {currency}
               </Title>
 
               <Button

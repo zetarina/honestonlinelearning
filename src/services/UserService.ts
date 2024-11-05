@@ -35,10 +35,14 @@ class UserService {
     return userRepository.findByEmail(email);
   }
 
-  async createUser(userData: Partial<User>): Promise<User> {
+  async createUser(
+    userData: Partial<User>,
+    role: UserRole = UserRole.STUDENT
+  ): Promise<User> {
     const { hashedPassword, salt } = this.hashPassword(userData.password!);
     userData.hashedPassword = hashedPassword;
     userData.salt = salt;
+    userData.role = role;
 
     return userRepository.create(userData);
   }

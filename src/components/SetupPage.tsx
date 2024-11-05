@@ -13,7 +13,7 @@ import {
 } from "antd";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { SETTINGS_KEYS } from "@/config/settingKeys"; // Import the settings keys
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const { Title } = Typography;
 
@@ -32,7 +32,9 @@ const SetupPage: React.FC = () => {
 
   useEffect(() => {
     const inputToFocus = document.querySelector(
-      `input[name="${currentStep === 1 ? "username" : SETTINGS_KEYS.SITE_NAME}"]`
+      `input[name="${
+        currentStep === 1 ? "username" : SETTINGS_KEYS.SITE_NAME
+      }"]`
     ) as HTMLInputElement;
     inputToFocus?.focus();
   }, [currentStep]);
@@ -51,6 +53,7 @@ const SetupPage: React.FC = () => {
       settings: {
         [SETTINGS_KEYS.SITE_NAME]: values[SETTINGS_KEYS.SITE_NAME],
         [SETTINGS_KEYS.SITE_URL]: values[SETTINGS_KEYS.SITE_URL],
+        [SETTINGS_KEYS.CURRENCY]: values[SETTINGS_KEYS.CURRENCY],
       },
     };
 
@@ -63,7 +66,7 @@ const SetupPage: React.FC = () => {
           if (response.status === 201) {
             message.success("Setup completed successfully!");
             setSetupCompleted(true);
-            window.location.reload(); // Reload the page after setup completes
+            window.location.reload();
           } else {
             setError(
               response.data?.error || "Setup failed! Please check your details."
@@ -82,6 +85,11 @@ const SetupPage: React.FC = () => {
         setLoading(false);
       },
     });
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedUsername = e.target.value.toLowerCase().replace(/\s+/g, "");
+    form.setFieldsValue({ username: formattedUsername });
   };
 
   return (
@@ -110,9 +118,15 @@ const SetupPage: React.FC = () => {
             <Form.Item
               name="username"
               label="Username"
-              rules={[{ required: true, message: "Please input your username!" }]}
+              rules={[
+                { required: true, message: "Please input your username!" },
+                {
+                  pattern: /^[a-z0-9]+$/,
+                  message: "Username must be lowercase and contain no spaces",
+                },
+              ]}
             >
-              <Input placeholder="Username" />
+              <Input placeholder="Username" onChange={handleUsernameChange} />
             </Form.Item>
 
             <Form.Item
@@ -126,7 +140,9 @@ const SetupPage: React.FC = () => {
             <Form.Item
               name="password"
               label="Password"
-              rules={[{ required: true, message: "Please input your password!" }]}
+              rules={[
+                { required: true, message: "Please input your password!" },
+              ]}
             >
               <Input.Password placeholder="Password" />
             </Form.Item>
@@ -142,7 +158,9 @@ const SetupPage: React.FC = () => {
             <Form.Item
               label="Site Name"
               name={SETTINGS_KEYS.SITE_NAME}
-              rules={[{ required: true, message: "Please input your site name!" }]}
+              rules={[
+                { required: true, message: "Please input your site name!" },
+              ]}
             >
               <Input placeholder="Enter your site name" />
             </Form.Item>
@@ -150,9 +168,25 @@ const SetupPage: React.FC = () => {
             <Form.Item
               label="Site URL"
               name={SETTINGS_KEYS.SITE_URL}
-              rules={[{ required: true, message: "Please input your site URL!" }]}
+              rules={[
+                { required: true, message: "Please input your site URL!" },
+              ]}
             >
               <Input placeholder="Enter your site URL" />
+            </Form.Item>
+
+            <Form.Item
+              label="Currency"
+              name={SETTINGS_KEYS.CURRENCY}
+              rules={[
+                { required: true, message: "Please input your currency code!" },
+                {
+                  pattern: /^[A-Z]{3}$/,
+                  message: "Currency must be a valid 3-letter code (e.g., USD)",
+                },
+              ]}
+            >
+              <Input placeholder="Currency Code (e.g., USD)" />
             </Form.Item>
 
             <Form.Item>

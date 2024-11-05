@@ -1,29 +1,19 @@
 "use client";
 
 import React, { useState, useContext } from "react";
-import { Layout, Menu, Drawer, Avatar, Space, Typography } from "antd";
-import {
-  HomeOutlined,
-  LogoutOutlined,
-  UserOutlined,
-  BookOutlined,
-  WalletOutlined,
-  FacebookOutlined,
-  GithubOutlined,
-  InstagramOutlined,
-  LinkedinOutlined,
-  TwitterOutlined,
-} from "@ant-design/icons";
-import Link from "next/link";
+import { Layout, Menu, Drawer, Space, Typography, Button } from "antd";
 import { useMediaQuery } from "react-responsive";
 import { signOut } from "next-auth/react";
 import UserContext from "@/contexts/UserContext";
 import Image from "next/image";
-import type { MenuProps } from "antd";
-import { UserRole } from "@/models/UserModel";
-import MessengerChat from "./MessengerChat";
+import Link from "next/link";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import UserAvatar from "./UserAvatar";
+import MessengerChat from "./MessengerChat";
+import { UserRole } from "@/models/UserModel";
+import { getMainMenuItems, getMobileMenuItems } from "@/config/navigations";
+import SocialLinks from "./SocialLinks";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -38,57 +28,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
 
+  const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
-
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" });
-  };
-
-  const menuItems: MenuProps["items"] = [
-    {
-      key: "home",
-      icon: <HomeOutlined />,
-      label: <Link href="/">Home</Link>,
-    },
-    {
-      key: "courses",
-      icon: <BookOutlined />,
-      label: <Link href="/courses">Courses</Link>,
-    },
-    {
-      key: "top-up",
-      icon: <WalletOutlined />,
-      label: <Link href="/top-up">Top Up</Link>,
-    },
-    ...(user && user?.role !== UserRole.STUDENT
-      ? [
-          {
-            key: "dashboard",
-            icon: <UserOutlined />,
-            label: <Link href="/dashboard">Dashboard</Link>,
-          },
-        ]
-      : []),
-    ...(user
-      ? [
-          {
-            key: "logout",
-            icon: <LogoutOutlined />,
-            label: (
-              <Text strong onClick={handleLogout} style={{ cursor: "pointer" }}>
-                Logout
-              </Text>
-            ),
-          },
-        ]
-      : [
-          {
-            key: "login",
-            icon: <UserOutlined />,
-            label: <Link href="/login">Login</Link>,
-          },
-        ]),
-  ].flat();
+  const handleLogout = async () => await signOut({ callbackUrl: "/" });
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -101,12 +43,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           height: "80px",
           padding: "0 20px",
           boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+          borderBottom: "1px solid #f1f1f1",
         }}
       >
         <Link href="/" style={{ display: "flex", alignItems: "center" }}>
           <Image
             src="/images/logo.png"
-            alt={settings.siteName || "Site Logo"}
+            alt={settings[SETTINGS_KEYS.SITE_NAME]?.trim() || "Site Logo"}
             width={120}
             height={120}
             priority
@@ -116,35 +59,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         <Space>
           {isMobile ? (
-            <>
-              <Avatar
-                src={user?.avatar || "/images/default-avatar.webp"}
+            <Drawer
+              title="Menu"
+              placement="right"
+              onClose={toggleDrawer}
+              open={drawerVisible}
+            >
+              <Menu
+                mode="vertical"
+                items={getMobileMenuItems(user)}
                 onClick={toggleDrawer}
-                style={{ cursor: "pointer" }}
               />
-              <Drawer
-                title="Menu"
-                placement="right"
-                onClose={toggleDrawer}
-                open={drawerVisible}
-              >
-                <Menu
-                  mode="vertical"
-                  items={menuItems}
-                  onClick={toggleDrawer}
-                />
-              </Drawer>
-            </>
+            </Drawer>
           ) : (
-            <Menu mode="horizontal" items={menuItems} />
+            <Menu mode="horizontal" items={getMainMenuItems()} />
           )}
-          {!isMobile && user && (
-            <Space>
-              <Avatar src={user.avatar || "/images/default-avatar.webp"} />
-              <Text>{user.username}</Text>
-              <Text>Points: {user.pointsBalance || 0}</Text>
-            </Space>
-          )}
+          <UserAvatar
+            user={user}
+            currency={currency}
+            isMobile={isMobile}
+            handleLogout={handleLogout}
+            toggleDrawer={toggleDrawer}
+          />
         </Space>
       </Header>
 
@@ -164,34 +100,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         }}
       >
         <Space size="large" style={{ marginBottom: "20px" }}>
-          {settings[SETTINGS_KEYS.FACEBOOK_URL] && (
-            <Link href={settings[SETTINGS_KEYS.FACEBOOK_URL]} target="_blank">
-              <FacebookOutlined />
-            </Link>
-          )}
-          {settings[SETTINGS_KEYS.TWITTER_URL] && (
-            <Link href={settings[SETTINGS_KEYS.TWITTER_URL]} target="_blank">
-              <TwitterOutlined />
-            </Link>
-          )}
-          {settings[SETTINGS_KEYS.INSTAGRAM_URL] && (
-            <Link href={settings[SETTINGS_KEYS.INSTAGRAM_URL]} target="_blank">
-              <InstagramOutlined />
-            </Link>
-          )}
-          {settings[SETTINGS_KEYS.LINKEDIN_URL] && (
-            <Link href={settings[SETTINGS_KEYS.LINKEDIN_URL]} target="_blank">
-              <LinkedinOutlined />
-            </Link>
-          )}
-          {settings[SETTINGS_KEYS.GITHUB_URL] && (
-            <Link href={settings[SETTINGS_KEYS.GITHUB_URL]} target="_blank">
-              <GithubOutlined />
-            </Link>
-          )}
+          <SocialLinks settings={settings} />
         </Space>
         <Text>
-          {settings.siteName} ©{new Date().getFullYear()} All rights reserved.
+          {settings[SETTINGS_KEYS.SITE_NAME]?.trim()} ©{" "}
+          {new Date().getFullYear()} All rights reserved.
         </Text>
       </Footer>
     </Layout>

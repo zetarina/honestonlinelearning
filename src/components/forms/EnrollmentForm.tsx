@@ -113,7 +113,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
           <Select placeholder="Select a user">
             {users.map((user: any) => (
               <Option key={user._id} value={user._id}>
-                {user.name}
+                {user.name || "@" + user.username}
               </Option>
             ))}
           </Select>

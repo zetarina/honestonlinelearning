@@ -99,7 +99,7 @@ const InstructorsSection: React.FC = () => {
                     >
                       <CacheImage
                         src={instructor.avatar}
-                        alt={instructor.name}
+                        alt={instructor.name || instructor.username}
                         width={120}
                         height={120}
                         objectFit="cover"
@@ -111,7 +111,7 @@ const InstructorsSection: React.FC = () => {
                         priority
                       />
                       <Title level={4} style={{ color: "white" }}>
-                        {instructor.name}
+                        {instructor.name || instructor.username}
                       </Title>
                       <Text style={{ color: "white" }}>{instructor.bio}</Text>
                     </div>

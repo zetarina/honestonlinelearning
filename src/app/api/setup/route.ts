@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import SettingService from "@/services/SettingService";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { UserRole } from "@/models/UserModel";
 
 const userService = new UserService();
 const settingService = new SettingService();
@@ -25,10 +26,11 @@ export async function POST(request: Request) {
     if (
       !data.settings ||
       !data.settings[SETTINGS_KEYS.SITE_NAME] ||
-      !data.settings[SETTINGS_KEYS.SITE_URL]
+      !data.settings[SETTINGS_KEYS.SITE_URL] ||
+      !data.settings[SETTINGS_KEYS.CURRENCY]
     ) {
       return NextResponse.json(
-        { error: "Site name and URL are required" },
+        { error: "Site name, URL and CURRENCY are required" },
         { status: 400 }
       );
     }
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newUser = await userService.createUser(data.user);
+    const newUser = await userService.createUser(data.user, UserRole.ADMIN);
 
     await settingService.setSettingByKey(
       SETTINGS_KEYS.SITE_NAME,
@@ -52,6 +54,12 @@ export async function POST(request: Request) {
     await settingService.setSettingByKey(
       SETTINGS_KEYS.SITE_URL,
       data.settings[SETTINGS_KEYS.SITE_URL],
+      "production",
+      true
+    );
+    await settingService.setSettingByKey(
+      SETTINGS_KEYS.CURRENCY,
+      data.settings[SETTINGS_KEYS.CURRENCY],
       "production",
       true
     );

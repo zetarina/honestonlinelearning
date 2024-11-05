@@ -3,7 +3,7 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 export interface Setting extends Document {
   _id: Types.ObjectId | string;
   key: string;
-  value: string | number | boolean;
+  value: string;
   environment?: string;
   isPublic: boolean;
 }

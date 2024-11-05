@@ -1,17 +1,25 @@
 "use client";
 
 import React, { createContext, useContext } from "react";
-import { GlobalSettings } from "@/config/settingKeys";
+import { PublicSettings, SETTINGS_KEYS } from "@/config/settingKeys";
 
 interface SettingsContextProps {
-  settings: GlobalSettings;
+  settings: PublicSettings;
   isSetupRequired: boolean;
 }
 
-const SettingsContext = createContext<SettingsContextProps | undefined>(undefined);
+const SettingsContext = createContext<SettingsContextProps | undefined>(
+  undefined
+);
 
-export const SettingsProvider: React.FC<{ settings: GlobalSettings; children: React.ReactNode }> = ({ settings, children }) => {
-  const isSetupRequired = !settings.siteName || !settings.siteUrl;
+export const SettingsProvider: React.FC<{
+  settings: PublicSettings;
+  children: React.ReactNode;
+}> = ({ settings, children }) => {
+  // Use SETTINGS_KEYS to dynamically reference `siteName` and `siteUrl`
+  const isSetupRequired =
+    !settings[SETTINGS_KEYS.SITE_NAME]?.trim() ||
+    !settings[SETTINGS_KEYS.SITE_URL]?.trim();
 
   return (
     <SettingsContext.Provider value={{ settings, isSetupRequired }}>

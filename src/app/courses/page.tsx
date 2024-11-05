@@ -10,6 +10,8 @@ import CacheImage from "@/components/CacheImage";
 import ExpandableContent from "@/components/ExpandableContent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 // Extend Day.js with the UTC plugin
 dayjs.extend(utc);
@@ -20,6 +22,10 @@ const { Title, Text } = Typography;
 const CoursesPage: React.FC = () => {
   const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
   const [loading, setLoading] = useState(true);
+  const { settings } = useSettings();
+  
+  // Retrieve currency from settings and default to USD if undefined
+  const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -162,7 +168,7 @@ const CoursesPage: React.FC = () => {
                       {course.price === 0
                         ? "Free"
                         : course.price
-                        ? `${course.price.toLocaleString()} MMK`
+                        ? `${course.price.toLocaleString()} ${currency}`
                         : "Price not available"}
                     </Text>
                   </div>

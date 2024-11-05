@@ -18,9 +18,7 @@ const SettingsPage: React.FC = () => {
   const [editingSetting, setEditingSetting] = useState<Setting | null>(null);
   const [missingKeysQueue, setMissingKeysQueue] = useState<string[]>([]);
   const [isAddingMissingKey, setIsAddingMissingKey] = useState(false);
-  const [currentMissingKey, setCurrentMissingKey] = useState<string | null>(
-    null
-  );
+  const [currentMissingKey, setCurrentMissingKey] = useState<string | null>(null);
   const [isMissingKeysLoading, setIsMissingKeysLoading] = useState(false);
 
   useEffect(() => {

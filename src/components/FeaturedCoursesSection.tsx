@@ -20,6 +20,8 @@ import { UsergroupAddOutlined } from "@ant-design/icons";
 import ExpandableContent from "./ExpandableContent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 dayjs.extend(utc);
 
@@ -30,6 +32,10 @@ const FeaturedCoursesSection: React.FC = () => {
   const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const { settings } = useSettings();
+
+  // Retrieve currency from settings, defaulting to "USD" if not set
+  const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -174,7 +180,7 @@ const FeaturedCoursesSection: React.FC = () => {
                   <div style={{ fontSize: "16px", color: "#ff4d4f" }}>
                     {course.price === 0
                       ? "Free"
-                      : `${course.price.toLocaleString()} Points`}
+                      : `${course.price.toLocaleString()} ${currency}`}
                   </div>
                   <Tooltip title="Number of students enrolled">
                     <UsergroupAddOutlined style={{ marginRight: "4px" }} />

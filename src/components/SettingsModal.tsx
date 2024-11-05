@@ -1,7 +1,22 @@
-import React, { useEffect } from "react";
-import { Modal, Form, Input, Button, Checkbox, message } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Modal,
+  Form,
+  Input,
+  Button,
+  Checkbox,
+  message,
+  Typography,
+} from "antd";
 import { Setting } from "@/models/SettingModel";
 import axios from "axios";
+import {
+  SETTINGS_KEYS,
+  SettingsVisibilityMap,
+  keyGuides,
+} from "@/config/settingKeys";
+
+const { Text } = Typography;
 
 interface SettingsModalProps {
   isModalOpen: boolean;
@@ -11,7 +26,7 @@ interface SettingsModalProps {
   missingKeysQueue: string[];
   onNextMissingKey: () => void;
   setIsModalOpen: (value: boolean) => void;
-  setSettings: React.Dispatch<React.SetStateAction<Setting[]>>; // Corrected type
+  setSettings: React.Dispatch<React.SetStateAction<Setting[]>>;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -25,30 +40,58 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   setSettings,
 }) => {
   const [form] = Form.useForm();
+  const [keyGuideText, setKeyGuideText] = useState<string>("");
+  const [isPublicDisabled, setIsPublicDisabled] = useState<boolean>(false);
 
+  // Initial setting based on editing or missing key
   useEffect(() => {
-    if (isAddingMissingKey && currentMissingKey) {
-      form.setFieldsValue({
-        key: currentMissingKey,
-        value: "",
-        isPublic: false, // Default value for the checkbox
-      });
-    } else if (editingSetting) {
-      form.setFieldsValue({
-        key: editingSetting.key,
-        value: editingSetting.value,
-        environment: editingSetting.environment,
-        isPublic: editingSetting.isPublic ?? false, // Ensure it's boolean
-      });
-    } else {
-      form.resetFields();
-    }
+    const key = currentMissingKey || editingSetting?.key || "";
+    const isPublicDefault = key
+      ? SettingsVisibilityMap[key as keyof typeof SettingsVisibilityMap] ??
+        false
+      : false;
+
+    setKeyGuideText(key ? keyGuides[key as keyof typeof keyGuides] : "");
+    setIsPublicDisabled(isPublicDefault);
+
+    form.setFieldsValue({
+      key,
+      value: editingSetting?.value || "",
+      environment: editingSetting?.environment || "",
+      isPublic: isPublicDefault,
+    });
   }, [form, isAddingMissingKey, currentMissingKey, editingSetting]);
+
+  // Handle new key additions by checking if it exists in SETTINGS_KEYS
+  const handleKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const enteredKey = e.target.value;
+
+    if (Object.values(SETTINGS_KEYS).includes(enteredKey as any)) {
+      const guide = keyGuides[enteredKey as keyof typeof keyGuides] || "";
+      const visibility =
+        SettingsVisibilityMap[
+          enteredKey as keyof typeof SettingsVisibilityMap
+        ] ?? false;
+
+      setKeyGuideText(guide);
+      setIsPublicDisabled(visibility);
+
+      // Update the form field with the correct `isPublic` status
+      form.setFieldsValue({ isPublic: visibility });
+    } else {
+      setKeyGuideText("");
+      setIsPublicDisabled(false);
+      form.setFieldsValue({ isPublic: false });
+    }
+  };
 
   const handleSaveSetting = async (values: Setting) => {
     try {
       if (editingSetting) {
-        const response = await axios.put(`/api/settings/${editingSetting._id}`, values);
+        const response = await axios.put(
+          `/api/settings/${editingSetting._id}`,
+          values
+        );
         setSettings((prevSettings) =>
           prevSettings.map((setting) =>
             setting._id === editingSetting._id ? response.data : setting
@@ -86,26 +129,44 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       footer={null}
     >
       <Form form={form} onFinish={handleSaveSetting} layout="vertical">
+        {keyGuideText && (
+          <Text
+            type="secondary"
+            style={{ display: "block", marginBottom: "12px" }}
+          >
+            {keyGuideText}
+          </Text>
+        )}
+
         <Form.Item
           label="Key"
           name="key"
           rules={[{ required: true, message: "Please enter the setting key" }]}
         >
-          <Input disabled={!!currentMissingKey || isAddingMissingKey} />
+          <Input
+            onChange={handleKeyChange}
+            disabled={!!currentMissingKey || isAddingMissingKey}
+          />
         </Form.Item>
+
         <Form.Item
           label="Value"
           name="value"
-          rules={[{ required: true, message: "Please enter the setting value" }]}
+          rules={[
+            { required: true, message: "Please enter the setting value" },
+          ]}
         >
           <Input />
         </Form.Item>
+
         <Form.Item label="Environment" name="environment">
           <Input placeholder="production" />
         </Form.Item>
+
         <Form.Item name="isPublic" valuePropName="checked">
-          <Checkbox>Is Public?</Checkbox>
+          <Checkbox disabled={isPublicDisabled}>Is Public?</Checkbox>
         </Form.Item>
+
         <Form.Item>
           <Button type="primary" htmlType="submit">
             {editingSetting ? "Update Setting" : "Add Setting"}

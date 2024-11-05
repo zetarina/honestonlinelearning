@@ -1,3 +1,4 @@
+// Define settings keys
 export const SETTINGS_KEYS = {
   SITE_NAME: "siteName",
   SITE_URL: "siteUrl",
@@ -20,18 +21,12 @@ export const SETTINGS_KEYS = {
   INSTAGRAM_URL: "instagramUrl",
   LINKEDIN_URL: "linkedinUrl",
   GITHUB_URL: "githubUrl",
-};
+  CURRENCY: "currency",
+  TELEGRAM_BOT_TOKEN: "telegram_bot_token",
+  TELEGRAM_CHAT_ID: "telegram_chat_id",
+} as const;
 
-export interface GlobalSettings {
-  siteName?: string;
-  siteUrl?: string;
-  facebookPageId?: string;
-  facebookUrl?: string;
-  twitterUrl?: string;
-  instagramUrl?: string;
-  linkedinUrl?: string;
-  githubUrl?: string;
-}
+// Define key guides using SETTINGS_KEYS
 export const keyGuides = {
   [SETTINGS_KEYS.SITE_NAME]: "This is the name of your site.",
   [SETTINGS_KEYS.SITE_URL]: "This is the URL of your site.",
@@ -60,4 +55,60 @@ export const keyGuides = {
   [SETTINGS_KEYS.INSTAGRAM_URL]: "This is the URL for your Instagram profile.",
   [SETTINGS_KEYS.LINKEDIN_URL]: "This is the URL for your LinkedIn profile.",
   [SETTINGS_KEYS.GITHUB_URL]: "This is the URL for your GitHub profile.",
+  [SETTINGS_KEYS.CURRENCY]:
+    "This is the currency code used on your platform (e.g., USD, EUR, MMK).",
+  [SETTINGS_KEYS.TELEGRAM_BOT_TOKEN]:
+    "This is the token for your Telegram bot integration.",
+  [SETTINGS_KEYS.TELEGRAM_CHAT_ID]:
+    "This is the chat ID for Telegram group messaging.",
 };
+
+// Define SettingsVisibilityMap using SETTINGS_KEYS
+export const SettingsVisibilityMap = {
+  [SETTINGS_KEYS.SITE_NAME]: true,
+  [SETTINGS_KEYS.SITE_URL]: true,
+  [SETTINGS_KEYS.GMAIL_USER]: false,
+  [SETTINGS_KEYS.GMAIL_PASSWORD]: false,
+  [SETTINGS_KEYS.ADMIN_EMAIL]: false,
+  [SETTINGS_KEYS.IMGBB_API_KEY]: false,
+  [SETTINGS_KEYS.CLOUDINARY_CLOUD_NAME]: false,
+  [SETTINGS_KEYS.CLOUDINARY_UPLOAD_PRESET]: false,
+  [SETTINGS_KEYS.AWS_BUCKET]: false,
+  [SETTINGS_KEYS.AWS_REGION]: false,
+  [SETTINGS_KEYS.AWS_ACCESS_KEY_ID]: false,
+  [SETTINGS_KEYS.AWS_SECRET_ACCESS_KEY]: false,
+  [SETTINGS_KEYS.STRIPE_PUBLIC_KEY]: true,
+  [SETTINGS_KEYS.STRIPE_SECRET_KEY]: false,
+  [SETTINGS_KEYS.STRIPE_WEBHOOK_SECRET]: false,
+  [SETTINGS_KEYS.FACEBOOK_PAGE_ID]: true,
+  [SETTINGS_KEYS.FACEBOOK_URL]: true,
+  [SETTINGS_KEYS.TWITTER_URL]: true,
+  [SETTINGS_KEYS.INSTAGRAM_URL]: true,
+  [SETTINGS_KEYS.LINKEDIN_URL]: true,
+  [SETTINGS_KEYS.GITHUB_URL]: true,
+  [SETTINGS_KEYS.CURRENCY]: true,
+  [SETTINGS_KEYS.TELEGRAM_BOT_TOKEN]: false,
+  [SETTINGS_KEYS.TELEGRAM_CHAT_ID]: false,
+};
+
+type PublicKeys = {
+  [K in keyof typeof SETTINGS_KEYS]: (typeof SettingsVisibilityMap)[(typeof SETTINGS_KEYS)[K]] extends true
+    ? K
+    : never;
+}[keyof typeof SETTINGS_KEYS];
+
+type PrivateKeys = {
+  [K in keyof typeof SETTINGS_KEYS]: (typeof SettingsVisibilityMap)[(typeof SETTINGS_KEYS)[K]] extends false
+    ? K
+    : never;
+}[keyof typeof SETTINGS_KEYS];
+
+// Define PublicSettings and PrivateSettings types
+export type PublicSettings = Record<(typeof SETTINGS_KEYS)[PublicKeys], string>;
+export type PrivateSettings = Record<
+  (typeof SETTINGS_KEYS)[PrivateKeys],
+  string
+>;
+
+// AllSettings combines PublicSettings and PrivateSettings
+export type AllSettings = PublicSettings & PrivateSettings;

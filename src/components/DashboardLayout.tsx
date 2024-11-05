@@ -1,68 +1,110 @@
 "use client";
+
 import React, { useState, useContext } from "react";
-import {
-  Layout,
-  Menu,
-  Drawer,
-  Avatar,
-  Button,
-  Dropdown,
-  Space,
-  Typography,
-} from "antd";
+import { Layout, Menu, Drawer } from "antd";
 import { DashboardOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
 import UserContext from "@/contexts/UserContext";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { getHeaderItems, getMenuItems, menuData } from "@/config/navigations";
+import {
+  getMobileDashboardMenuItems,
+  dashboardMenuData,
+  getDashboardMenuItems,
+} from "@/config/navigations";
 import Image from "next/image";
 import { useSettings } from "@/contexts/SettingsContext";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
+import UserAvatar from "./UserAvatar";
 
 const { Sider, Content, Header, Footer } = Layout;
-const { Text } = Typography;
 
-const DashboardLayout: React.FC<{
-  children: React.ReactNode;
-}> = ({ children}) => {
+const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user } = useContext(UserContext);
   const { settings } = useSettings();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const pathname = usePathname();
-  const selectedKey = menuData
+  const selectedKey = dashboardMenuData
     .flatMap((item) => [item, ...(item.children || [])])
     .find((item) => pathname.startsWith(item.link || ""))?.key;
-  const handleDrawerToggle = () => {
-    setDrawerVisible((prevState) => !prevState);
-  };
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/" });
-  };
+
+  const handleDrawerToggle = () => setDrawerVisible(!drawerVisible);
+  const handleLogout = async () => await signOut({ callbackUrl: "/" });
 
   return (
     <Layout style={{ minHeight: "100vh", background: "none" }}>
-      {isMobile && (
+      {isMobile ? (
         <Drawer
-          title={settings.siteName}
-          placement="left"
-          closable={true}
+          placement="right"
+          closable={false}
           onClose={handleDrawerToggle}
           open={drawerVisible}
-          styles={{ body: { padding: 0, backgroundColor: "#001529" } }}
+          styles={{
+            body: { padding: 2, backgroundColor: "#001529" },
+            header: {
+              backgroundColor: "#001529",
+              borderBottom: "1px solid #ffffff",
+            },
+          }}
+          width={220}
         >
+          <div
+            className="logo"
+            style={{
+              margin: "0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              backgroundColor: "#FFFFFF",
+            }}
+          >
+            <Link href="/" passHref>
+              {!collapsed && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <Image
+                    src="/images/logo.png"
+                    alt={
+                      settings[SETTINGS_KEYS.SITE_NAME]?.trim() || "Site Logo"
+                    }
+                    width={240}
+                    height={96}
+                    priority
+                    style={{
+                      objectFit: "contain",
+                      maxWidth: "200px",
+                    }}
+                  />
+                </div>
+              )}
+            </Link>
+          </div>
           <Menu
             mode="inline"
             selectedKeys={[selectedKey || ""]}
             theme="dark"
-            style={{ backgroundColor: "#001529" }}
-            items={getMenuItems(menuData)}
+            style={{
+              backgroundColor: "#001529",
+              color: "#ffffff",
+              padding: "16px 0",
+            }}
+            items={getMobileDashboardMenuItems(user)}
+            onClick={handleDrawerToggle}
           />
         </Drawer>
-      )}
-      {!isMobile && (
+      ) : (
         <Sider
           collapsible
           collapsed={collapsed}
@@ -86,35 +128,35 @@ const DashboardLayout: React.FC<{
           <div
             className="logo"
             style={{
-              margin: "0", // Remove outer margins
-              padding: "16px 0", // Optional: add padding only on top and bottom
+              margin: "0",
+              padding: "16px 0",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               width: "100%",
-              backgroundColor: "#f1f1f1",
+              backgroundColor: "#FFFFFF",
+              border: "6px solid #001529",
               paddingBlock: "1px",
             }}
           >
             <Link href="/" passHref>
               {collapsed ? (
                 <DashboardOutlined
-                  style={{
-                    fontSize: "24px",
-                    color: "#fff",
-                  }}
+                  style={{ fontSize: "24px", color: "#001529" }}
                 />
               ) : (
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    width: "100%", // Ensure inner div also spans full width
+                    width: "100%",
                   }}
                 >
                   <Image
                     src="/images/logo.png"
-                    alt={settings.siteName || "Site Logo"}
+                    alt={
+                      settings[SETTINGS_KEYS.SITE_NAME]?.trim() || "Site Logo"
+                    }
                     width={240}
                     height={96}
                     priority
@@ -130,10 +172,14 @@ const DashboardLayout: React.FC<{
           </div>
 
           <Menu
-            theme="dark"
             mode="inline"
             selectedKeys={[selectedKey || ""]}
-            items={getMenuItems(menuData)}
+            theme="dark"
+            style={{
+              backgroundColor: "#001529",
+              color: "#ffffff",
+            }}
+            items={getDashboardMenuItems()}
           />
         </Sider>
       )}
@@ -155,27 +201,16 @@ const DashboardLayout: React.FC<{
           }}
         >
           <div style={{ fontSize: "18px", fontWeight: "bold" }}>
-            {settings.siteName}
+            {settings[SETTINGS_KEYS.SITE_NAME]?.trim()}
           </div>
 
-          {isMobile ? (
-            <Avatar
-              src={user?.avatar || "/images/default-avatar.png"}
-              style={{ cursor: "pointer" }}
-              onClick={handleDrawerToggle}
-            />
-          ) : (
-            <Dropdown
-              menu={{ items: getHeaderItems(handleLogout) }}
-              trigger={["click"]}
-              placement="bottomRight"
-            >
-              <Space style={{ cursor: "pointer" }}>
-                <Avatar src={user?.avatar || "/images/default-avatar.webp"} />
-                <Text>{user?.name || user?.username || "User"}</Text>
-              </Space>
-            </Dropdown>
-          )}
+          <UserAvatar
+            user={user}
+            currency={currency}
+            isMobile={isMobile}
+            handleLogout={handleLogout}
+            toggleDrawer={handleDrawerToggle}
+          />
         </Header>
         <Content
           style={{
@@ -183,6 +218,8 @@ const DashboardLayout: React.FC<{
             margin: 0,
             minHeight: "calc(100vh - 134px)",
             background: "#fff",
+            width: "100%",
+            overflow: "auto",
           }}
         >
           {children}
@@ -195,7 +232,8 @@ const DashboardLayout: React.FC<{
             borderTop: "1px solid #f0f0f0",
           }}
         >
-          ©2024 My Dashboard - All Rights Reserved
+          {settings[SETTINGS_KEYS.SITE_NAME]?.trim()} ©{" "}
+          {new Date().getFullYear()} All rights reserved.
         </Footer>
       </Layout>
     </Layout>

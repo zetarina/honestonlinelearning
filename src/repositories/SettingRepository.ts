@@ -42,7 +42,7 @@ class SettingRepository {
 
   async updateByKey(
     key: string,
-    value: string | number | boolean,
+    value: string ,
     environment: string,
     isPublic?: boolean
   ): Promise<Setting | null> {
