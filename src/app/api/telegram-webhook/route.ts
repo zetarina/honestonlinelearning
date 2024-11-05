@@ -4,18 +4,14 @@ import TelegramService from "@/services/TelegramService";
 
 const telegramService = new TelegramService();
 
-async function handleTelegramWebhook(req: Request) {
-  if (req.method === "GET") {
-    // Handle GET requests for webhook validation
-    console.log("Received GET request - webhook is active.");
-    return NextResponse.json({ status: "Webhook is active and ready to receive updates." });
-  }
+// Handle GET requests for webhook validation
+export const GET = async () => {
+  console.log("Received GET request - webhook is active.");
+  return NextResponse.json({ status: "Webhook is active and ready to receive updates." });
+};
 
-  if (req.method !== "POST") {
-    console.log("Invalid request method:", req.method);
-    return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-  }
-
+// Handle POST requests for Telegram messages
+export const POST = async (req: Request) => {
   try {
     const body = await req.json();
     console.log("Received request body:", body);
@@ -68,7 +64,4 @@ async function handleTelegramWebhook(req: Request) {
       { status: 200 }
     );
   }
-}
-
-export const GET = async (req: Request) => handleTelegramWebhook(req);
-export const POST = async (req: Request) => handleTelegramWebhook(req);
+};
