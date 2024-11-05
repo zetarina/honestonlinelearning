@@ -20,7 +20,7 @@ class SettingService {
 
   async setSettingByKey(
     key: string,
-    value: string,
+    value: string ,
     environment = "production",
     isPublic?: boolean
   ): Promise<Setting | null> {
@@ -34,13 +34,17 @@ class SettingService {
   async getSettingsByKeys(
     keys: string[],
     environment = "production"
-  ): Promise<Setting[] | null> {
+  ): Promise<Record<string, string | null>> {
     const settings = await settingRepository.findByKeys(keys, environment);
-    return settings;
+    return keys.reduce((acc, key) => {
+      const setting = settings.find((s) => s.key === key);
+      acc[key] = setting ? setting.value : null; // Assign `null` if setting is missing
+      return acc;
+    }, {} as Record<string, string | null>);
   }
   async updateSettingById(
     id: string,
-    value: string,
+    value: string ,
     isPublic?: boolean
   ): Promise<Setting | null> {
     return await settingRepository.updateById(id, { value, isPublic });
@@ -48,20 +52,20 @@ class SettingService {
 
   async getPublicSettings(
     environment = "production"
-  ): Promise<Record<string, string>> {
+  ): Promise<Record<string, string >> {
     const publicSettings = await settingRepository.findPublicSettings(
       environment
     );
     return publicSettings.reduce((acc, setting) => {
       acc[setting.key] = setting.value;
       return acc;
-    }, {} as Record<string, string>);
+    }, {} as Record<string, string >);
   }
 
   async getPublicSettingByKey(
     key: string,
     environment = "production"
-  ): Promise<string | null> {
+  ): Promise<string  | null> {
     const setting = await settingRepository.findPublicByKey(key, environment);
     return setting ? setting.value : null;
   }
