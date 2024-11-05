@@ -1,29 +1,57 @@
 // services/TelegramService.ts
 import TelegramBot from "node-telegram-bot-api";
+import SettingService from "@/services/SettingService";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
+
+const settingService = new SettingService();
 
 export default class TelegramService {
-  private bot: TelegramBot;
-  private defaultChatId: string | null;
+  private bot: TelegramBot | null = null;
+  private defaultChatId: string | null = null;
 
   constructor() {
-    // Load bot token and default chat ID from environment variables
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    this.defaultChatId = process.env.TELEGRAM_CHAT_ID || null;
+    this.init();
+  }
 
-    if (!botToken) {
-      throw new Error("Telegram bot token is missing. Please set up the configuration.");
+  // Initialize bot with settings from the database
+  private async init() {
+    try {
+      const botTokenSetting = await settingService.getSettingByKey(
+        SETTINGS_KEYS.TELEGRAM_BOT_TOKEN
+      );
+      const chatIdSetting = await settingService.getSettingByKey(
+        SETTINGS_KEYS.TELEGRAM_CHAT_ID
+      );
+
+      const botToken = botTokenSetting?.value;
+      this.defaultChatId = chatIdSetting?.value || null;
+
+      if (botToken) {
+        // Initialize Telegram Bot with the fetched token
+        this.bot = new TelegramBot(botToken, { polling: false });
+        console.log("Telegram bot initialized successfully.");
+      } else {
+        console.error("Telegram bot token is missing in the configuration.");
+      }
+    } catch (error) {
+      console.error("Error initializing TelegramService:", error);
     }
+  }
 
-    // Initialize Telegram Bot
-    this.bot = new TelegramBot(botToken, { polling: false });
-    console.log("Telegram bot initialized successfully.");
+  // Ensure the bot is initialized before sending a message
+  private async ensureInitialized() {
+    if (!this.bot) {
+      await this.init();
+    }
   }
 
   // Send a message to Telegram
   public async sendMessage(text: string, chatId?: string) {
+    await this.ensureInitialized();
     const targetChatId = chatId || this.defaultChatId;
-    if (!targetChatId) {
-      console.error("No chat ID provided for sending the message.");
+    
+    if (!this.bot || !targetChatId) {
+      console.error("Telegram configuration is incomplete or chat ID is missing.");
       return;
     }
 
@@ -38,9 +66,11 @@ export default class TelegramService {
 
   // Send a photo to Telegram
   public async sendPhoto(photo: Buffer, caption?: string, chatId?: string) {
+    await this.ensureInitialized();
     const targetChatId = chatId || this.defaultChatId;
-    if (!targetChatId) {
-      console.error("No chat ID provided for sending the photo.");
+    
+    if (!this.bot || !targetChatId) {
+      console.error("Telegram configuration is incomplete or chat ID is missing.");
       return;
     }
 
