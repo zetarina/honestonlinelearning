@@ -1,5 +1,3 @@
-// repositories/SettingRepository.ts
-
 import dbConnect from "@/utils/db";
 import SettingModel, { Setting } from "../models/SettingModel";
 import { Model, Types } from "mongoose";
@@ -20,12 +18,10 @@ class SettingRepository {
     await dbConnect();
     return this.settingModel.findOne({ key, environment }).exec();
   }
-
   async findByKeys(keys: string[], environment: string): Promise<Setting[]> {
     await dbConnect();
     return this.settingModel.find({ key: { $in: keys }, environment }).exec();
   }
-
   async findById(id: string | Types.ObjectId): Promise<Setting | null> {
     await dbConnect();
     return this.settingModel.findById(id).exec();
