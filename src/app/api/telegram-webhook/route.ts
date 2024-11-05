@@ -21,36 +21,45 @@ async function handleTelegramWebhook(req: Request) {
     }
 
     const chatId = message.chat.id;
-    const text = message.text;
+    const text = message.text.trim().toLowerCase();
 
     console.log("Received message from chat ID:", chatId);
     console.log("Message text:", text);
 
-    // Handle the /groupid command
-    if (text === "/groupid" || text === "/chatid") {
+    // Define available commands
+    const availableCommands = {
+      "/groupid": `The group ID is: ${chatId}`,
+      "/chatid": `The chat ID is: ${chatId}`,
+      "/help": "Available commands:\n/groupid or /chatid - Get the chat ID\n/help - Show available commands"
+    };
+
+    // Check if the command exists
+    if (availableCommands[text]) {
       try {
+        // Send the appropriate response based on command
         const response = await telegramService.sendMessage(
-          `The group ID is: ${chatId}`,
+          availableCommands[text],
           chatId
         );
         console.log("Telegram response:", response);
-        return NextResponse.json({ status: "Group ID sent" });
+        return NextResponse.json({ status: "Command processed successfully" });
       } catch (error) {
-        console.error("Error sending group ID message:", error);
-        return NextResponse.json(
-          { error: "Failed to send message" },
-          { status: 500 }
-        );
+        console.error("Error sending message:", error);
+        // Inform user that the bot encountered an issue
+        await telegramService.sendMessage("Sorry, I encountered an error while processing your request.", chatId);
+        return NextResponse.json({ status: "Temporary issue occurred" });
       }
     } else {
-      console.log("No recognized command, no action taken");
-      return NextResponse.json({ status: "No action taken" });
+      // If command is unrecognized, send help message
+      const unrecognizedCommandMessage = `Unrecognized command: ${text}. Type /help to see available commands.`;
+      await telegramService.sendMessage(unrecognizedCommandMessage, chatId);
+      return NextResponse.json({ status: "Unrecognized command sent help message" });
     }
   } catch (error) {
     console.error("Error processing webhook request:", error);
     return NextResponse.json(
-      { error: "An internal server error occurred" },
-      { status: 500 }
+      { status: "An error occurred while processing the request. Please try again later." },
+      { status: 200 }
     );
   }
 }
