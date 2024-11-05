@@ -34,13 +34,9 @@ class SettingService {
   async getSettingsByKeys(
     keys: string[],
     environment = "production"
-  ): Promise<Record<string, string | null>> {
+  ): Promise<Setting[] | null> {
     const settings = await settingRepository.findByKeys(keys, environment);
-    return keys.reduce((acc, key) => {
-      const setting = settings.find((s) => s.key === key);
-      acc[key] = setting ? setting.value : null; // Assign `null` if setting is missing
-      return acc;
-    }, {} as Record<string, string | null>);
+    return settings;
   }
   async updateSettingById(
     id: string,
