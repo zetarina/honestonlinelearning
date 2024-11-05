@@ -4,13 +4,13 @@ import TelegramService from "@/services/TelegramService";
 
 const telegramService = new TelegramService();
 
-// Handle GET requests for webhook validation
+// GET handler for webhook verification
 export const GET = async () => {
   console.log("Received GET request - webhook is active.");
   return NextResponse.json({ status: "Webhook is active and ready to receive updates." });
 };
 
-// Handle POST requests for Telegram messages
+// POST handler for Telegram messages
 export const POST = async (req: Request) => {
   try {
     const body = await req.json();
@@ -28,17 +28,14 @@ export const POST = async (req: Request) => {
     console.log("Received message from chat ID:", chatId);
     console.log("Message text:", text);
 
-    // Define available commands
     const availableCommands = {
       "/groupid": `The group ID is: ${chatId}`,
       "/chatid": `The chat ID is: ${chatId}`,
       "/help": "Available commands:\n/groupid or /chatid - Get the chat ID\n/help - Show available commands"
     };
 
-    // Check if the command exists
     if (availableCommands[text]) {
       try {
-        // Send the appropriate response based on command
         const response = await telegramService.sendMessage(
           availableCommands[text],
           chatId
@@ -47,12 +44,10 @@ export const POST = async (req: Request) => {
         return NextResponse.json({ status: "Command processed successfully" });
       } catch (error) {
         console.error("Error sending message:", error);
-        // Inform user that the bot encountered an issue
         await telegramService.sendMessage("Sorry, I encountered an error while processing your request.", chatId);
         return NextResponse.json({ status: "Temporary issue occurred" });
       }
     } else {
-      // If command is unrecognized, send help message
       const unrecognizedCommandMessage = `Unrecognized command: ${text}. Type /help to see available commands.`;
       await telegramService.sendMessage(unrecognizedCommandMessage, chatId);
       return NextResponse.json({ status: "Unrecognized command sent help message" });
@@ -64,4 +59,12 @@ export const POST = async (req: Request) => {
       { status: 200 }
     );
   }
+};
+
+// OPTIONS handler for unsupported HTTP methods
+export const OPTIONS = async () => {
+  return NextResponse.json(
+    { status: "OK" },
+    { status: 200, headers: { "Allow": "GET, POST, OPTIONS" } }
+  );
 };
