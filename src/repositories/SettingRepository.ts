@@ -1,3 +1,5 @@
+// repositories/SettingRepository.ts
+
 import dbConnect from "@/utils/db";
 import SettingModel, { Setting } from "../models/SettingModel";
 import { Model, Types } from "mongoose";
@@ -17,6 +19,11 @@ class SettingRepository {
   async findByKey(key: string, environment: string): Promise<Setting | null> {
     await dbConnect();
     return this.settingModel.findOne({ key, environment }).exec();
+  }
+
+  async findByKeys(keys: string[], environment: string): Promise<Setting[]> {
+    await dbConnect();
+    return this.settingModel.find({ key: { $in: keys }, environment }).exec();
   }
 
   async findById(id: string | Types.ObjectId): Promise<Setting | null> {
@@ -42,7 +49,7 @@ class SettingRepository {
 
   async updateByKey(
     key: string,
-    value: string ,
+    value: string,
     environment: string,
     isPublic?: boolean
   ): Promise<Setting | null> {

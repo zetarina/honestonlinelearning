@@ -1,3 +1,5 @@
+// services/SettingService.ts
+
 import { Setting } from "@/models/SettingModel";
 import { settingRepository } from "@/repositories/";
 
@@ -6,16 +8,23 @@ class SettingService {
     key: string,
     environment = "production"
   ): Promise<Setting | null> {
-    const setting = await settingRepository.findByKey(key, environment);
-    return setting;
+    return await settingRepository.findByKey(key, environment);
   }
 
-  async getSettingById(id: string): Promise<Setting | null> {
-    return await settingRepository.findById(id);
+  async getSettingsByKeys(
+    keys: string[],
+    environment = "production"
+  ): Promise<Record<string, string | null>> {
+    const settings = await settingRepository.findByKeys(keys, environment);
+    return keys.reduce((acc, key) => {
+      const setting = settings.find((s) => s.key === key);
+      acc[key] = setting ? setting.value : null; // Assign `null` if setting is missing
+      return acc;
+    }, {} as Record<string, string | null>);
   }
+
   async getAllSettings(environment = "production"): Promise<Setting[]> {
-    const settings = await settingRepository.findAll(environment);
-    return settings;
+    return await settingRepository.findAll(environment);
   }
 
   async setSettingByKey(
