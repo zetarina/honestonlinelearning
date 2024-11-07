@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/utils/db";
+import dbConnect from "@/db";
 import UserService from "@/services/UserService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { UserRole, User } from "@/models/UserModel";

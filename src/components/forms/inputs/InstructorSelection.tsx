@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Form, Select, message } from "antd";
-import axios from "axios";
+import apiClient from "@/utils/api/apiClient";
 
 const { Option } = Select;
 
 const InstructorSelection: React.FC = () => {
+  
   const [instructors, setInstructors] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const { data } = await axios.get("/api/instructors");
+        const { data } = await apiClient.get("/instructors");
         setInstructors(data);
       } catch (error) {
         console.error("Error fetching instructors:", error);

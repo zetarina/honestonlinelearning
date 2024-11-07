@@ -15,7 +15,6 @@ interface LayoutRouterProps {
 
 const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
   const { user, initialLoading } = useContext(UserContext);
-  const { settings } = useSettings(); 
   const pathname = usePathname();
   const router = useRouter();
   const isDashboardRoute = pathname?.startsWith("/dashboard");

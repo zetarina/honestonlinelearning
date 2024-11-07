@@ -1,4 +1,4 @@
-import dbConnect from "@/utils/db";
+import dbConnect from "@/db";
 import PaymentModel, { Payment, PaymentStatus } from "../models/PaymentModel";
 import { Model, Types } from "mongoose";
 

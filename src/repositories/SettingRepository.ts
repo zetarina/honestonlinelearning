@@ -1,4 +1,4 @@
-import dbConnect from "@/utils/db";
+import dbConnect from "@/db";
 import SettingModel, { Setting } from "../models/SettingModel";
 import { Model, Types } from "mongoose";
 

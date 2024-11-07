@@ -105,7 +105,7 @@ class CourseService {
   }
 
   async completeCourse(userId: string, courseId: string): Promise<boolean> {
-    const enrollment = await enrollmentRepository.findByUserIdAndCourseId(
+    const enrollment = await enrollmentRepository.isUserCurrentlyEnrolled(
       userId,
       courseId
     );

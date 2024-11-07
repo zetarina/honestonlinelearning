@@ -2,13 +2,15 @@
 import { Button, Input, Form, Alert, Typography, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useContext, useEffect } from "react";
-import axios from "axios";
+
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
+import apiClient from "@/utils/api/apiClient";
 
 const { Title } = Typography;
 
 export default function SignupPage() {
+  
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
@@ -43,7 +45,7 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const response = await axios.post("/api/auth/signup", {
+      const response = await apiClient.post("/auth/signup", {
         username: values.username,
         email: values.email,
         password: values.password,

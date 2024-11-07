@@ -15,11 +15,12 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 
-import { Button, Menu } from "antd";
-import { ItemType } from "antd/es/menu/interface";
+import { Button } from "antd";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import { User, UserRole } from "@/models/UserModel";
+import { useContext } from "react";
+import UserContext from "@/contexts/UserContext";
+
 interface MenuItem {
   key: string;
   icon?: string;
@@ -27,6 +28,7 @@ interface MenuItem {
   link?: string;
   children?: MenuItem[];
 }
+
 export const iconMapper: { [key: string]: React.ReactNode } = {
   HomeOutlined: <HomeOutlined />,
   UserOutlined: <UserOutlined />,
@@ -43,6 +45,7 @@ export const iconMapper: { [key: string]: React.ReactNode } = {
   LogoutOutlined: <LogoutOutlined />,
   LoginOutlined: <LoginOutlined />,
 };
+
 export const dashboardMenuData: MenuItem[] = [
   {
     key: "courses",
@@ -139,8 +142,9 @@ export const mainMenuData: MenuItem[] = [
   { key: "courses", icon: "BookOutlined", label: "Courses", link: "/courses" },
   { key: "top-up", icon: "WalletOutlined", label: "Top Up", link: "/top-up" },
 ];
+
 // Common function to generate menu items for both desktop and mobile
-export const generateMenuItems = (menuData) => {
+export const generateMenuItems = (menuData: MenuItem[]) => {
   return menuData.map((menu) => {
     if (menu.children && menu.children.length > 0) {
       // For items with nested children (submenus)
@@ -176,8 +180,9 @@ export const generateMenuItems = (menuData) => {
 // Desktop Menu Items
 export const getDashboardMenuItems = () => generateMenuItems(dashboardMenuData);
 
-// Mobile Menu Items - with uniform styling
-export const getMobileDashboardMenuItems = (user: User) => {
+// Mobile Menu Items - with logout using UserContext
+export const getMobileDashboardMenuItems = (user: User | null) => {
+  const { logout } = useContext(UserContext);
   const mobileMenuData = generateMenuItems(dashboardMenuData);
 
   // Add additional mobile-only items if necessary (e.g., logout or profile)
@@ -186,7 +191,7 @@ export const getMobileDashboardMenuItems = (user: User) => {
       key: "logout",
       icon: iconMapper["LogoutOutlined"],
       label: (
-        <span onClick={() => signOut({ callbackUrl: "/" })} style={{ color: "white" }}>
+        <span onClick={logout} style={{ color: "white" }}>
           Logout
         </span>
       ),
@@ -210,7 +215,7 @@ export const getMainMenuItems = () => {
   }));
 };
 
-export const mobileMenuData = (user: User): MenuItem[] => [
+export const mobileMenuData = (user: User | null): MenuItem[] => [
   ...mainMenuData,
   ...(user && user.role !== UserRole.STUDENT
     ? [
@@ -242,7 +247,7 @@ export const mobileMenuData = (user: User): MenuItem[] => [
       },
 ];
 
-export const getMobileMenuItems = (user: User) =>
+export const getMobileMenuItems = (user: User | null) =>
   mobileMenuData(user).map((menu) => ({
     key: menu.key,
     icon: iconMapper[menu.icon || ""] || null,
@@ -255,9 +260,7 @@ export const getMobileMenuItems = (user: User) =>
     ) : (
       <span
         onClick={
-          menu.key === "logout"
-            ? () => signOut({ callbackUrl: "/" })
-            : undefined
+          menu.key === "logout" ? useContext(UserContext).logout : undefined
         }
       >
         <Button type="link" style={{ padding: 0, color: "black" }}>
@@ -266,7 +269,8 @@ export const getMobileMenuItems = (user: User) =>
       </span>
     ),
   }));
-export const mobileDashboardMenuData = (user: User): MenuItem[] => [
+
+export const mobileDashboardMenuData = (user: User | null): MenuItem[] => [
   ...dashboardMenuData,
   {
     key: "profile",

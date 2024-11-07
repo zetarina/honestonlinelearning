@@ -3,8 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Typography, Carousel, Spin, Alert } from "antd";
 import CacheImage from "@/components/CacheImage";
-import axios from "axios";
+
 import { useMediaQuery } from "react-responsive"; // To detect screen size
+import apiClient from "@/utils/api/apiClient";
 
 const { Title, Text } = Typography;
 
@@ -28,7 +29,7 @@ const InstructorsSection: React.FC = () => {
   useEffect(() => {
     const fetchInstructors = async () => {
       try {
-        const response = await axios.get<Instructor[]>("/api/instructors");
+        const response = await apiClient.get<Instructor[]>("/instructors");
         if (response.data && Array.isArray(response.data)) {
           setInstructors(response.data);
         } else {

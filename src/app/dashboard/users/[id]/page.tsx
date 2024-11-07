@@ -4,8 +4,10 @@ import { useRouter, useParams } from "next/navigation";
 import { User } from "@/models/UserModel";
 import { Spin, message } from "antd";
 import UserForm from "@/components/forms/UserForm";
+import apiClient from "@/utils/api/apiClient";
 
 const EditUserPage: React.FC = () => {
+  
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
@@ -16,9 +18,9 @@ const EditUserPage: React.FC = () => {
     if (userId) {
       const fetchUser = async () => {
         try {
-          const response = await fetch(`/api/users/${userId}`);
-          if (response.ok) {
-            const userData = await response.json();
+          const response = await apiClient.get(`/users/${userId}`);
+          if (response.status === 200) {
+            const userData = await response.data;
             setUser(userData);
           } else {
             message.error("Failed to fetch user details");

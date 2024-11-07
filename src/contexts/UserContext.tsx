@@ -1,74 +1,123 @@
-"use client";
-
-import React, {
-  createContext,
-  ReactNode,
-  useMemo,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, ReactNode, useMemo, useState, useEffect } from "react";
 import useSWR from "swr";
-import { useSession } from "next-auth/react";
-import axios from "axios";
 import { User } from "@/models/UserModel";
+import { message } from "antd";
+import apiClient from "@/utils/api/apiClient";
 
 interface UserContextProps {
   user: User | null;
   initialLoading: boolean;
-  loading: boolean; // New loading state
-  error: any;
-  refreshUser: () => void; // Regular refresh
-  awaitRefreshUser: () => Promise<void>; // Awaitable refresh
+  loading: boolean;
+  refreshUser: () => void;
+  awaitRefreshUser: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const { data: session, status } = useSession();
-  const isAuthenticated = status === "authenticated";
+export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true); // Initial loading state
+  const [loading, setLoading] = useState(false); // Loading for current actions
 
-  const [initialLoading, setInitialLoading] = useState(true);
+  const fetcher = (url: string) => apiClient.get(url).then((res) => res.data);
 
-  // Axios-based fetcher function
-  const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+  const { data, mutate, isValidating } = useSWR<User>(
+    () => (localStorage.getItem("accessToken") ? "/me" : null),
+    fetcher,
+    {
+      refreshInterval: 6000,
+      revalidateOnFocus: true,
+      shouldRetryOnError: false,
+    }
+  );
 
-  const {
-    data: userData,
-    error,
-    isValidating,
-    mutate,
-  } = useSWR<User>(isAuthenticated ? "/api/me" : null, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    refreshInterval: 6000,
-  });
+  // Handle initial loading state
+  useEffect(() => {
+    setUser(data || null);
+    if (!isValidating) {
+      setInitialLoading(false); // Mark initial loading complete
+    }
+  }, [data, isValidating]);
 
   useEffect(() => {
-    if (!isValidating && status !== "loading") {
-      setInitialLoading(false);
-    }
-  }, [isValidating, status]);
+    const handleStorageChange = () => {
+      const accessToken = localStorage.getItem("accessToken");
+      const refreshToken = localStorage.getItem("refreshToken");
 
-  // Regular refresh
-  const refreshUser = () => mutate();
+      if (!accessToken || !refreshToken) {
+        setUser(null);
+        mutate(null, false); // Clear SWR cache
+        message.info("Logged out due to session change.");
+      } else {
+        mutate(); // Re-fetch user data if tokens are available
+      }
+    };
 
-  // Awaitable refresh
-  const awaitRefreshUser = async () => {
-    await mutate();
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [mutate]);
+
+  const refreshUser = () => {
+    mutate(); // Re-fetch user data
   };
+
+  const awaitRefreshUser = async () => {
+    try {
+      await mutate();
+    } catch (err) {
+      console.error("Error refreshing user:", err);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const { data } = await apiClient.post("/auth/login", { email, password });
+      const { accessToken, refreshToken } = data;
+
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+
+      await mutate(); // Explicitly trigger re-fetch
+      message.success("Login successful!");
+    } catch (err) {
+      console.error("Login failed:", err);
+      throw new Error("Invalid email or password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setLoading(true);
+    try {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      setUser(null); // Clear user state
+      mutate(null, false); // Clear SWR cache
+      message.success("Logout successful!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Combine both initial loading and validation loading states
+  const isCurrentlyLoading = initialLoading || isValidating;
 
   const value = useMemo(
     () => ({
-      user: userData,
+      user,
       initialLoading,
-      loading: isValidating, // Expose loading state
-      error,
+      loading: isCurrentlyLoading, // Reflect current loading state
       refreshUser,
-      awaitRefreshUser, // Expose both refresh functions
+      awaitRefreshUser,
+      signIn,
+      logout,
     }),
-    [userData, initialLoading, isValidating, error, mutate]
+    [user, initialLoading, isCurrentlyLoading]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

@@ -1,4 +1,4 @@
-import dbConnect from "@/utils/db";
+import dbConnect from "@/db";
 import UserModel, {
   User,
   PointTransactionType,

@@ -9,12 +9,13 @@ import {
   Typography,
 } from "antd";
 import { Setting } from "@/models/SettingModel";
-import axios from "axios";
+
 import {
   SETTINGS_KEYS,
   SettingsVisibilityMap,
   keyGuides,
 } from "@/config/settingKeys";
+import apiClient from "@/utils/api/apiClient";
 
 const { Text } = Typography;
 
@@ -39,6 +40,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   setIsModalOpen,
   setSettings,
 }) => {
+  
   const [form] = Form.useForm();
   const [keyGuideText, setKeyGuideText] = useState<string>("");
   const [isPublicDisabled, setIsPublicDisabled] = useState<boolean>(false);
@@ -88,8 +90,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const handleSaveSetting = async (values: Setting) => {
     try {
       if (editingSetting) {
-        const response = await axios.put(
-          `/api/settings/${editingSetting._id}`,
+        const response = await apiClient.put(
+          `/settings/${editingSetting._id}`,
           values
         );
         setSettings((prevSettings) =>
@@ -99,7 +101,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         );
         message.success("Setting updated successfully");
       } else {
-        const response = await axios.post("/api/settings", values);
+        const response = await apiClient.post("/settings", values);
         setSettings((prevSettings) => [...prevSettings, response.data]);
         message.success("Setting added successfully");
 

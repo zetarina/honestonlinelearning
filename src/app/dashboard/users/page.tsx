@@ -20,9 +20,10 @@ import {
 import { useRouter } from "next/navigation";
 import type { ColumnsType } from "antd/es/table";
 import { User, UserRole } from "@/models/UserModel"; // Adjust the path accordingly
-import axios from "axios";
+import apiClient from "@/utils/api/apiClient";
 
 const UsersPage: React.FC = () => {
+  
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
@@ -32,7 +33,7 @@ const UsersPage: React.FC = () => {
     // Fetch all users from the backend
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("/api/users");
+        const response = await apiClient.get("/users");
         if (response.status === 200) {
           setUsers(response.data);
         } else {
@@ -52,7 +53,7 @@ const UsersPage: React.FC = () => {
   // Handle deleting a user
   const handleDelete = async (userId: string) => {
     try {
-      const response = await axios.delete(`/api/users/${userId}`);
+      const response = await apiClient.delete(`/users/${userId}`);
       if (response.status === 200) {
         message.success("User deleted successfully");
         setUsers(users.filter((user) => user._id !== userId));

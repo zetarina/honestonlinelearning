@@ -1,7 +1,7 @@
 import { Model, Types } from "mongoose";
 import { ApplicationLevelCourse, Course } from "../models/CourseModel";
 import { enrollmentsModelName } from "../models/EnrollmentModel";
-import dbConnect from "@/utils/db";
+import dbConnect from "@/db";
 import CourseModel from "../models/CourseModel";
 
 class UserCourseRepository {

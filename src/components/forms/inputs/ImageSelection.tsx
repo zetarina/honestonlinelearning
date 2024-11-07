@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Modal, Button, List, Card, message, Spin, Input, Tooltip } from "antd";
 import { PictureOutlined, EyeOutlined, SyncOutlined } from "@ant-design/icons";
-import axios from "axios";
+
 import { ImageObj } from "@/models/ImageModel";
+import apiClient from "@/utils/api/apiClient";
 
 interface ImageSelectionProps {
   value?: string;
@@ -13,6 +14,7 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
   value = "",
   onChange,
 }) => {
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [images, setImages] = useState<ImageObj[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,17 +28,15 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
   const observerRef = useRef<HTMLDivElement>(null);
   const batchSize = 12;
 
-  
   useEffect(() => {
     setUrl(value);
   }, [value]);
 
-  
   const fetchImages = async (search: string, page: number) => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `/api/images?search=${search}&page=${page}&limit=${batchSize}`
+      const response = await apiClient.get(
+        `/images?search=${search}&page=${page}&limit=${batchSize}`
       );
       const newImages = response.data.images;
       setImages((prev) => (page === 1 ? newImages : [...prev, ...newImages]));
@@ -51,7 +51,7 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
   const syncImages = async () => {
     setSyncing(true);
     try {
-      await axios.post("/api/images/sync");
+      await apiClient.post("/images/sync");
       message.success("Images synced successfully!");
       fetchImages(searchTerm, 1);
     } catch (error) {
@@ -67,7 +67,6 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
     fetchImages(e.target.value, 1);
   };
 
-  
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -148,11 +147,11 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
           <List
             grid={{
               gutter: 16,
-              xs: 1, 
-              sm: 2, 
-              md: 3, 
-              lg: 4, 
-              xl: 5, 
+              xs: 1,
+              sm: 2,
+              md: 3,
+              lg: 4,
+              xl: 5,
             }}
             dataSource={images}
             renderItem={(image) => (

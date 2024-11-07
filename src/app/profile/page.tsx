@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useContext } from "react";
 import { Button, Card, Descriptions, Spin, Alert } from "antd";
-import axios from "axios";
+
 import ProfileUpdateForm from "@/components/forms/ProfileUpdateForm";
 import UserContext from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
+import apiClient from "@/utils/api/apiClient";
 
 const UserProfile: React.FC = () => {
+  
   const { user, refreshUser } = useContext(UserContext);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,7 +29,9 @@ const UserProfile: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get("/api/me", { withCredentials: true });
+      const { data } = await apiClient.get("/me", {
+        withCredentials: true,
+      });
       refreshUser();
     } catch (error: any) {
       const errorMessage =

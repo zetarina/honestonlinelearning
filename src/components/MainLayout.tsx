@@ -3,7 +3,6 @@
 import React, { useState, useContext } from "react";
 import { Layout, Menu, Drawer, Space, Typography, Button } from "antd";
 import { useMediaQuery } from "react-responsive";
-import { signOut } from "next-auth/react";
 import UserContext from "@/contexts/UserContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,14 +22,16 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext); // Use the logout function from UserContext
   const { settings } = useSettings();
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
-  const handleLogout = async () => await signOut({ callbackUrl: "/" });
+  const handleLogout = async () => {
+    await logout(); // Use the custom logout function
+  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -78,7 +79,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             user={user}
             currency={currency}
             isMobile={isMobile}
-            handleLogout={handleLogout}
+            handleLogout={handleLogout} // Updated logout handler
             toggleDrawer={toggleDrawer}
           />
         </Space>

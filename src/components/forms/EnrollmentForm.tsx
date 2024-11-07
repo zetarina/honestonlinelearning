@@ -11,10 +11,13 @@ import {
   Card,
   Checkbox,
 } from "antd";
-import axios from "axios";
+
 import { useRouter } from "next/navigation";
 import { Enrollment } from "@/models/EnrollmentModel";
 import dayjs from "dayjs";
+import apiClient from "@/utils/api/apiClient";
+import CourseSelector from "./inputs/CourseSelector";
+import UserSelector from "./inputs/UserSelector";
 
 const { Option } = Select;
 
@@ -23,29 +26,10 @@ interface EnrollmentFormProps {
 }
 
 const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
-  const [users, setUsers] = useState([]);
-  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [isPermanent, setIsPermanent] = useState<boolean>(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchUsersAndCourses = async () => {
-      try {
-        const [userResponse, courseResponse] = await Promise.all([
-          axios.get("/api/users"),
-          axios.get("/api/courses"),
-        ]);
-        setUsers(userResponse.data);
-        setCourses(courseResponse.data);
-      } catch (error) {
-        message.error("Failed to load users or courses.");
-      }
-    };
-
-    fetchUsersAndCourses();
-  }, []);
 
   useEffect(() => {
     if (enrollment) {
@@ -63,37 +47,32 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
+    const { expiresAt, ...otherValues } = values;
+    const enrollmentData = {
+      ...otherValues,
+      expires_at: expiresAt ? expiresAt.toISOString() : null,
+    };
+
     try {
-      const payload = {
-        userId: values.userId,
-        courseId: values.courseId,
-        expires_at: values.expiresAt ? values.expiresAt.toISOString() : null,
-        status: values.status,
-        pointsSpent: values.pointsSpent,
-        isPermanent: values.isPermanent,
-      };
-
-      const endpoint = enrollment
-        ? `/api/enrollments/${enrollment._id}`
-        : "/api/enrollments";
-
-      await axios[enrollment ? "put" : "post"](endpoint, payload);
-
-      message.success(
-        enrollment
-          ? "Enrollment updated successfully!"
-          : "Enrollment created successfully!"
-      );
+      if (enrollment?._id) {
+        // Update existing enrollment
+        await apiClient.put(`/enrollments/${enrollment._id}`, enrollmentData);
+        message.success("Enrollment updated successfully!");
+      } else {
+        // Create new enrollment
+        await apiClient.post("/enrollments", enrollmentData);
+        message.success("Enrollment created successfully!");
+      }
 
       form.resetFields();
       router.push("/dashboard/enrollments");
     } catch (error: any) {
-      message.error(
+      const errorMessage =
         error.response?.data?.error ===
-          "User is already enrolled in this course"
+        "User is already enrolled in this course"
           ? "The user is already enrolled in this course."
-          : "Failed to submit the form."
-      );
+          : "Failed to submit the form.";
+      message.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -110,13 +89,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
           name="userId"
           rules={[{ required: true, message: "Please select a user" }]}
         >
-          <Select placeholder="Select a user">
-            {users.map((user: any) => (
-              <Option key={user._id} value={user._id}>
-                {user.name || "@" + user.username}
-              </Option>
-            ))}
-          </Select>
+          <UserSelector />
         </Form.Item>
 
         <Form.Item
@@ -124,13 +97,7 @@ const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {
           name="courseId"
           rules={[{ required: true, message: "Please select a course" }]}
         >
-          <Select placeholder="Select a course">
-            {courses.map((course: any) => (
-              <Option key={course._id} value={course._id}>
-                {course.title}
-              </Option>
-            ))}
-          </Select>
+          <CourseSelector />
         </Form.Item>
 
         <Form.Item name="isPermanent" valuePropName="checked">

@@ -12,10 +12,11 @@ import { message, Card, Typography, Button } from "antd";
 import CourseContent from "@/components/CourseContent";
 import CoursePurchase from "@/components/CoursePurchase";
 import UserContext from "@/contexts/UserContext";
-import axios from "axios";
+
 import LoadingSpinner from "@/components/LoadingSpinner";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import apiClient from "@/utils/api/apiClient";
 
 // Extend Day.js with the UTC plugin
 dayjs.extend(utc);
@@ -23,6 +24,7 @@ dayjs.extend(utc);
 const { Title, Text } = Typography;
 
 const CoursePage: React.FC = () => {
+  
   const { id: courseId } = useParams();
   const { refreshUser, user } = useContext(UserContext);
 
@@ -36,7 +38,7 @@ const CoursePage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const courseResponse = await axios.get(`/api/me/courses/${courseId}`);
+      const courseResponse = await apiClient.get(`/me/courses/${courseId}`);
 
       if (!courseResponse.data) {
         setError("not-found");

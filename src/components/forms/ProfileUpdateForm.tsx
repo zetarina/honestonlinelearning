@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Form, Input, Button, message, Modal } from "antd";
-import axios from "axios";
+
 import { User } from "@/models/UserModel";
+import apiClient from "@/utils/api/apiClient";
 
 interface ProfileUpdateFormProps {
   user: User;
@@ -18,10 +19,9 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
   onCancel,
   onSuccess,
 }) => {
-  const [form] = Form.useForm(); // Create the form instance
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
-  // Reset form fields whenever the modal becomes visible
   useEffect(() => {
     if (visible) {
       if (user) {
@@ -37,8 +37,8 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
   }, [visible, user, form]);
 
   const handleCancel = () => {
-    form.resetFields(); // Ensure the form is reset on cancel
-    onCancel(); // Call the parent onCancel handler
+    form.resetFields();
+    onCancel();
   };
 
   const onFinish = async (values: any) => {
@@ -47,17 +47,17 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
     try {
       const payload = { ...values };
       if (!values.password) {
-        delete payload.password; // If password is empty, don't send it
+        delete payload.password;
       }
 
-      await axios.put("/api/me", payload); // Make the API call
+      await apiClient.put("/me", payload);
 
       message.success("Profile updated successfully!");
-      form.resetFields(["password"]); // Clear only the password field
+      form.resetFields(["password"]);
       if (onSuccess) {
-        onSuccess(); // Trigger onSuccess callback if provided
+        onSuccess();
       }
-      handleCancel(); // Close the modal
+      handleCancel();
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to update the profile";
@@ -73,12 +73,12 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
       open={visible}
       onCancel={handleCancel}
       footer={null}
-      destroyOnClose={true} // Ensure modal is destroyed on close
+      destroyOnClose={true}
       maskClosable={false}
       centered
     >
       <Form
-        form={form} // Pass the form instance here
+        form={form}
         layout="vertical"
         onFinish={onFinish}
         autoComplete="off"

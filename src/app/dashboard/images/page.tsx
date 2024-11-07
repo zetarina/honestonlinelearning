@@ -12,10 +12,12 @@ import {
   Tooltip,
 } from "antd";
 import { EyeOutlined, DeleteOutlined, SyncOutlined } from "@ant-design/icons";
-import axios from "axios";
+
 import { ImageObj } from "@/models/ImageModel";
+import apiClient from "@/utils/api/apiClient";
 
 const ImagesListPage: React.FC = () => {
+  
   const [images, setImages] = useState<ImageObj[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -30,8 +32,8 @@ const ImagesListPage: React.FC = () => {
   const fetchImages = async (search = "", page = 1) => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `/api/images?search=${search}&page=${page}&limit=${batchSize}`
+      const response = await apiClient.get(
+        `/images?search=${search}&page=${page}&limit=${batchSize}`
       );
       const newImages = response.data.images;
       setImages((prev) => (page === 1 ? newImages : [...prev, ...newImages]));
@@ -47,7 +49,7 @@ const ImagesListPage: React.FC = () => {
   const syncImages = async () => {
     setSyncing(true);
     try {
-      const response = await axios.post("/api/images/sync");
+      const response = await apiClient.post("/images/sync");
       message.success(response.data.message);
       setPage(1);
       fetchImages(searchTerm, 1);
@@ -60,7 +62,7 @@ const ImagesListPage: React.FC = () => {
 
   const handleDelete = async (imageId: string) => {
     try {
-      await axios.delete(`/api/images/${imageId}`);
+      await apiClient.delete(`/images/${imageId}`);
       setImages((prev) => prev.filter((img) => img._id !== imageId));
       message.success("Image deleted successfully.");
     } catch (error) {
@@ -179,7 +181,11 @@ const ImagesListPage: React.FC = () => {
 
       <div
         ref={observerRef}
-        style={{ height: "1px", margin: "10px 0", backgroundColor: "transparent" }}
+        style={{
+          height: "1px",
+          margin: "10px 0",
+          backgroundColor: "transparent",
+        }}
       >
         {loading && (
           <Spin size="large" style={{ display: "block", margin: "auto" }} />

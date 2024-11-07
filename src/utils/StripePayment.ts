@@ -1,7 +1,7 @@
 import { SETTINGS_KEYS } from "@/config/settingKeys";
-import { initializeStripe } from "./stripe";
+import { initializeStripe } from "@/utils/stripe";
 
-export async function createStripePayment(
+export async function StripePayment(
   amount: number,
   currency: string,
   settingsMap: Record<string, string | undefined>
@@ -30,5 +30,4 @@ export async function createStripePayment(
     success_url: `${process.env.SITE_URL}/success`,
     cancel_url: `${process.env.SITE_URL}/cancel`,
   });
-  
 }

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Col, Row, Tag, Typography, Button, Space, Tooltip } from "antd";
 import Link from "next/link";
-import axios from "axios";
+
 import { ApplicationLevelCourse } from "@/models/CourseModel";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import CacheImage from "@/components/CacheImage";
@@ -12,6 +12,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import apiClient from "@/utils/api/apiClient";
 
 // Extend Day.js with the UTC plugin
 dayjs.extend(utc);
@@ -23,14 +24,14 @@ const CoursesPage: React.FC = () => {
   const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const { settings } = useSettings();
-  
+
   // Retrieve currency from settings and default to USD if undefined
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("/api/me/courses");
+        const response = await apiClient.get("/me/courses");
         if (response.data && Array.isArray(response.data)) {
           setCourses(response.data);
         } else {

@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
 import PaymentService from "@/services/PaymentService";
 import { PaymentMethod, PaymentStatus } from "@/models/PaymentModel";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { createStripePayment } from "@/utils/stripe-top-up-api";
-import { handleOfflinePayment } from "@/utils/offline-payment-api";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { StripePayment } from "@/utils/StripePayment";
+import { TelegramPayment } from "@/utils/TelegramPayment";
+import { EmailPayment } from "@/utils/EmailPayment";
+
 const settingService = new SettingService();
 const paymentService = new PaymentService();
 
@@ -23,7 +25,6 @@ async function handleTopUpRequest(
 ): Promise<NextResponse> {
   try {
     const formData = await req.formData();
-
     const amount = formData.get("amount") as string | null;
     const paymentMethod = formData.get("paymentMethod") as string | null;
     const file = formData.get("file") as File | null;
@@ -41,7 +42,8 @@ async function handleTopUpRequest(
     ).toUpperCase();
 
     if (paymentMethod === "stripe") {
-      const session = await createStripePayment(
+      // Handle Stripe Payment
+      const session = await StripePayment(
         parseInt(amount, 10),
         currency,
         settingsMap
@@ -57,6 +59,7 @@ async function handleTopUpRequest(
 
       return NextResponse.json({ client_secret: session.id });
     } else if (paymentMethod === "offline") {
+      // Handle Offline Payment
       if (!file) {
         return NextResponse.json(
           { error: "Screenshot file is required for offline payments." },
@@ -65,15 +68,61 @@ async function handleTopUpRequest(
       }
 
       const arrayBuffer = await file.arrayBuffer();
-      const screenshotBuffer = Buffer.from(arrayBuffer);;
+      const screenshotBuffer = Buffer.from(arrayBuffer);
 
-      return await handleOfflinePayment(
-        userId,
-        parseFloat(amount),
-        currency,
-        screenshotBuffer,
-        settingsMap
-      );
+      try {
+        // Attempt to send Telegram notification
+        await TelegramPayment(
+          userId,
+          parseFloat(amount),
+          currency,
+          screenshotBuffer,
+          settingsMap
+        );
+
+        await paymentService.createPayment({
+          user_id: userId,
+          amount: parseFloat(amount),
+          method: PaymentMethod.OFFLINE,
+          status: PaymentStatus.PENDING,
+        });
+
+        return NextResponse.json({
+          message: "Offline top-up request submitted and sent to Telegram!",
+        });
+      } catch (telegramError) {
+        console.error("Telegram notification failed:", telegramError);
+
+        try {
+          // Fallback to email notification
+          await EmailPayment(
+            userId,
+            parseFloat(amount),
+            currency,
+            screenshotBuffer
+          );
+
+          await paymentService.createPayment({
+            user_id: userId,
+            amount: parseFloat(amount),
+            method: PaymentMethod.OFFLINE,
+            status: PaymentStatus.PENDING,
+          });
+
+          return NextResponse.json({
+            message: "Offline top-up request submitted and sent via email!",
+          });
+        } catch (emailError) {
+          console.error("Email notification failed:", emailError);
+          return NextResponse.json(
+            {
+              error:
+                "Notification configuration is incomplete. Please set up Telegram or Gmail.",
+            },
+            { status: 500 }
+          );
+        }
+      }
     } else {
       return NextResponse.json(
         { error: "Invalid payment method." },

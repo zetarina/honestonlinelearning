@@ -1,4 +1,4 @@
-import dbConnect from "@/utils/db";
+import dbConnect from "@/db";
 import EnrollmentModel, { Enrollment } from "../models/EnrollmentModel";
 import { Model, Types } from "mongoose";
 
@@ -79,7 +79,7 @@ class EnrollmentRepository {
       .exec();
   }
 
-  async findByUserIdAndCourseId(
+  async isUserCurrentlyEnrolled(
     userId: string | Types.ObjectId,
     courseId: string | Types.ObjectId
   ): Promise<Enrollment | null> {
@@ -88,6 +88,32 @@ class EnrollmentRepository {
       .findOne({
         user_id: userId,
         course_id: courseId,
+      })
+      .populate({
+        path: "course",
+        select: "title category price instructorId level",
+      })
+      .exec();
+  }
+
+  async extendEnrollment(
+    enrollmentId: Types.ObjectId | string,
+    newExpiresAt: Date,
+    historyEntry: { action: string; timestamp: Date; expires_at: Date | null }
+  ): Promise<Enrollment | null> {
+    await dbConnect();
+    return this.enrollmentModel
+      .findByIdAndUpdate(
+        enrollmentId,
+        {
+          $set: { expires_at: newExpiresAt },
+          $push: { enrollmentHistory: historyEntry },
+        },
+        { new: true }
+      )
+      .populate({
+        path: "user",
+        select: "username email role",
       })
       .populate({
         path: "course",

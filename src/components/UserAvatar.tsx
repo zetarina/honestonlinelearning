@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Tooltip, Typography, Dropdown, Menu } from "antd";
+import { Avatar, Tooltip, Typography, Dropdown, Menu, MenuProps } from "antd";
 import { User, UserRole } from "@/models/UserModel";
 import Link from "next/link";
 
@@ -20,27 +20,29 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   handleLogout,
   toggleDrawer,
 }) => {
-  const menu = (
-    <Menu>
-      {user && user.role !== UserRole.STUDENT && (
-        <Menu.Item key="dashboard">
-          <Link href="/dashboard">Dashboard</Link>
-        </Menu.Item>
-      )}
-      <Menu.Item key="profile">
-        <Link href="/profile">Profile</Link>
-      </Menu.Item>
-      {user ? (
-        <Menu.Item key="logout" onClick={handleLogout}>
-          Logout
-        </Menu.Item>
-      ) : (
-        <Menu.Item key="login">
-          <Link href="/login">Login</Link>
-        </Menu.Item>
-      )}
-    </Menu>
-  );
+  const menuItems: MenuProps["items"] = [
+    ...(user && user.role !== UserRole.STUDENT
+      ? [
+          {
+            key: "dashboard",
+            label: <Link href="/dashboard">Dashboard</Link>,
+          },
+        ]
+      : []),
+    {
+      key: "profile",
+      label: <Link href="/profile">Profile</Link>,
+    },
+    user
+      ? {
+          key: "logout",
+          label: <div onClick={handleLogout}>Logout</div>,
+        }
+      : {
+          key: "login",
+          label: <Link href="/login">Login</Link>,
+        },
+  ];
 
   return (
     <>
@@ -68,7 +70,11 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
           </div>
         </div>
       ) : (
-        <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+        <Dropdown
+          menu={{ items: menuItems }}
+          trigger={["click"]}
+          placement="bottomRight"
+        >
           <div
             style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
           >

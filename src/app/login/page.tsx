@@ -1,11 +1,10 @@
 "use client";
-import { signIn } from "next-auth/react";
+
 import { Button, Input, Form, Alert, Typography, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useContext } from "react";
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
-import axios from "axios";
 
 const { Title } = Typography;
 
@@ -14,29 +13,21 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
-  const { awaitRefreshUser, user, loading: sessionLoading } = useContext(UserContext);
+  const { user, signIn, loading: sessionLoading, initialLoading } =
+    useContext(UserContext);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && !initialLoading) {
       handleRoleBasedRedirect();
     }
-  }, [user, router]);
+  }, [user, initialLoading]);
 
   const handleRoleBasedRedirect = () => {
-    if (redirect) {
-      router.push(redirect);
-      return;
-    }
-
-    // Ensure user is defined before accessing its properties
-    if (user?.role === UserRole.STUDENT) {
-      router.push("/profile");
-    } else {
-      router.push("/dashboard");
-    }
+    const target = redirect || (user?.role === UserRole.STUDENT ? "/profile" : "/dashboard");
+    router.replace(target);
   };
 
   const onFinish = async (values: any) => {
@@ -44,38 +35,29 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email: values.email,
-        password: values.password,
-      });
-
-      if (result?.ok) {
-        await awaitRefreshUser(); // Ensure the user context refreshes
-        handleRoleBasedRedirect(); // Redirect based on the user's role
-      } else if (result?.error) {
-        // Handle specific authentication error
-        setError(
-          result.error === "CredentialsSignin"
-            ? "Invalid email or password. Please try again."
-            : "Login failed! Please check your credentials."
-        );
-      }
-    } catch (error: any) {
-      console.error("Login Error:", error);
-
-      // Check for network error or specific axios error
-      if (axios.isAxiosError(error) && !error.response) {
-        setError("Network error! Please check your internet connection.");
-      } else {
-        setError(
-          error.message || "An unexpected error occurred. Please try again later."
-        );
-      }
+      await signIn(values.email, values.password);
+    } catch (err: any) {
+      console.error("Login Error:", err);
+      setError(err.message || "An unexpected error occurred. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (initialLoading || sessionLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -98,16 +80,10 @@ export default function LoginPage() {
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Title
-          level={2}
-          style={{
-            textAlign: "center",
-            marginBottom: "24px",
-          }}
-        >
+        <Title level={2} style={{ textAlign: "center", marginBottom: "24px" }}>
           Login
         </Title>
-        {error && !sessionLoading && (
+        {error && (
           <Alert
             message={error}
             type="error"
@@ -144,12 +120,7 @@ export default function LoginPage() {
             </Button>
           </Form.Item>
         </Form>
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: "16px",
-          }}
-        >
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
           Don&apos;t have an account? <a href="/signup">Sign Up</a>
         </div>
       </div>

@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
 import UserContext from "@/contexts/UserContext";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 import {
   getMobileDashboardMenuItems,
   dashboardMenuData,
@@ -23,7 +22,7 @@ const { Sider, Content, Header, Footer } = Layout;
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext); // Use the logout function from UserContext
   const { settings } = useSettings();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -35,7 +34,9 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
     .find((item) => pathname.startsWith(item.link || ""))?.key;
 
   const handleDrawerToggle = () => setDrawerVisible(!drawerVisible);
-  const handleLogout = async () => await signOut({ callbackUrl: "/" });
+  const handleLogout = async () => {
+    await logout(); // Call the logout function
+  };
 
   return (
     <Layout style={{ minHeight: "100vh", background: "none" }}>
@@ -208,7 +209,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
             user={user}
             currency={currency}
             isMobile={isMobile}
-            handleLogout={handleLogout}
+            handleLogout={handleLogout} // Use the updated logout handler
             toggleDrawer={handleDrawerToggle}
           />
         </Header>

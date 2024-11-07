@@ -10,7 +10,7 @@ import {
   message,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import axios from "axios";
+
 import dayjs, { Dayjs } from "dayjs";
 import {
   ApplicationLevelCourse,
@@ -25,6 +25,7 @@ import ImageSelection from "@/components/forms/inputs/ImageSelection";
 import InstructorSelection from "@/components/forms/inputs/InstructorSelection";
 import RichTextEditor from "@/components/forms/inputs/RichTextEditor";
 import LiveSessionsModal from "./inputs/LiveSessionsModal";
+import apiClient from "@/utils/api/apiClient";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -34,6 +35,7 @@ interface CourseFormProps {
 }
 
 const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
+  
   const [form] = Form.useForm();
   const router = useRouter();
   const [chapters, setChapters] = useState(course?.chapters || []);
@@ -101,10 +103,10 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
 
     try {
       if (course?._id) {
-        await axios.put(`/api/courses/${course._id}`, courseData);
+        await apiClient.put(`/courses/${course._id}`, courseData);
         message.success("Course updated successfully!");
       } else {
-        await axios.post("/api/courses", courseData);
+        await apiClient.post("/courses", courseData);
         message.success("Course created successfully!");
       }
       router.push("/dashboard/courses");

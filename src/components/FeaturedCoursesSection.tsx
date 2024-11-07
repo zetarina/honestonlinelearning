@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from "antd";
 import CacheImage from "@/components/CacheImage";
-import axios from "axios";
+
 import { ApplicationLevelCourse } from "@/models/CourseModel";
 import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -22,6 +22,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import apiClient from "@/utils/api/apiClient";
 
 dayjs.extend(utc);
 
@@ -29,6 +30,7 @@ const { Title, Text } = Typography;
 const { Meta } = Card;
 
 const FeaturedCoursesSection: React.FC = () => {
+  
   const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -40,7 +42,7 @@ const FeaturedCoursesSection: React.FC = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("/api/me/courses");
+        const response = await apiClient.get("/me/courses");
         if (response.data && Array.isArray(response.data)) {
           setCourses(response.data);
         } else {

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useContext } from "react";
 import {
   Card,
   Typography,
@@ -15,14 +15,13 @@ import {
   Alert,
   message,
 } from "antd";
-import { LinkOutlined } from "@ant-design/icons";
 import { Course, CourseType } from "@/models/CourseModel";
-import axios from "axios";
+import apiClient from "@/utils/api/apiClient";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import ExpandableContent from "./ExpandableContent";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import UserContext from "@/contexts/UserContext";
 
 const { Title, Text } = Typography;
 
@@ -35,7 +34,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
   course,
   onPurchaseSuccess,
 }) => {
-  const { data: session } = useSession();
+  const { user } = useContext(UserContext);
   const router = useRouter();
   const { settings } = useSettings();
 
@@ -43,25 +42,24 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   const handlePurchase = async () => {
-    if (!session?.user) {
+    if (!user) {
       message.warning("You need to login to purchase the course.");
       router.push(`/login?redirect=/courses/${course._id}`);
       return;
     }
 
     try {
-      const response = await axios.post(
-        `/api/me/courses/${course._id}/purchase`
+      const response = await apiClient.post(
+        `/me/courses/${course._id}/purchase`
       );
 
       if (response.status === 200) {
         message.success("Course purchased successfully!");
         onPurchaseSuccess();
       }
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        const errorMessage = error.response.data.error;
-        const redirectUrl = error.response.data.redirectUrl;
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        const { error: errorMessage, redirectUrl } = error.response.data;
 
         if (errorMessage === "Insufficient points") {
           message.warning("Not enough points. Please top up your balance.");
@@ -117,7 +115,9 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
               </Tag>
               <Text strong>Instructor:</Text>{" "}
               <Tag color="purple" style={{ textTransform: "capitalize" }}>
-                {course.instructor?.name || course.instructor?.username || "N/A"}
+                {course.instructor?.name ||
+                  course.instructor?.username ||
+                  "N/A"}
               </Tag>
             </Space>
           </Card>

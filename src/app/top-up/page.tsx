@@ -14,17 +14,19 @@ import {
   Radio,
 } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
-import axios from "axios";
+
 import UserContext from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/contexts/SettingsContext";
 import { loadStripe } from "@stripe/stripe-js";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import apiClient from "@/utils/api/apiClient";
 
 const { Dragger } = Upload;
 const { Title, Paragraph } = Typography;
 
 const TopUpPage: React.FC = () => {
+  
   const { user, refreshUser } = useContext(UserContext);
   const { settings } = useSettings();
   const router = useRouter();
@@ -104,7 +106,7 @@ const TopUpPage: React.FC = () => {
         formData.append("userId", user.id);
         formData.append("paymentMethod", paymentMethod);
 
-        const response = await axios.post("/api/top-up", formData, {
+        const response = await apiClient.post("/top-up", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -117,7 +119,7 @@ const TopUpPage: React.FC = () => {
           message.error("Failed to process top-up request.");
         }
       } else if (paymentMethod === "stripe") {
-        const response = await axios.post("/api/top-up", {
+        const response = await apiClient.post("/top-up", {
           amount: values.amount,
           userId: user.id,
           paymentMethod: paymentMethod,

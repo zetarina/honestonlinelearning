@@ -20,19 +20,22 @@ import {
 import { useRouter } from "next/navigation";
 import type { ColumnsType } from "antd/es/table";
 import { Course } from "@/models/CourseModel";
-import axios from "axios";
+import apiClient from "@/utils/api/apiClient";
+import { User } from "@/models/UserModel";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const CoursesPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
   const router = useRouter();
-
+  const { settings } = useSettings();
   // Fetch courses from the API
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("/api/courses");
+        const response = await apiClient.get("/courses");
         setCourses(response.data);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -48,7 +51,7 @@ const CoursesPage: React.FC = () => {
   // Handle delete operation
   const handleDelete = async (courseId: string) => {
     try {
-      const response = await axios.delete(`/api/courses/${courseId}`);
+      const response = await apiClient.delete(`/courses/${courseId}`);
       if (response.status === 200) {
         message.success("Course deleted successfully");
         setCourses(courses.filter((course) => course._id !== courseId));
@@ -90,13 +93,20 @@ const CoursesPage: React.FC = () => {
       dataIndex: "price",
       key: "price",
       sorter: (a, b) => a.price - b.price,
-      render: (price: number) => `$${price.toFixed(2)}`,
+      render: (price: number) =>
+        `${price.toFixed(2)}  ${settings[SETTINGS_KEYS.CURRENCY]}`,
     },
     {
       title: "Instructor",
       dataIndex: "instructor",
       key: "instructor",
-      render: (instructor: any) => instructor?.username || "N/A",
+      render: (instructor: User) => (
+        <Tag color="gray">
+          {instructor?.name
+            ? `${instructor?.name} (${instructor?.username})`
+            : "N/A"}
+        </Tag>
+      ),
     },
     {
       title: "Level",
@@ -108,6 +118,11 @@ const CoursesPage: React.FC = () => {
         { text: "Advanced", value: "advanced" },
       ],
       onFilter: (value, record) => record.level.includes(value as string),
+      render: (level: string) => (
+        <Tag color="red" style={{ textTransform: "capitalize" }}>
+          {level}
+        </Tag>
+      ),
     },
     {
       title: "Actions",

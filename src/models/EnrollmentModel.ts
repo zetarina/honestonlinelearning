@@ -2,6 +2,11 @@ import mongoose, { Schema, Types, Document } from "mongoose";
 import { usersModelName, User } from "./UserModel";
 import { coursesModelName, Course } from "./CourseModel";
 
+export interface EnrollmentHistoryEntry {
+  action: "ENROLL" | "EXTEND" | "COMPLETE";
+  timestamp: Date;
+  expires_at?: Date | null;
+}
 export enum EnrollmentStatus {
   ACTIVE = "active",
   EXPIRED = "expired",
@@ -21,6 +26,7 @@ export interface Enrollment extends Document {
   pointsSpent: number;
   user?: User;
   course?: Course;
+  enrollmentHistory: EnrollmentHistoryEntry[];
 }
 
 const enrollmentSchema = new Schema<Enrollment>(
@@ -44,6 +50,17 @@ const enrollmentSchema = new Schema<Enrollment>(
       enum: Object.values(EnrollmentStatus),
       default: EnrollmentStatus.ACTIVE,
     },
+    enrollmentHistory: [
+      {
+        action: {
+          type: String,
+          enum: ["ENROLL", "EXTEND", "COMPLETE"],
+          required: true,
+        },
+        timestamp: { type: Date, default: Date.now },
+        expires_at: { type: Date, default: null }, // Optional for tracking expiration
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },

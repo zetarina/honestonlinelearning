@@ -4,8 +4,10 @@ import { useRouter, useParams } from "next/navigation";
 import { message, Spin } from "antd";
 import { Course } from "@/models/CourseModel";
 import CourseForm from "@/components/forms/CourseForm";
+import apiClient from "@/utils/api/apiClient";
 
 const CourseEditPage: React.FC = () => {
+  
   const [courseData, setCourseData] = useState<Course | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
@@ -16,9 +18,9 @@ const CourseEditPage: React.FC = () => {
     if (courseId) {
       const fetchCourse = async () => {
         try {
-          const response = await fetch(`/api/courses/${courseId}`);
-          if (response.ok) {
-            const data = await response.json();
+          const response = await apiClient.get(`/courses/${courseId}`);
+          if (response.status === 200) {
+            const data = await response.data;
             setCourseData(data);
           } else {
             message.error("Failed to fetch course data");

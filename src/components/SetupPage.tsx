@@ -11,13 +11,15 @@ import {
   Spin,
   Modal,
 } from "antd";
-import axios from "axios";
+
 import { useRouter } from "next/navigation";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import apiClient from "@/utils/api/apiClient";
 
 const { Title } = Typography;
 
 const SetupPage: React.FC = () => {
+  
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -62,7 +64,7 @@ const SetupPage: React.FC = () => {
       content: "Are you sure you want to save the settings?",
       onOk: async () => {
         try {
-          const response = await axios.post("/api/setup", payload);
+          const response = await apiClient.post("/setup", payload);
           if (response.status === 201) {
             message.success("Setup completed successfully!");
             setSetupCompleted(true);

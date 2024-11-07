@@ -2,15 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import { Button, Space, message, Spin } from "antd";
-import axios from "axios";
+
 import { PlusOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import { Setting } from "@/models/SettingModel";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import SettingsTable from "@/components/SettingsTable";
 import SettingsModal from "@/components/SettingsModal";
 import GuideBookModal from "@/components/GuideBookModal";
+import apiClient from "@/utils/api/apiClient";
 
 const SettingsPage: React.FC = () => {
+  
   const [settings, setSettings] = useState<Setting[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,14 +20,16 @@ const SettingsPage: React.FC = () => {
   const [editingSetting, setEditingSetting] = useState<Setting | null>(null);
   const [missingKeysQueue, setMissingKeysQueue] = useState<string[]>([]);
   const [isAddingMissingKey, setIsAddingMissingKey] = useState(false);
-  const [currentMissingKey, setCurrentMissingKey] = useState<string | null>(null);
+  const [currentMissingKey, setCurrentMissingKey] = useState<string | null>(
+    null
+  );
   const [isMissingKeysLoading, setIsMissingKeysLoading] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const response = await axios.get("/api/settings");
+        const response = await apiClient.get("/settings");
         setSettings(response.data);
       } catch (error) {
         message.error("Failed to fetch settings");
@@ -80,7 +84,7 @@ const SettingsPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`/api/settings/${id}`);
+      await apiClient.delete(`/settings/${id}`);
       setSettings(settings.filter((setting) => setting._id !== id));
       message.success("Setting deleted successfully");
     } catch (error) {

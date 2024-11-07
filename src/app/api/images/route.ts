@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import ImageService from "@/services/ImageService";
 import fs from "fs";
 import path from "path";
-import dbConnect from "@/utils/db";
+import dbConnect from "@/db";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { UserRole } from "@/models/UserModel";
 

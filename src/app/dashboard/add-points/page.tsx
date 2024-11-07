@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Form,
   Input,
@@ -10,44 +10,19 @@ import {
   Card,
   Modal,
   Typography,
-  Select,
 } from "antd";
-import axios from "axios";
+
 import { useRouter } from "next/navigation";
+import apiClient from "@/utils/api/apiClient";
+import UserSelector from "@/components/forms/inputs/UserSelector";
 
 const { Text } = Typography;
-const { Option } = Select;
-
-interface User {
-  _id: string;
-  username: string;
-  email: string;
-}
 
 const AddPointsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [formValues, setFormValues] = useState<any>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const router = useRouter();
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get("/api/users");
-        if (response.status === 200) {
-          setUsers(response.data);
-        } else {
-          message.error("Failed to fetch users.");
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        message.error("An error occurred while fetching users.");
-      }
-    };
-
-    fetchUsers();
-  }, []);
 
   const onFinish = (values: any) => {
     setFormValues(values);
@@ -60,7 +35,7 @@ const AddPointsPage: React.FC = () => {
 
     try {
       const { userId, points, reason } = formValues;
-      const response = await axios.post("/api/add-points", {
+      const response = await apiClient.post("/add-points", {
         userId,
         points,
         reason,
@@ -96,17 +71,7 @@ const AddPointsPage: React.FC = () => {
             name="userId"
             rules={[{ required: true, message: "Please select a user!" }]}
           >
-            <Select
-              placeholder="Select a user"
-              showSearch
-              optionFilterProp="children"
-            >
-              {users.map((user) => (
-                <Option key={user._id} value={user._id}>
-                  {user.username} ({user.email})
-                </Option>
-              ))}
-            </Select>
+            <UserSelector />
           </Form.Item>
 
           <Form.Item
@@ -137,7 +102,7 @@ const AddPointsPage: React.FC = () => {
         </Form>
       </Card>
 
-            <Modal
+      <Modal
         title="Confirm Add Points"
         open={confirmationVisible}
         onOk={handleConfirm}
@@ -149,8 +114,7 @@ const AddPointsPage: React.FC = () => {
         <Text>Are you sure you want to add the following points?</Text>
         <div style={{ marginTop: "16px" }}>
           <Text strong>User:</Text>{" "}
-          {users.find((u) => u._id === formValues?.userId)?.username} (
-          {users.find((u) => u._id === formValues?.userId)?.email})
+          {formValues && formValues.userId && <Text>{formValues.userId}</Text>}
         </div>
         <div>
           <Text strong>Points:</Text> {formValues?.points}

@@ -1,7 +1,7 @@
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import TelegramService from "@/services/TelegramService";
 
-export async function handleTelegramNotification(
+export async function TelegramPayment(
   userId: string,
   amount: number,
   currency: string,

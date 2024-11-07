@@ -3,9 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Select, Card, message } from "antd";
 import { User, UserRole } from "@/models/UserModel";
-import axios from "axios";
+
 import ImageSelection from "./inputs/ImageSelection";
 import { useRouter } from "next/navigation";
+import apiClient from "@/utils/api/apiClient";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -28,36 +29,38 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
   const onFinish = async (values: any) => {
     setLoading(true);
 
-    try {
-      const method = user ? "put" : "post";
-      const endpoint = user ? `/api/users/${user._id}` : "/api/users";
+    // Prepare the user payload
+    const { password, ...otherValues } = values;
+    const userData = {
+      ...otherValues,
+      ...(password ? { password } : {}), // Include password only if it's provided
+    };
 
-      const payload = { ...values };
-      if (!values.password) {
-        delete payload.password;
+    try {
+      if (user?._id) {
+        // Update existing user
+        await apiClient.put(`/api/users/${user._id}`, userData, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        message.success("User updated successfully!");
+      } else {
+        // Create new user
+        await apiClient.post("/api/users", userData, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        message.success("User created successfully!");
       }
 
-      await axios({
-        method,
-        url: endpoint,
-        data: payload,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      message.success(
-        user ? "User updated successfully!" : "User created successfully!"
-      );
-
       form.resetFields();
-
-      // Redirect to the user dashboard after success
       router.push("/dashboard/users");
     } catch (error: any) {
       console.error("Error submitting form:", error);
       const errorMessage =
-        error.response?.data?.message || "Failed to submit the form";
+        error.response?.data?.message || "Failed to submit the form.";
       message.error(errorMessage);
     } finally {
       setLoading(false);

@@ -1,7 +1,7 @@
 import MailService from "@/services/MailService";
 const mailService = new MailService();
 
-export async function handleEmailNotification(
+export async function EmailPayment(
   userId: string,
   amount: number,
   currency: string,

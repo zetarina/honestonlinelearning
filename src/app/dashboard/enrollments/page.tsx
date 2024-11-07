@@ -8,11 +8,13 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+
 import type { ColumnsType } from "antd/es/table";
 import { Enrollment } from "@/models/EnrollmentModel";
+import apiClient from "@/utils/api/apiClient";
 
 const EnrollmentsPage: React.FC = () => {
+  
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
@@ -22,7 +24,7 @@ const EnrollmentsPage: React.FC = () => {
   useEffect(() => {
     const fetchEnrollments = async () => {
       try {
-        const response = await axios.get("/api/enrollments");
+        const response = await apiClient.get("/enrollments");
         setEnrollments(response.data);
       } catch (error) {
         console.error("Error fetching enrollments:", error);
@@ -38,7 +40,7 @@ const EnrollmentsPage: React.FC = () => {
   // Handle delete operation
   const handleDelete = async (enrollmentId: string) => {
     try {
-      const response = await axios.delete(`/api/enrollments/${enrollmentId}`);
+      const response = await apiClient.delete(`/enrollments/${enrollmentId}`);
       if (response.status === 200) {
         message.success("Enrollment deleted successfully");
         setEnrollments(

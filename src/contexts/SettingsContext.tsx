@@ -16,7 +16,6 @@ export const SettingsProvider: React.FC<{
   settings: PublicSettings;
   children: React.ReactNode;
 }> = ({ settings, children }) => {
-  // Use SETTINGS_KEYS to dynamically reference `siteName` and `siteUrl`
   const isSetupRequired =
     !settings[SETTINGS_KEYS.SITE_NAME]?.trim() ||
     !settings[SETTINGS_KEYS.SITE_URL]?.trim();
