@@ -22,7 +22,7 @@ const { Sider, Content, Header, Footer } = Layout;
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user, logout } = useContext(UserContext); // Use the logout function from UserContext
+  const { user, logout } = useContext(UserContext);
   const { settings } = useSettings();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -35,7 +35,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
 
   const handleDrawerToggle = () => setDrawerVisible(!drawerVisible);
   const handleLogout = async () => {
-    await logout(); // Call the logout function
+    await logout();
   };
 
   return (
@@ -101,7 +101,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               color: "#ffffff",
               padding: "16px 0",
             }}
-            items={getMobileDashboardMenuItems(user)}
+            items={getMobileDashboardMenuItems(user, logout)}
             onClick={handleDrawerToggle}
           />
         </Drawer>
@@ -209,7 +209,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
             user={user}
             currency={currency}
             isMobile={isMobile}
-            handleLogout={handleLogout} // Use the updated logout handler
+            handleLogout={handleLogout}
             toggleDrawer={handleDrawerToggle}
           />
         </Header>

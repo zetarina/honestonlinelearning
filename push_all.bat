@@ -1,21 +1,24 @@
 @echo off
+setlocal enabledelayedexpansion
 
-echo Pushing to main remote...
-git push main master
-if %ERRORLEVEL%==0 (
-    echo Successfully pushed to main.
-) else (
-    echo Failed to push to main.
+echo Pushing to origin remote...
+git push origin master
+if errorlevel 1 (
+    echo Failed to push to origin. Verify remote and access rights.
+    pause
     exit /b 1
+) else (
+    echo Successfully pushed to origin.
 )
 
 echo Pushing to clone remote...
 git push clone master --force
-if %ERRORLEVEL%==0 (
-    echo Successfully pushed to clone.
-) else (
-    echo Failed to push to clone.
+if errorlevel 1 (
+    echo Failed to push to clone. Verify remote and access rights.
+    pause
     exit /b 1
+) else (
+    echo Successfully pushed to clone.
 )
 
 echo All pushes completed successfully!

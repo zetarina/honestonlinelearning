@@ -10,7 +10,6 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import UserAvatar from "./UserAvatar";
 import MessengerChat from "./MessengerChat";
-import { UserRole } from "@/models/UserModel";
 import { getMainMenuItems, getMobileMenuItems } from "@/config/navigations";
 import SocialLinks from "./SocialLinks";
 
@@ -22,7 +21,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user, logout } = useContext(UserContext); // Use the logout function from UserContext
+  const { user, logout } = useContext(UserContext);
   const { settings } = useSettings();
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -30,7 +29,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
   const handleLogout = async () => {
-    await logout(); // Use the custom logout function
+    await logout();
   };
 
   return (
@@ -68,7 +67,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             >
               <Menu
                 mode="vertical"
-                items={getMobileMenuItems(user)}
+                items={getMobileMenuItems(user, logout)}
                 onClick={toggleDrawer}
               />
             </Drawer>
@@ -79,7 +78,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             user={user}
             currency={currency}
             isMobile={isMobile}
-            handleLogout={handleLogout} // Updated logout handler
+            handleLogout={handleLogout}
             toggleDrawer={toggleDrawer}
           />
         </Space>

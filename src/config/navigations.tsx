@@ -18,8 +18,6 @@ import {
 import { Button } from "antd";
 import Link from "next/link";
 import { User, UserRole } from "@/models/UserModel";
-import { useContext } from "react";
-import UserContext from "@/contexts/UserContext";
 
 interface MenuItem {
   key: string;
@@ -181,11 +179,12 @@ export const generateMenuItems = (menuData: MenuItem[]) => {
 export const getDashboardMenuItems = () => generateMenuItems(dashboardMenuData);
 
 // Mobile Menu Items - with logout using UserContext
-export const getMobileDashboardMenuItems = (user: User | null) => {
-  const { logout } = useContext(UserContext);
+export const getMobileDashboardMenuItems = (
+  user: User | null,
+  logout: () => void
+) => {
   const mobileMenuData = generateMenuItems(dashboardMenuData);
 
-  // Add additional mobile-only items if necessary (e.g., logout or profile)
   if (user) {
     mobileMenuData.push({
       key: "logout",
@@ -200,7 +199,6 @@ export const getMobileDashboardMenuItems = (user: User | null) => {
 
   return mobileMenuData;
 };
-
 export const getMainMenuItems = () => {
   return mainMenuData.map((menu) => ({
     key: menu.key,
@@ -247,7 +245,7 @@ export const mobileMenuData = (user: User | null): MenuItem[] => [
       },
 ];
 
-export const getMobileMenuItems = (user: User | null) =>
+export const getMobileMenuItems = (user: User | null, logout: () => void) =>
   mobileMenuData(user).map((menu) => ({
     key: menu.key,
     icon: iconMapper[menu.icon || ""] || null,
@@ -258,11 +256,7 @@ export const getMobileMenuItems = (user: User | null) =>
         </Button>
       </Link>
     ) : (
-      <span
-        onClick={
-          menu.key === "logout" ? useContext(UserContext).logout : undefined
-        }
-      >
+      <span onClick={menu.key === "logout" ? logout : undefined}>
         <Button type="link" style={{ padding: 0, color: "black" }}>
           {menu.label}
         </Button>
