@@ -39,7 +39,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
     try {
       if (user?._id) {
         // Update existing user
-        await apiClient.put(`/api/users/${user._id}`, userData, {
+        await apiClient.put(`/users/${user._id}`, userData, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -47,7 +47,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
         message.success("User updated successfully!");
       } else {
         // Create new user
-        await apiClient.post("/api/users", userData, {
+        await apiClient.post("/users", userData, {
           headers: {
             "Content-Type": "application/json",
           },
