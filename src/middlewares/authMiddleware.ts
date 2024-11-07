@@ -64,11 +64,15 @@ export function withAuthMiddleware(
     request: Request,
     userId: string | null
   ) => Promise<NextResponse>,
-  showError: boolean = false,
+  isProtected: boolean = false,
   requiredRoles?: UserRole[]
 ) {
   return async (request: Request): Promise<NextResponse> => {
-    const authResult = await authMiddleware(request, showError, requiredRoles);
+    const authResult = await authMiddleware(
+      request,
+      isProtected,
+      requiredRoles
+    );
 
     if (authResult instanceof NextResponse) {
       return authResult;

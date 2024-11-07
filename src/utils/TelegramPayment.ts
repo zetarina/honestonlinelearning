@@ -1,45 +1,63 @@
 import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { User } from "@/models/UserModel";
 import TelegramService from "@/services/TelegramService";
 
+// TelegramPayment function
 export async function TelegramPayment(
-  userId: string,
+  user: User, // Accept full user object
   amount: number,
   currency: string,
   screenshot: Buffer,
   settingsMap: Record<string, string | undefined>
-) {
+): Promise<boolean> {
   const botToken = settingsMap[SETTINGS_KEYS.TELEGRAM_BOT_TOKEN];
   const chatId = settingsMap[SETTINGS_KEYS.TELEGRAM_CHAT_ID];
 
   if (!botToken || !chatId) {
     console.error("Telegram configuration is incomplete.");
-    return;
+    return false;
   }
 
   const telegramService = new TelegramService(botToken, chatId);
-  const telegramMessage = `User with ID: ${userId} requested a top-up of ${amount} ${currency} (offline). Screenshot attached.`;
+  const telegramMessage = `
+    User requested a top-up:
+    - Name: ${user.name}
+    - Username: ${user.username}
+    - Email: ${user.email}
+    - User ID: ${user._id}
+    - Amount: ${amount} ${currency}
+    (Offline). Screenshot attached.
+  `;
 
   try {
-    return await telegramService.sendPhoto(screenshot, telegramMessage);
+    await telegramService.sendPhoto(screenshot, telegramMessage);
+    console.log(`Telegram notification sent successfully for user ${user.id}.`);
+    return true;
   } catch (error) {
-    throw "Error sending screenshot to Telegram API";
+    console.error(
+      `Failed to send Telegram message for user ${user.id}:`,
+      error
+    );
+    return false;
   }
 }
+
 export default async function notifyViaTelegram(
-  userId,
-  amount,
-  currency,
-  screenshotBuffer,
-  settingsMap
-) {
+  user: User, // Accept full user object
+  amount: number,
+  currency: string,
+  screenshotBuffer: Buffer,
+  settingsMap: Record<string, string | undefined>
+): Promise<boolean> {
   try {
     const telegramResponse = await TelegramPayment(
-      userId,
-      parseFloat(amount),
+      user,
+      amount,
       currency,
       screenshotBuffer,
       settingsMap
     );
+
     if (telegramResponse) {
       console.log("Telegram notification sent successfully:", telegramResponse);
       return true;

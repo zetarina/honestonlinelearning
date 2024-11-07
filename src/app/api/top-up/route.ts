@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
 import PaymentService from "@/services/PaymentService";
+import UserService from "@/services/UserService";
 import { PaymentMethod, PaymentStatus } from "@/models/PaymentModel";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
@@ -10,7 +11,7 @@ import notifyViaEmail, { EmailPayment } from "@/utils/EmailPayment";
 
 const settingService = new SettingService();
 const paymentService = new PaymentService();
-
+const userService = new UserService();
 async function getSettingsMap(): Promise<Record<string, string | undefined>> {
   const settings = await settingService.getAllSettings("production");
   return settings.reduce((acc, setting) => {
@@ -69,69 +70,76 @@ async function handleTopUpRequest(
 
       const arrayBuffer = await file.arrayBuffer();
       const screenshotBuffer = Buffer.from(arrayBuffer);
+      const user = await userService.getUserById(userId);
+      if (user != null) {
+        try {
+          // Attempt to notify via Telegram
+          const telegramSuccess = await notifyViaTelegram(
+            user,
+            parseFloat(amount),
+            currency,
+            screenshotBuffer,
+            settingsMap
+          );
 
-      try {
-        // Attempt to notify via Telegram
-        const telegramSuccess = await notifyViaTelegram(
-          userId,
-          parseFloat(amount),
-          currency,
-          screenshotBuffer,
-          settingsMap
-        );
+          if (telegramSuccess) {
+            // Create the payment record after successful Telegram notification
+            await paymentService.createPayment({
+              user_id: userId,
+              amount: parseFloat(amount),
+              method: PaymentMethod.OFFLINE,
+              status: PaymentStatus.PENDING,
+            });
 
-        if (telegramSuccess) {
-          // Create the payment record after successful Telegram notification
-          await paymentService.createPayment({
-            user_id: userId,
-            amount: parseFloat(amount),
-            method: PaymentMethod.OFFLINE,
-            status: PaymentStatus.PENDING,
-          });
+            return NextResponse.json({
+              message: "Offline top-up request submitted and sent to Telegram!",
+            });
+          }
 
-          return NextResponse.json({
-            message: "Offline top-up request submitted and sent to Telegram!",
-          });
+          console.warn(
+            "Telegram notification failed. Attempting email fallback."
+          );
+
+          // Attempt to notify via Email if Telegram fails
+          const emailSuccess = await notifyViaEmail(
+            user,
+            parseFloat(amount),
+            currency,
+            screenshotBuffer
+          );
+
+          if (emailSuccess) {
+            // Create the payment record after successful Email notification
+            await paymentService.createPayment({
+              user_id: userId,
+              amount: parseFloat(amount),
+              method: PaymentMethod.OFFLINE,
+              status: PaymentStatus.PENDING,
+            });
+
+            return NextResponse.json({
+              message: "Offline top-up request submitted and sent via email!",
+            });
+          }
+
+          // If both Telegram and Email notifications fail, throw an error
+          throw new Error(
+            "Notification configuration is incomplete. Please set up Telegram or Gmail."
+          );
+        } catch (error) {
+          console.error("Notification process failed:", error);
+
+          return NextResponse.json(
+            {
+              error: error.message || "An internal server error occurred.",
+            },
+            { status: 500 }
+          );
         }
-
-        console.warn(
-          "Telegram notification failed. Attempting email fallback."
-        );
-
-        // Attempt to notify via Email if Telegram fails
-        const emailSuccess = await notifyViaEmail(
-          userId,
-          parseFloat(amount),
-          currency,
-          screenshotBuffer
-        );
-
-        if (emailSuccess) {
-          // Create the payment record after successful Email notification
-          await paymentService.createPayment({
-            user_id: userId,
-            amount: parseFloat(amount),
-            method: PaymentMethod.OFFLINE,
-            status: PaymentStatus.PENDING,
-          });
-
-          return NextResponse.json({
-            message: "Offline top-up request submitted and sent via email!",
-          });
-        }
-
-        // If both Telegram and Email notifications fail, throw an error
-        throw new Error(
-          "Notification configuration is incomplete. Please set up Telegram or Gmail."
-        );
-      } catch (error) {
-        console.error("Notification process failed:", error);
-
+      } else {
         return NextResponse.json(
-          {
-            error: error.message || "An internal server error occurred.",
-          },
-          { status: 500 }
+          { error: "Unauthorized. Please login." },
+          { status: 401 }
         );
       }
     } else {
