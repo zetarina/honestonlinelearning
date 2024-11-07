@@ -18,8 +18,9 @@ const UserContext = createContext<UserContextProps | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [initialLoading, setInitialLoading] = useState(true); // Initial loading state
-  const [loading, setLoading] = useState(false); // Loading for current actions
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasShownLogoutMessage, setHasShownLogoutMessage] = useState(false); // Flag for message
 
   const fetcher = (url: string) => apiClient.get(url).then((res) => res.data);
 
@@ -33,11 +34,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   );
 
-  // Handle initial loading state
   useEffect(() => {
     setUser(data || null);
     if (!isValidating) {
-      setInitialLoading(false); // Mark initial loading complete
+      setInitialLoading(false);
     }
   }, [data, isValidating]);
 
@@ -48,20 +48,23 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (!accessToken || !refreshToken) {
         setUser(null);
-        mutate(null, false); // Clear SWR cache
-        message.info("Logged out due to session change.");
+        mutate(null, false);
+        if (!hasShownLogoutMessage) {
+          message.info("Logged out due to session change.");
+          setHasShownLogoutMessage(true); // Set the flag
+        }
       } else {
-        mutate(); // Re-fetch user data if tokens are available
+        mutate();
       }
     };
 
     window.addEventListener("storage", handleStorageChange);
 
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [mutate]);
+  }, [mutate, hasShownLogoutMessage]);
 
   const refreshUser = () => {
-    mutate(); // Re-fetch user data
+    mutate();
   };
 
   const awaitRefreshUser = async () => {
@@ -81,7 +84,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
 
-      await mutate(); // Explicitly trigger re-fetch
+      setHasShownLogoutMessage(false); // Reset the flag on successful login
+      await mutate();
       message.success("Login successful!");
     } catch (err) {
       console.error("Login failed:", err);
@@ -96,22 +100,21 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
-      setUser(null); // Clear user state
-      mutate(null, false); // Clear SWR cache
+      setUser(null);
+      mutate(null, false);
       message.success("Logout successful!");
     } finally {
       setLoading(false);
     }
   };
 
-  // Combine both initial loading and validation loading states
   const isCurrentlyLoading = initialLoading || isValidating;
 
   const value = useMemo(
     () => ({
       user,
       initialLoading,
-      loading: isCurrentlyLoading, // Reflect current loading state
+      loading: isCurrentlyLoading,
       refreshUser,
       awaitRefreshUser,
       signIn,
