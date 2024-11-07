@@ -19,3 +19,28 @@ export async function EmailPayment(
 
   return mailService.sendMail(mailSubject, mailText, attachments);
 }
+export default async function notifyViaEmail(
+  userId,
+  amount,
+  currency,
+  screenshotBuffer
+) {
+  try {
+    const emailResponse = await EmailPayment(
+      userId,
+      parseFloat(amount),
+      currency,
+      screenshotBuffer
+    );
+    if (emailResponse) {
+      console.log("Email notification sent successfully:", emailResponse);
+      return true;
+    } else {
+      console.warn("Email notification returned an unexpected response.");
+      return false;
+    }
+  } catch (error) {
+    console.error("Email notification failed:", error);
+    return false;
+  }
+}
