@@ -13,7 +13,7 @@ import {
   Alert,
   Radio,
 } from "antd";
-import { InboxOutlined } from "@ant-design/icons";
+import { InboxOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import UserContext from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,6 @@ const { Dragger } = Upload;
 const { Title, Paragraph } = Typography;
 
 const TopUpPage: React.FC = () => {
-  
   const { user, refreshUser } = useContext(UserContext);
   const { settings } = useSettings();
   const router = useRouter();
@@ -84,6 +83,11 @@ const TopUpPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleRemoveFile = () => {
+    resetFileState();
+    message.info("Selected file has been removed.");
+  };
+
   const handleSubmit = async (values: any) => {
     if (!user) {
       message.error("You need to log in first.");
@@ -103,7 +107,7 @@ const TopUpPage: React.FC = () => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("amount", values.amount);
-        formData.append("userId", user.id);
+        // Removed appending userId as it's retrieved from the backend session
         formData.append("paymentMethod", paymentMethod);
 
         const response = await apiClient.post("/top-up", formData, {
@@ -111,7 +115,7 @@ const TopUpPage: React.FC = () => {
             "Content-Type": "multipart/form-data",
           },
         });
-
+        console.log(response);
         if (response.status === 201) {
           message.success("Top-up request submitted successfully!");
           resetFileState();
@@ -121,7 +125,7 @@ const TopUpPage: React.FC = () => {
       } else if (paymentMethod === "stripe") {
         const response = await apiClient.post("/top-up", {
           amount: values.amount,
-          userId: user.id,
+          // Removed userId as it's retrieved from the backend session
           paymentMethod: paymentMethod,
         });
 
@@ -211,7 +215,7 @@ const TopUpPage: React.FC = () => {
             </Radio.Group>
           </Form.Item>
 
-          {paymentMethod === "offline" && (
+          {paymentMethod === "offline" && !file && (
             <Form.Item
               label="Payment Screenshot"
               name="screenshot"
@@ -224,10 +228,11 @@ const TopUpPage: React.FC = () => {
                 fileList={fileList}
                 multiple={false}
                 accept="image/*"
+                maxCount={1}
                 beforeUpload={(file) => {
                   handleFileChange(file);
                   setFileList([file]);
-                  return false;
+                  return false; // Prevent automatic upload
                 }}
               >
                 <p className="ant-upload-drag-icon">
@@ -244,8 +249,14 @@ const TopUpPage: React.FC = () => {
             </Form.Item>
           )}
 
-          {preview && paymentMethod === "offline" && (
-            <div style={{ marginTop: "20px", textAlign: "center" }}>
+          {file && paymentMethod === "offline" && (
+            <div
+              style={{
+                marginTop: "20px",
+                textAlign: "center",
+                position: "relative",
+              }}
+            >
               <Image
                 src={preview}
                 alt="Payment Screenshot Preview"
@@ -253,11 +264,31 @@ const TopUpPage: React.FC = () => {
                 height={200}
                 style={{ objectFit: "cover", borderRadius: "8px" }}
               />
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={handleRemoveFile}
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  right: "50%",
+                  transform: "translateX(50%)",
+                }}
+              >
+                Remove
+              </Button>
             </div>
           )}
 
           <Form.Item style={{ marginTop: "40px" }}>
-            <Button type="primary" htmlType="submit" loading={loading} block>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              block
+              disabled={paymentMethod === "offline" && !file}
+            >
               Submit Top-up Request
             </Button>
           </Form.Item>

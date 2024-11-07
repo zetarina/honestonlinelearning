@@ -43,7 +43,6 @@ async function handleTopUpRequest(
     ).toUpperCase();
 
     if (paymentMethod === "stripe") {
-      // Handle Stripe Payment
       const session = await StripePayment(
         parseInt(amount, 10),
         currency,
@@ -58,9 +57,8 @@ async function handleTopUpRequest(
         transaction_id: session.id,
       });
 
-      return NextResponse.json({ client_secret: session.id });
+      return NextResponse.json({ client_secret: session.id }, { status: 201 });
     } else if (paymentMethod === "offline") {
-      // Handle Offline Payment
       if (!file) {
         return NextResponse.json(
           { error: "Screenshot file is required for offline payments." },
@@ -73,7 +71,6 @@ async function handleTopUpRequest(
       const user = await userService.getUserById(userId);
       if (user != null) {
         try {
-          // Attempt to notify via Telegram
           const telegramSuccess = await notifyViaTelegram(
             user,
             parseFloat(amount),
@@ -83,7 +80,6 @@ async function handleTopUpRequest(
           );
 
           if (telegramSuccess) {
-            // Create the payment record after successful Telegram notification
             await paymentService.createPayment({
               user_id: userId,
               amount: parseFloat(amount),
@@ -91,16 +87,18 @@ async function handleTopUpRequest(
               status: PaymentStatus.PENDING,
             });
 
-            return NextResponse.json({
-              message: "Offline top-up request submitted and sent to Telegram!",
-            });
+            return NextResponse.json(
+              {
+                message: "Offline top-up request submitted!",
+              },
+              { status: 201 }
+            );
           }
 
           console.warn(
             "Telegram notification failed. Attempting email fallback."
           );
 
-          // Attempt to notify via Email if Telegram fails
           const emailSuccess = await notifyViaEmail(
             user,
             parseFloat(amount),
@@ -109,7 +107,6 @@ async function handleTopUpRequest(
           );
 
           if (emailSuccess) {
-            // Create the payment record after successful Email notification
             await paymentService.createPayment({
               user_id: userId,
               amount: parseFloat(amount),
@@ -117,12 +114,14 @@ async function handleTopUpRequest(
               status: PaymentStatus.PENDING,
             });
 
-            return NextResponse.json({
-              message: "Offline top-up request submitted and sent via email!",
-            });
+            return NextResponse.json(
+              {
+                message: "Offline top-up request submitted!",
+              },
+              { status: 201 }
+            );
           }
 
-          // If both Telegram and Email notifications fail, throw an error
           throw new Error(
             "Notification configuration is incomplete. Please set up Telegram or Gmail."
           );
