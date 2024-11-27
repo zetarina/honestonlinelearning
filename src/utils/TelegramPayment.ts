@@ -23,16 +23,20 @@ export async function TelegramPayment(
   // Constructing the Add Points link
   const addPointsLink = `${baseUrl}/dashboard/add-points?userId=${user._id}`;
 
+  // Escape any special characters in text to prevent parsing issues
+  const escapeHtml = (text: string) =>
+    text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
   // Telegram message with HTML format
   const telegramMessage = `
-    User requested a top-up:<br>
-    - <b>Name:</b> ${user.name}<br>
-    - <b>Username:</b> ${user.username}<br>
-    - <b>Email:</b> ${user.email}<br>
-    - <b>User ID:</b> ${user._id}<br>
-    - <b>Amount:</b> ${amount} ${currency}<br>
-    (Offline). Screenshot attached.<br><br>
-    <a href="${addPointsLink}">Add Points for this User</a>
+    User requested a top-up:
+    <b>Name:</b> ${escapeHtml(user.name)}\n
+    <b>Username:</b> ${escapeHtml(user.username)}\n
+    <b>Email:</b> ${escapeHtml(user.email)}\n
+    <b>User ID:</b> ${escapeHtml(user._id as string)}\n
+    <b>Amount:</b> ${amount} ${currency}\n
+    (Offline). Screenshot attached.\n
+    <a href="${escapeHtml(addPointsLink)}">Add Points for this User</a>
   `;
 
   try {
@@ -47,7 +51,7 @@ export async function TelegramPayment(
       `Telegram notification sent successfully for user ${user._id}.`
     );
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       `Failed to send Telegram message for user ${user._id}:`,
       error
