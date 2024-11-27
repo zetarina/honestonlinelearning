@@ -26,6 +26,7 @@ export async function TelegramPayment(
 
   const telegramService = new TelegramService(botToken, chatId);
 
+  // Plain text message with link
   const telegramMessage = `
 User requested a top-up:
 - Name: ${user.name}
@@ -34,8 +35,9 @@ User requested a top-up:
 - User ID: ${user._id}
 - Amount: ${amount} ${currency}
 (Offline). Screenshot attached.
-[Add Points for this User](${addPointsLink})
-`.replace(/[_*[\]()]/g, "\\$&");
+
+Add Points for this User: ${addPointsLink}
+  `;
 
   try {
     await telegramService.sendPhoto(screenshot, telegramMessage);
