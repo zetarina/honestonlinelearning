@@ -1,4 +1,10 @@
-import React, { createContext, ReactNode, useMemo, useState, useEffect } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
 import useSWR from "swr";
 import { User } from "@/models/UserModel";
 import { message } from "antd";
@@ -16,7 +22,9 @@ interface UserContextProps {
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -47,11 +55,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (!accessToken || !refreshToken) {
-        setUser(null);
-        mutate(null, false);
-        if (!hasShownLogoutMessage) {
-          message.info("Logged out due to session change.");
-          setHasShownLogoutMessage(true); // Set the flag
+        // If the user is already null, don't show the message
+        if (user !== null) {
+          setUser(null);
+          mutate(null, false);
+          if (!hasShownLogoutMessage) {
+            message.info("Logged out due to session change.");
+            setHasShownLogoutMessage(true); // Set the flag
+          }
         }
       } else {
         mutate();
@@ -61,7 +72,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     window.addEventListener("storage", handleStorageChange);
 
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [mutate, hasShownLogoutMessage]);
+  }, [user, mutate, hasShownLogoutMessage]);
 
   const refreshUser = () => {
     mutate();
