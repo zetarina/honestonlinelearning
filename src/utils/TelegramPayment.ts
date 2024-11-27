@@ -23,35 +23,31 @@ export async function TelegramPayment(
   // Constructing the Add Points link
   const addPointsLink = `${baseUrl}/dashboard/add-points?userId=${user._id}`;
 
-  // Escape any special characters in text to prevent parsing issues
-  const escapeHtml = (text: string) =>
-    text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-  // Telegram message with HTML format
+  // Telegram message using MarkdownV2 for formatting
   const telegramMessage = `
-    User requested a top-up:
-    <b>Name:</b> ${escapeHtml(user.name)}\n
-    <b>Username:</b> ${escapeHtml(user.username)}\n
-    <b>Email:</b> ${escapeHtml(user.email)}\n
-    <b>User ID:</b> ${escapeHtml(user._id as string)}\n
-    <b>Amount:</b> ${amount} ${currency}\n
-    (Offline). Screenshot attached.\n
-    <a href="${escapeHtml(addPointsLink)}">Add Points for this User</a>
-  `;
+User requested a top-up:
+*Name:* ${user.name}
+*Username:* ${user.username}
+*Email:* ${user.email}
+*User ID:* ${user._id}
+*Amount:* ${amount} ${currency}
+(Offline). Screenshot attached.
+
+[Add Points for this User](${addPointsLink})
+  `.replace(/[_*[\]()]/g, "\\$&"); // Escape special MarkdownV2 characters
 
   try {
-    // Sending the photo with HTML formatted message
+    // Sending the photo with MarkdownV2 formatted message
     await telegramService.sendPhoto(
       screenshot, // Photo
       telegramMessage, // Caption
-      undefined, // Use default chat ID
-      "HTML" // Parse mode
+      undefined // Use default chat ID
     );
     console.log(
       `Telegram notification sent successfully for user ${user._id}.`
     );
     return true;
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `Failed to send Telegram message for user ${user._id}:`,
       error
