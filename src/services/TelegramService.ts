@@ -39,7 +39,8 @@ export default class TelegramService {
   public async sendPhoto(
     photo: Buffer | string,
     caption?: string,
-    chatId?: string
+    chatId?: string,
+    parseMode: "MarkdownV2" | "HTML" | undefined = "HTML" // Default to HTML parse mode
   ) {
     const targetChatId = chatId || this.defaultChatId;
     console.log(targetChatId);
@@ -57,6 +58,7 @@ export default class TelegramService {
     try {
       const response = await this.bot.sendPhoto(targetChatId, photo, {
         caption,
+        parse_mode: parseMode, // Pass parse_mode to format the caption
       });
       console.log("Telegram photo response:", response);
       return response;

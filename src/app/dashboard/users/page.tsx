@@ -23,7 +23,6 @@ import { User, UserRole } from "@/models/UserModel"; // Adjust the path accordin
 import apiClient from "@/utils/api/apiClient";
 
 const UsersPage: React.FC = () => {
-  
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
@@ -127,6 +126,15 @@ const UsersPage: React.FC = () => {
             onClick={() => router.push(`/dashboard/users/${record._id}`)}
           >
             Edit
+          </Button>
+          <Button
+            type="default"
+            icon={<PlusOutlined />}
+            onClick={() =>
+              router.push(`/dashboard/add-points?userId=${record._id}`)
+            }
+          >
+            Add Points
           </Button>
           <Popconfirm
             title="Are you sure to delete this user?"

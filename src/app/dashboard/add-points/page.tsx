@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -12,7 +12,7 @@ import {
   Typography,
 } from "antd";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
 import UserSelector from "@/components/forms/inputs/UserSelector";
 
@@ -21,8 +21,24 @@ const { Text } = Typography;
 const AddPointsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [confirmationVisible, setConfirmationVisible] = useState(false);
+  const [form] = Form.useForm();
   const [formValues, setFormValues] = useState<any>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Prefill data from URL
+  useEffect(() => {
+    const userId = searchParams.get("userId");
+    const points = searchParams.get("points");
+    const reason = searchParams.get("reason");
+
+    const initialValues: any = {};
+    if (userId) initialValues.userId = userId;
+    if (points) initialValues.points = parseInt(points, 10);
+    if (reason) initialValues.reason = reason;
+
+    form.setFieldsValue(initialValues);
+  }, [searchParams, form]);
 
   const onFinish = (values: any) => {
     setFormValues(values);
@@ -65,7 +81,7 @@ const AddPointsPage: React.FC = () => {
         title="Add Points to User"
         style={{ maxWidth: "600px", width: "100%" }}
       >
-        <Form layout="vertical" onFinish={onFinish}>
+        <Form layout="vertical" form={form} onFinish={onFinish}>
           <Form.Item
             label="Select User"
             name="userId"
