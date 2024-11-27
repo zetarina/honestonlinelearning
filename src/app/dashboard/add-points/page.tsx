@@ -16,7 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
 import UserSelector from "@/components/forms/inputs/UserSelector";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 const AddPointsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -77,65 +77,46 @@ const AddPointsPage: React.FC = () => {
 
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: "24px" }}>
-      <div style={{ maxWidth: "600px", width: "100%" }}>
-        <Card title="Payment Information" style={{ marginBottom: "24px" }}>
-          <Title level={5}>Bank Accounts:</Title>
-          <Text>AYA - 200 080 853 91</Text>
-          <br />
-          <Text>KBZ - 2783 010 750 030 1501</Text>
-          <br />
-          <Text>CB - 0019 6001 0010 8626</Text>
-          <br />
-          <Text>YOMA - 0064 454 2400 2058</Text>
-          <br />
-          <Title level={5} style={{ marginTop: "16px" }}>
-            Mobile Payments:
-          </Title>
-          <Text>AYA / KPay / CBpay / UABpay / Wave</Text>
-          <br />
-          <Text>09 4500 222 66</Text>
-          <br />
-          <Text>Account Name - Khine Pwint Khattar</Text>
-        </Card>
+      <Card
+        title="Add Points to User"
+        style={{ maxWidth: "600px", width: "100%" }}
+      >
+        <Form layout="vertical" form={form} onFinish={onFinish}>
+          <Form.Item
+            label="Select User"
+            name="userId"
+            rules={[{ required: true, message: "Please select a user!" }]}
+          >
+            <UserSelector />
+          </Form.Item>
 
-        <Card title="Add Points to User">
-          <Form layout="vertical" form={form} onFinish={onFinish}>
-            <Form.Item
-              label="Select User"
-              name="userId"
-              rules={[{ required: true, message: "Please select a user!" }]}
-            >
-              <UserSelector />
-            </Form.Item>
+          <Form.Item
+            label="Points"
+            name="points"
+            rules={[{ required: true, message: "Please input the points!" }]}
+          >
+            <InputNumber
+              min={1}
+              style={{ width: "100%" }}
+              placeholder="Enter points to add"
+            />
+          </Form.Item>
 
-            <Form.Item
-              label="Points"
-              name="points"
-              rules={[{ required: true, message: "Please input the points!" }]}
-            >
-              <InputNumber
-                min={1}
-                style={{ width: "100%" }}
-                placeholder="Enter points to add"
-              />
-            </Form.Item>
+          <Form.Item
+            label="Reason"
+            name="reason"
+            rules={[{ required: true, message: "Please provide a reason!" }]}
+          >
+            <Input.TextArea placeholder="Enter the reason for adding points" />
+          </Form.Item>
 
-            <Form.Item
-              label="Reason"
-              name="reason"
-              rules={[{ required: true, message: "Please provide a reason!" }]}
-            >
-              <Input.TextArea placeholder="Enter the reason for adding points" />
-            </Form.Item>
-
-            <Form.Item>
-              <Button type="primary" htmlType="submit" loading={loading} block>
-                Add Points
-              </Button>
-            </Form.Item>
-          </Form>
-        </Card>
-      </div>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading} block>
+              Add Points
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
 
       <Modal
         title="Confirm Add Points"

@@ -12,6 +12,8 @@ import {
   Spin,
   Alert,
   Radio,
+  Row,
+  Col,
 } from "antd";
 import { InboxOutlined, DeleteOutlined } from "@ant-design/icons";
 
@@ -23,7 +25,7 @@ import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 
 const { Dragger } = Upload;
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const TopUpPage: React.FC = () => {
   const { user, refreshUser } = useContext(UserContext);
@@ -107,7 +109,6 @@ const TopUpPage: React.FC = () => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("amount", values.amount);
-        // Removed appending userId as it's retrieved from the backend session
         formData.append("paymentMethod", paymentMethod);
 
         const response = await apiClient.post("/top-up", formData, {
@@ -115,7 +116,6 @@ const TopUpPage: React.FC = () => {
             "Content-Type": "multipart/form-data",
           },
         });
-        console.log(response);
         if (response.status === 201) {
           message.success("Top-up request submitted successfully!");
           resetFileState();
@@ -125,7 +125,6 @@ const TopUpPage: React.FC = () => {
       } else if (paymentMethod === "stripe") {
         const response = await apiClient.post("/top-up", {
           amount: values.amount,
-          // Removed userId as it's retrieved from the backend session
           paymentMethod: paymentMethod,
         });
 
@@ -169,7 +168,56 @@ const TopUpPage: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: "auto", padding: "40px 20px" }}>
+    <div style={{ maxWidth: 800, margin: "auto", padding: "40px 20px" }}>
+      <Title level={2} style={{ textAlign: "center", marginBottom: "20px" }}>
+        Top-Up Your Account
+      </Title>
+
+      <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
+        <Card
+          title="Bank Accounts"
+          bordered={false}
+          style={{
+            flex: 1,
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <Text>AYA - 200 080 853 91</Text>
+          <br />
+          <Text>KBZ - 2783 010 750 030 1501</Text>
+          <br />
+          <Text>CB - 0019 6001 0010 8626</Text>
+          <br />
+          <Text>YOMA - 0064 454 2400 2058</Text>
+        </Card>
+        <Card
+          title="Mobile Payments"
+          bordered={false}
+          style={{
+            flex: 1,
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <Text style={{ fontWeight: "600" }}>
+            AYA / KPay / CBpay / UABpay / Wave
+          </Text>
+          <br />
+          <Text>09 4500 222 66</Text>
+          <br />
+          <Text>Account Name - Khine Pwint Khattar</Text>
+        </Card>
+      </div>
+
+      {error && (
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
+          style={{ marginBottom: "20px" }}
+        />
+      )}
+
       <Card
         style={{
           padding: "30px",
@@ -177,23 +225,6 @@ const TopUpPage: React.FC = () => {
           boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Title level={2} style={{ textAlign: "center", marginBottom: "20px" }}>
-          Top-Up Your Account
-        </Title>
-        <Paragraph style={{ textAlign: "center", marginBottom: "40px" }}>
-          Select your preferred payment method to top up your account balance.
-        </Paragraph>
-
-        {error && (
-          <Alert
-            message="Error"
-            description={error}
-            type="error"
-            showIcon
-            style={{ marginBottom: "20px" }}
-          />
-        )}
-
         <Form layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             label="Amount"
