@@ -57,7 +57,6 @@ export default class TelegramService {
     try {
       const response = await this.bot.sendPhoto(targetChatId, photo, {
         caption,
-        parse_mode: "MarkdownV2", // Enable MarkdownV2 for proper formatting
       });
       console.log("Telegram photo response:", response);
       return response;
