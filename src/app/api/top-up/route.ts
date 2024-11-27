@@ -6,8 +6,8 @@ import { PaymentMethod, PaymentStatus } from "@/models/PaymentModel";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import { StripePayment } from "@/utils/StripePayment";
-import notifyViaTelegram, { TelegramPayment } from "@/utils/TelegramPayment";
-import notifyViaEmail, { EmailPayment } from "@/utils/EmailPayment";
+import notifyViaTelegram from "@/utils/TelegramPayment";
+import notifyViaEmail from "@/utils/EmailPayment";
 
 const settingService = new SettingService();
 const paymentService = new PaymentService();
