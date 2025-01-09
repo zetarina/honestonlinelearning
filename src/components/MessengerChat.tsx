@@ -1,31 +1,45 @@
-import React, { useEffect, useContext } from "react";
+import React, { useEffect } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const MessengerChat: React.FC = () => {
   const { settings } = useSettings();
-  const pageId = settings[SETTINGS_KEYS.FACEBOOK_PAGE_ID];
+  const pageId = settings[SETTINGS_KEYS.FACEBOOK]?.pageId;
 
   useEffect(() => {
     if (!pageId) return;
 
-    // Load the Facebook SDK script
-    const script = document.createElement("script");
-    script.src = "https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+    // Function to load the Facebook SDK script
+    const loadFacebookSDK = () => {
+      const script = document.createElement("script");
+      script.src = "https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
+      script.async = true;
+      script.defer = true;
+      script.id = "facebook-sdk-script";
+      document.body.appendChild(script);
 
-    // Initialize the Facebook SDK for customer chat
-    (window as any).fbAsyncInit = () => {
-      (window as any).FB.init({
-        xfbml: true,
-        version: "v13.0",
-      });
+      (window as any).fbAsyncInit = () => {
+        (window as any).FB.init({
+          xfbml: true,
+          version: "v13.0",
+        });
+      };
     };
 
+    // Check if script already exists to prevent duplicates
+    if (!document.getElementById("facebook-sdk-script")) {
+      loadFacebookSDK();
+    } else {
+      // Reinitialize if script already exists
+      (window as any).FB?.XFBML.parse();
+    }
+
+    // Cleanup function
     return () => {
-      document.body.removeChild(script);
+      const script = document.getElementById("facebook-sdk-script");
+      if (script) {
+        document.body.removeChild(script);
+      }
     };
   }, [pageId]);
 
@@ -45,3 +59,4 @@ const MessengerChat: React.FC = () => {
 };
 
 export default MessengerChat;
+s
