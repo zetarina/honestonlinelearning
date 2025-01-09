@@ -1,4 +1,4 @@
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import { User } from "@/models/UserModel";
 import TelegramService from "@/services/TelegramService";
 
@@ -8,14 +8,24 @@ export async function TelegramPayment(
   amount: number,
   currency: string,
   screenshot: Buffer,
-  settingsMap: Record<string, string | undefined>
+  settings: SettingsInterface // Use strongly-typed settings
 ): Promise<boolean> {
-  const botToken = settingsMap[SETTINGS_KEYS.TELEGRAM_BOT_TOKEN];
-  const chatId = settingsMap[SETTINGS_KEYS.TELEGRAM_CHAT_ID];
-  const baseUrl = settingsMap[SETTINGS_KEYS.SITE_URL]; // Base URL of your app
+  const telegramSettings = settings[SETTINGS_KEYS.TELEGRAM];
+  if (
+    !telegramSettings ||
+    !telegramSettings.botToken ||
+    !telegramSettings.chatId
+  ) {
+    console.error("Telegram configuration is incomplete.");
+    return false;
+  }
+
+  const botToken = telegramSettings.botToken;
+  const chatId = telegramSettings.chatId;
+  const baseUrl = settings.siteUrl; // Directly use `siteUrl` from settings
 
   if (!botToken || !chatId || !baseUrl) {
-    console.error("Telegram configuration is incomplete.");
+    console.error("Telegram configuration or base URL is incomplete.");
     return false;
   }
 
@@ -59,7 +69,7 @@ export default async function notifyViaTelegram(
   amount: number,
   currency: string,
   screenshotBuffer: Buffer,
-  settingsMap: Record<string, string | undefined>
+  settings: SettingsInterface // Use strongly-typed settings
 ): Promise<boolean> {
   try {
     const telegramResponse = await TelegramPayment(
@@ -67,7 +77,7 @@ export default async function notifyViaTelegram(
       amount,
       currency,
       screenshotBuffer,
-      settingsMap
+      settings
     );
 
     if (telegramResponse) {

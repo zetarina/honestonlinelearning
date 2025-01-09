@@ -48,7 +48,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       >
         <Link href="/" style={{ display: "flex", alignItems: "center" }}>
           <Image
-            src="/images/logo.png"
+            src={
+              settings[SETTINGS_KEYS.SITE_LOGO]
+                ? encodeURI(settings[SETTINGS_KEYS.SITE_LOGO].trim())
+                : "/images/logo.png"
+            }
             alt={settings[SETTINGS_KEYS.SITE_NAME]?.trim() || "Site Logo"}
             width={120}
             height={120}

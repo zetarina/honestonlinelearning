@@ -12,13 +12,6 @@ import notifyViaEmail from "@/utils/EmailPayment";
 const settingService = new SettingService();
 const paymentService = new PaymentService();
 const userService = new UserService();
-async function getSettingsMap(): Promise<Record<string, string | undefined>> {
-  const settings = await settingService.getAllSettings("production");
-  return settings.reduce((acc, setting) => {
-    acc[setting.key] = setting.value;
-    return acc;
-  }, {} as Record<string, string | undefined>);
-}
 
 async function handleTopUpRequest(
   req: Request,
@@ -37,16 +30,15 @@ async function handleTopUpRequest(
       );
     }
 
-    const settingsMap = await getSettingsMap();
-    const currency = (
-      settingsMap[SETTINGS_KEYS.CURRENCY] || "USD"
-    ).toUpperCase();
+    const settings = await settingService.getAllSettings();
+
+    const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
     if (paymentMethod === "stripe") {
       const session = await StripePayment(
         parseInt(amount, 10),
         currency,
-        settingsMap
+        settings
       );
 
       await paymentService.createPayment({
@@ -69,6 +61,7 @@ async function handleTopUpRequest(
       const arrayBuffer = await file.arrayBuffer();
       const screenshotBuffer = Buffer.from(arrayBuffer);
       const user = await userService.getUserById(userId);
+
       if (user != null) {
         try {
           const telegramSuccess = await notifyViaTelegram(
@@ -76,7 +69,7 @@ async function handleTopUpRequest(
             parseFloat(amount),
             currency,
             screenshotBuffer,
-            settingsMap
+            settings
           );
 
           if (telegramSuccess) {

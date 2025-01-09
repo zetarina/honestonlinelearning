@@ -18,8 +18,8 @@ const ContactUsSection = () => {
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
-          display: "flex", // Enable Flexbox
-          flexWrap: "wrap", // Ensure responsiveness
+          display: "flex",
+          flexWrap: "wrap", 
         }}
       >
                 <Col
@@ -29,7 +29,7 @@ const ContactUsSection = () => {
             display: "flex", 
             flexDirection: "column", 
             justifyContent: "center" 
-          }} // Flex properties to match height
+          }} 
         >
           <Form
             layout="vertical"
@@ -98,15 +98,15 @@ const ContactUsSection = () => {
             <Title level={4} style={{ color: "rgb(0, 21, 41)" }}>
               Our Location
             </Title>
-            <Text>123 Main Street, City, Country</Text>
+            <Text>19/B (First Floor), Min Ye Kyaw Swar Rd, Kyauk Kone Rd, Yangon</Text>
             <br />
-            <Text>Phone: +123-456-7890</Text>
+            <Text>Phone: +959792824522</Text>
             <br />
-            <Text>Email: info@example.com</Text>
+            <Text>Email: honestonlinelearninghh@gmail.com</Text>
 
             <div style={{ marginTop: "20px" }}>
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434508541!2d144.95373531531698!3d-37.816279279751576!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf577b29911779c72!2sVictoria%20St%2C%20Melbourne%20VIC%203000%2C%20Australia!5e0!3m2!1sen!2sus!4v1602158588182!5m2!1sen!2sus"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4692.57839143553!2d96.1655511727486!3d16.831122473419477!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30c1edef226c8615%3A0x84274ec55cef47e0!2sHonest%20Hour!5e0!3m2!1sen!2smm!4v1735809818245!5m2!1sen!2smm"
                 width="100%"
                 height="300"
                 style={{
@@ -124,5 +124,4 @@ const ContactUsSection = () => {
     </div>
   );
 };
-
 export default ContactUsSection;

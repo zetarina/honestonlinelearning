@@ -1,7 +1,10 @@
-// services/MailService.ts
 import nodemailer from "nodemailer";
 import SettingService from "@/services/SettingService";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import {
+  Mail_SETTINGS_TYPES,
+  MAIL_SERVICE_KEYS,
+} from "@/config/settings/MAIL_SERVICE_KEYS";
+import { SettingsInterface } from "@/config/settingKeys";
 
 const settingService = new SettingService();
 
@@ -13,43 +16,57 @@ export default class MailService {
     this.init();
   }
 
-  // Initialize email transporter with settings from the database
   private async init() {
-    const gmailUserSetting = await settingService.getSettingByKey(
-      SETTINGS_KEYS.GMAIL_USER
-    );
-    const gmailPasswordSetting = await settingService.getSettingByKey(
-      SETTINGS_KEYS.GMAIL_PASSWORD
-    );
-    const adminEmailSetting = await settingService.getSettingByKey(
-      SETTINGS_KEYS.ADMIN_EMAIL
-    );
+    try {
+      const settings = (await settingService.getAllSettings(
+        "production"
+      )) as SettingsInterface;
 
-    const gmailUser = gmailUserSetting?.value;
-    const gmailPassword = gmailPasswordSetting?.value;
-    this.adminEmail = adminEmailSetting?.value;
+      this.adminEmail = settings[MAIL_SERVICE_KEYS.ADMIN_EMAIL];
 
-    if (gmailUser && gmailPassword && this.adminEmail) {
-      this.transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: gmailUser,
-          pass: gmailPassword,
-        },
-      });
-    } else {
-      console.error("Email configuration is incomplete.");
+      if (
+        settings[MAIL_SERVICE_KEYS.GMAIL]?.user &&
+        settings[MAIL_SERVICE_KEYS.GMAIL]?.password
+      ) {
+        this.transporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: settings[MAIL_SERVICE_KEYS.GMAIL].user,
+            pass: settings[MAIL_SERVICE_KEYS.GMAIL].password,
+          },
+        });
+      } else if (
+        settings[MAIL_SERVICE_KEYS.OUTLOOK]?.user &&
+        settings[MAIL_SERVICE_KEYS.OUTLOOK]?.password
+      ) {
+        this.transporter = nodemailer.createTransport({
+          service: "outlook",
+          auth: {
+            user: settings[MAIL_SERVICE_KEYS.OUTLOOK].user,
+            pass: settings[MAIL_SERVICE_KEYS.OUTLOOK].password,
+          },
+        });
+      } else if (settings[MAIL_SERVICE_KEYS.SENDGRID]?.apiKey) {
+        this.transporter = nodemailer.createTransport({
+          service: "SendGrid",
+          auth: {
+            api_key: settings[MAIL_SERVICE_KEYS.SENDGRID].apiKey,
+          },
+        });
+      } else {
+        console.error("Email configuration is incomplete.");
+      }
+    } catch (error) {
+      console.error("Error initializing mail service:", error);
     }
   }
 
-  // Send email
   public async sendMail(
     subject: string,
     text: string,
     attachments?: nodemailer.Attachment[]
   ) {
     if (!this.transporter || !this.adminEmail) {
-      console.error("Email configuration is incomplete.");
       throw new Error("Email configuration is incomplete.");
     }
 

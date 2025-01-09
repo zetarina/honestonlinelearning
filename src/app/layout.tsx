@@ -34,10 +34,16 @@ export default async function AppLayout({
     );
   }
 
+  // Coerce `siteName` to a string
+  const siteName =
+    typeof settings.siteName === "string"
+      ? settings.siteName
+      : "Online Learning App";
+
   return (
     <html lang="en">
       <head>
-        <title>{settings.siteName || "Online Learning App"}</title>
+        <title>{siteName}</title>
         <link rel="icon" href="/images/favicon.ico" />
       </head>
       <body

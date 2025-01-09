@@ -1,18 +1,22 @@
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import { initializeStripe } from "@/utils/stripe";
 
 export async function StripePayment(
   amount: number,
   currency: string,
-  settingsMap: Record<string, string | undefined>
+  settings: SettingsInterface // Use SettingsInterface for strong typing
 ) {
-  const STRIPE_SECRET_KEY = settingsMap[SETTINGS_KEYS.STRIPE_SECRET_KEY];
-
-  if (!STRIPE_SECRET_KEY) {
+  const stripeSettings = settings[SETTINGS_KEYS.STRIPE];
+  if (!stripeSettings || !stripeSettings.secretKey) {
     throw new Error("Stripe is not configured. Please contact the admin.");
   }
 
-  const stripe = initializeStripe(STRIPE_SECRET_KEY);
+  const stripe = initializeStripe(stripeSettings.secretKey);
+
+  const siteUrl = settings.siteUrl || process.env.SITE_URL;
+  if (!siteUrl) {
+    throw new Error("Site URL is not configured. Please contact the admin.");
+  }
 
   return stripe.checkout.sessions.create({
     payment_method_types: ["card"],
@@ -27,7 +31,7 @@ export async function StripePayment(
       },
     ],
     mode: "payment",
-    success_url: `${process.env.SITE_URL}/success`,
-    cancel_url: `${process.env.SITE_URL}/cancel`,
+    success_url: `${siteUrl}/success`,
+    cancel_url: `${siteUrl}/cancel`,
   });
 }

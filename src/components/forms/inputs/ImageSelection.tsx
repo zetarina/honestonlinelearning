@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Modal, Button, List, Card, message, Spin, Input, Tooltip } from "antd";
+import React, { useState, useRef, useEffect } from "react";
+import { Modal, Button, List, Card, Spin, Input, Tooltip } from "antd";
 import { PictureOutlined, EyeOutlined, SyncOutlined } from "@ant-design/icons";
-
-import { ImageObj } from "@/models/ImageModel";
-import apiClient from "@/utils/api/apiClient";
+import { useImagePicker } from "@/contexts/ImagePickerContext";
 
 interface ImageSelectionProps {
   value?: string;
@@ -14,52 +12,13 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
   value = "",
   onChange,
 }) => {
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [images, setImages] = useState<ImageObj[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [url, setUrl] = useState<string>(value);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = useState<boolean>(true);
 
+  const { images, loading, fetchImages, syncImages } = useImagePicker();
   const scrollableContainerRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<HTMLDivElement>(null);
-  const batchSize = 12;
-
-  useEffect(() => {
-    setUrl(value);
-  }, [value]);
-
-  const fetchImages = async (search: string, page: number) => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get(
-        `/images?search=${search}&page=${page}&limit=${batchSize}`
-      );
-      const newImages = response.data.images;
-      setImages((prev) => (page === 1 ? newImages : [...prev, ...newImages]));
-      setHasMore(response.data.hasMore);
-    } catch (error) {
-      message.error("Failed to fetch images.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const syncImages = async () => {
-    setSyncing(true);
-    try {
-      await apiClient.post("/images/sync");
-      message.success("Images synced successfully!");
-      fetchImages(searchTerm, 1);
-    } catch (error) {
-      message.error("Failed to sync images.");
-    } finally {
-      setSyncing(false);
-    }
-  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -70,7 +29,8 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
+        if (entries[0].isIntersecting) {
+          fetchImages(searchTerm, page + 1);
           setPage((prev) => prev + 1);
         }
       },
@@ -83,39 +43,94 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
 
     if (observerRef.current) observer.observe(observerRef.current);
     return () => observer.disconnect();
-  }, [hasMore, loading]);
+  }, [searchTerm, page]);
 
   useEffect(() => {
-    if (page > 1) fetchImages(searchTerm, page);
-  }, [page]);
-
-  useEffect(() => {
-    if (isModalOpen) fetchImages(searchTerm, 1);
+    if (isModalOpen) {
+      fetchImages(searchTerm, 1);
+    }
   }, [isModalOpen]);
+
+  const handleImageSelect = (imageUrl: string) => {
+    onChange?.(imageUrl);
+    setIsModalOpen(false);
+  };
 
   return (
     <>
-      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          padding: "8px 16px",
+          borderRadius: "8px",
+          border: "1px solid #d9d9d9",
+        }}
+      >
         <Input
-          value={url}
-          placeholder="Image URL or path"
-          onChange={(e) => setUrl(e.target.value)}
+          value={value}
+          placeholder="Image URL"
+          onChange={(e) => onChange?.(e.target.value)}
           size="large"
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            border: "none",
+            backgroundColor: "transparent",
+            boxShadow: "none",
+          }}
         />
         <Tooltip title="Sync Images">
           <Button
-            icon={<SyncOutlined spin={syncing} />}
+            icon={<SyncOutlined />}
             onClick={syncImages}
             size="large"
-            disabled={syncing}
+            style={{
+              backgroundColor: "#1890ff",
+              color: "#fff",
+              border: "none",
+            }}
           />
         </Tooltip>
         <Button
           icon={<PictureOutlined />}
           onClick={() => setIsModalOpen(true)}
           size="large"
+          style={{
+            backgroundColor: "#52c41a",
+            color: "#fff",
+            border: "none",
+          }}
         />
+        {value && (
+          <div
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: "8px",
+              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "1px solid #d9d9d9",
+              backgroundColor: "#f0f0f0",
+              marginLeft: "12px",
+            }}
+          >
+            <img
+              src={value}
+              alt="Selected"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = ""; // Fallback for invalid URLs
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <Modal
@@ -125,54 +140,57 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
         footer={null}
         width="80%"
         styles={{
-          body: { height: "75vh", padding: 16, overflow: "hidden" },
-        }}
+          body: {
+            height: "75vh",
+            overflow: "hidden",
+            padding: "16px",
+          },
+        }} // Updated to use styles.body
       >
         <Input
           placeholder="Search images..."
           value={searchTerm}
           onChange={handleSearch}
           size="large"
-          style={{ marginBottom: 16 }}
+          style={{
+            marginBottom: "16px",
+            borderRadius: "8px",
+            border: "1px solid #d9d9d9",
+          }}
         />
 
         <div
           ref={scrollableContainerRef}
           style={{
-            height: "calc(75vh - 120px)",
+            height: "calc(75vh - 100px)",
             overflowY: "scroll",
             position: "relative",
+            padding: "8px",
+            backgroundColor: "#fafafa",
+            borderRadius: "8px",
+            border: "1px solid #d9d9d9",
           }}
         >
           <List
-            grid={{
-              gutter: 16,
-              xs: 1,
-              sm: 2,
-              md: 3,
-              lg: 4,
-              xl: 5,
-            }}
+            grid={{ gutter: 16, column: 4 }}
             dataSource={images}
             renderItem={(image) => (
-              <List.Item key={image._id.toString()}>
+              <List.Item key={image._id as string}>
                 <Card
                   hoverable
                   cover={
                     <img
                       alt={image.name}
                       src={image.url}
-                      style={{ height: 180, objectFit: "contain" }}
+                      style={{
+                        height: 180,
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
                     />
                   }
-                  onClick={() => {
-                    setUrl(image.url);
-                    onChange?.(image.url);
-                    setIsModalOpen(false);
-                  }}
-                >
-                  <Card.Meta title={image.name} description={image.service} />
-                </Card>
+                  onClick={() => handleImageSelect(image.url)}
+                />
                 <Button
                   icon={<EyeOutlined />}
                   shape="circle"
@@ -193,7 +211,6 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
           {loading && (
             <Spin size="large" style={{ display: "block", margin: "auto" }} />
           )}
-          {!hasMore && <p style={{ textAlign: "center" }}>No more images</p>}
         </div>
       </Modal>
     </>

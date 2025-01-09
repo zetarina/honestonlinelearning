@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useContext } from "react";
 import {
   Form,
@@ -12,37 +13,36 @@ import {
   Spin,
   Alert,
   Radio,
-  Row,
-  Col,
 } from "antd";
 import { InboxOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import UserContext from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/contexts/SettingsContext";
-import { loadStripe } from "@stripe/stripe-js";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
+import { loadStripe } from "@stripe/stripe-js";
 
 const { Dragger } = Upload;
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 
 const TopUpPage: React.FC = () => {
   const { user, refreshUser } = useContext(UserContext);
   const { settings } = useSettings();
   const router = useRouter();
+
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fileList, setFileList] = useState<any[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState(
-    settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY] ? "stripe" : "offline"
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "offline">(
+    settings[SETTINGS_KEYS.STRIPE]?.publicKey ? "stripe" : "offline"
   );
   const [fetchingUserData, setFetchingUserData] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const stripePromise = settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY]
-    ? loadStripe(settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY])
+  const stripePromise = settings[SETTINGS_KEYS.STRIPE]?.publicKey
+    ? loadStripe(settings[SETTINGS_KEYS.STRIPE].publicKey)
     : null;
 
   useEffect(() => {
@@ -116,6 +116,7 @@ const TopUpPage: React.FC = () => {
             "Content-Type": "multipart/form-data",
           },
         });
+
         if (response.status === 201) {
           message.success("Top-up request submitted successfully!");
           resetFileState();
@@ -125,7 +126,7 @@ const TopUpPage: React.FC = () => {
       } else if (paymentMethod === "stripe") {
         const response = await apiClient.post("/top-up", {
           amount: values.amount,
-          paymentMethod: paymentMethod,
+          paymentMethod,
         });
 
         const { client_secret } = response.data;
@@ -173,41 +174,6 @@ const TopUpPage: React.FC = () => {
         Top-Up Your Account
       </Title>
 
-      <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
-        <Card
-          title="Bank Accounts"
-          bordered={false}
-          style={{
-            flex: 1,
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <Text>AYA - 200 080 853 91</Text>
-          <br />
-          <Text>KBZ - 2783 010 750 030 1501</Text>
-          <br />
-          <Text>CB - 0019 6001 0010 8626</Text>
-          <br />
-          <Text>YOMA - 0064 454 2400 2058</Text>
-        </Card>
-        <Card
-          title="Mobile Payments"
-          bordered={false}
-          style={{
-            flex: 1,
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          }}
-        >
-          <Text style={{ fontWeight: "600" }}>
-            AYA / KPay / CBpay / UABpay / Wave
-          </Text>
-          <br />
-          <Text>09 4500 222 66</Text>
-          <br />
-          <Text>Account Name - Khine Pwint Khattar</Text>
-        </Card>
-      </div>
-
       {error && (
         <Alert
           message="Error"
@@ -239,7 +205,7 @@ const TopUpPage: React.FC = () => {
               onChange={handlePaymentMethodChange}
               value={paymentMethod}
             >
-              {settings[SETTINGS_KEYS.STRIPE_PUBLIC_KEY] && (
+              {settings[SETTINGS_KEYS.STRIPE]?.publicKey && (
                 <Radio value="stripe">Stripe (Visa/PayPal)</Radio>
               )}
               <Radio value="offline">Offline (Upload Screenshot)</Radio>
@@ -263,7 +229,7 @@ const TopUpPage: React.FC = () => {
                 beforeUpload={(file) => {
                   handleFileChange(file);
                   setFileList([file]);
-                  return false; // Prevent automatic upload
+                  return false;
                 }}
               >
                 <p className="ant-upload-drag-icon">
@@ -278,38 +244,6 @@ const TopUpPage: React.FC = () => {
                 </p>
               </Dragger>
             </Form.Item>
-          )}
-
-          {file && paymentMethod === "offline" && (
-            <div
-              style={{
-                marginTop: "20px",
-                textAlign: "center",
-                position: "relative",
-              }}
-            >
-              <Image
-                src={preview}
-                alt="Payment Screenshot Preview"
-                width={200}
-                height={200}
-                style={{ objectFit: "cover", borderRadius: "8px" }}
-              />
-              <Button
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={handleRemoveFile}
-                style={{
-                  position: "absolute",
-                  top: 10,
-                  right: "50%",
-                  transform: "translateX(50%)",
-                }}
-              >
-                Remove
-              </Button>
-            </div>
           )}
 
           <Form.Item style={{ marginTop: "40px" }}>

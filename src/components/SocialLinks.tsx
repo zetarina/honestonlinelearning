@@ -8,49 +8,48 @@ import {
   LinkedinOutlined,
   GithubOutlined,
 } from "@ant-design/icons";
+import { SettingsInterface } from "@/config/settingKeys";
 
 interface SocialLinksProps {
-  settings: {
-    [SETTINGS_KEYS.FACEBOOK_URL]?: string;
-    [SETTINGS_KEYS.TWITTER_URL]?: string;
-    [SETTINGS_KEYS.INSTAGRAM_URL]?: string;
-    [SETTINGS_KEYS.LINKEDIN_URL]?: string;
-    [SETTINGS_KEYS.GITHUB_URL]?: string;
-  };
+  settings: SettingsInterface;
 }
 
 const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {
+  const socialLinks = [
+    {
+      key: SETTINGS_KEYS.FACEBOOK,
+      url: settings[SETTINGS_KEYS.FACEBOOK]?.url,
+      icon: <FacebookOutlined />,
+    },
+    {
+      key: SETTINGS_KEYS.TWITTER,
+      url: settings[SETTINGS_KEYS.TWITTER]?.url,
+      icon: <TwitterOutlined />,
+    },
+    {
+      key: SETTINGS_KEYS.INSTAGRAM,
+      url: settings[SETTINGS_KEYS.INSTAGRAM]?.url,
+      icon: <InstagramOutlined />,
+    },
+    {
+      key: SETTINGS_KEYS.LINKEDIN,
+      url: settings[SETTINGS_KEYS.LINKEDIN]?.url,
+      icon: <LinkedinOutlined />,
+    },
+    {
+      key: SETTINGS_KEYS.GITHUB,
+      url: settings[SETTINGS_KEYS.GITHUB]?.url,
+      icon: <GithubOutlined />,
+    },
+  ];
+
   return (
     <>
-      {settings[SETTINGS_KEYS.FACEBOOK_URL] && (
-        <SocialLink
-          url={settings[SETTINGS_KEYS.FACEBOOK_URL]}
-          icon={<FacebookOutlined />}
-        />
-      )}
-      {settings[SETTINGS_KEYS.TWITTER_URL] && (
-        <SocialLink
-          url={settings[SETTINGS_KEYS.TWITTER_URL]}
-          icon={<TwitterOutlined />}
-        />
-      )}
-      {settings[SETTINGS_KEYS.INSTAGRAM_URL] && (
-        <SocialLink
-          url={settings[SETTINGS_KEYS.INSTAGRAM_URL]}
-          icon={<InstagramOutlined />}
-        />
-      )}
-      {settings[SETTINGS_KEYS.LINKEDIN_URL] && (
-        <SocialLink
-          url={settings[SETTINGS_KEYS.LINKEDIN_URL]}
-          icon={<LinkedinOutlined />}
-        />
-      )}
-      {settings[SETTINGS_KEYS.GITHUB_URL] && (
-        <SocialLink
-          url={settings[SETTINGS_KEYS.GITHUB_URL]}
-          icon={<GithubOutlined />}
-        />
+      {socialLinks.map(
+        (link) =>
+          link.url && (
+            <SocialLink key={link.key} url={link.url} icon={link.icon} />
+          )
       )}
     </>
   );

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/db";
 import SettingService from "@/services/SettingService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { UserRole } from "@/models/UserModel";
+import { SettingsInterface } from "@/config/settingKeys";
 
 const settingService = new SettingService();
 
@@ -20,21 +20,34 @@ async function handleGetAllSettingsRequest(request: Request) {
   }
 }
 
-async function handleCreateOrUpdateSettingRequest(request: Request) {
+// Handle PUT: Bulk update settings
+async function handleUpsertSettingsRequest(request: Request) {
   try {
-    const body = await request.json();
-    const { key, value, environment = "production", isPublic } = body;
+    const { settings } = await request.json();
 
-    const updatedSetting = await settingService.setSettingByKey(
-      key,
-      value,
-      environment,
-      isPublic
+    // Check if settings is an object and not null or an array
+    if (
+      typeof settings !== "object" ||
+      Array.isArray(settings) ||
+      settings === null
+    ) {
+      return NextResponse.json(
+        { error: "Invalid request payload" },
+        { status: 400 }
+      );
+    }
+
+    // Call the service to handle bulk updates
+    const updatedSettings = await settingService.upsertSettings(
+      settings as Partial<SettingsInterface>
     );
 
-    return NextResponse.json(updatedSetting, { status: 201 });
+    return NextResponse.json({
+      message: "Settings updated successfully",
+      updatedSettings,
+    });
   } catch (error) {
-    console.error("Error creating or updating setting:", error);
+    console.error("Error updating settings in bulk:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
@@ -47,9 +60,8 @@ export const GET = async (request: Request) =>
     UserRole.ADMIN,
   ])(request);
 
-export const POST = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleCreateOrUpdateSettingRequest(req),
-    true,
-    [UserRole.ADMIN]
-  )(request);
+// PUT: Bulk update settings (admin only)
+export const PUT = async (request: Request) =>
+  withAuthMiddleware((req) => handleUpsertSettingsRequest(req), true, [
+    UserRole.ADMIN,
+  ])(request);

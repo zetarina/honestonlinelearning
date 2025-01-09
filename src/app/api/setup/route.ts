@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       !data.settings[SETTINGS_KEYS.CURRENCY]
     ) {
       return NextResponse.json(
-        { error: "Site name, URL and CURRENCY are required" },
+        { error: "Site name, URL, and currency are required" },
         { status: 400 }
       );
     }
@@ -45,24 +45,14 @@ export async function POST(request: Request) {
 
     const newUser = await userService.createUser(data.user, UserRole.ADMIN);
 
-    await settingService.setSettingByKey(
-      SETTINGS_KEYS.SITE_NAME,
-      data.settings[SETTINGS_KEYS.SITE_NAME],
-      "production",
-      true
-    );
-    await settingService.setSettingByKey(
-      SETTINGS_KEYS.SITE_URL,
-      data.settings[SETTINGS_KEYS.SITE_URL],
-      "production",
-      true
-    );
-    await settingService.setSettingByKey(
-      SETTINGS_KEYS.CURRENCY,
-      data.settings[SETTINGS_KEYS.CURRENCY],
-      "production",
-      true
-    );
+    // Use upsertSettings to handle settings update in one call
+    const settingsUpdates = {
+      [SETTINGS_KEYS.SITE_NAME]: data.settings[SETTINGS_KEYS.SITE_NAME],
+      [SETTINGS_KEYS.SITE_URL]: data.settings[SETTINGS_KEYS.SITE_URL],
+      [SETTINGS_KEYS.CURRENCY]: data.settings[SETTINGS_KEYS.CURRENCY],
+    };
+
+    await settingService.upsertSettings(settingsUpdates, "production");
 
     return NextResponse.json(
       {
@@ -72,7 +62,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error(error);
+    console.error("Error creating user and saving settings:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

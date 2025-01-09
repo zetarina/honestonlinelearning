@@ -1,9 +1,10 @@
+import { SettingsInterface } from "@/config/settingKeys";
 import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface Setting extends Document {
   _id: Types.ObjectId | string;
-  key: string;
-  value: string;
+  key: keyof SettingsInterface;
+  value: SettingsInterface[keyof SettingsInterface];
   environment?: string;
   isPublic: boolean;
 }

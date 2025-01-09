@@ -2,10 +2,13 @@
 "use client";
 import React from "react";
 import { Typography, Button } from "antd";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const { Title, Text } = Typography;
 
 const HeroSection = () => {
+  const { settings } = useSettings();
   return (
     <div
       style={{
@@ -31,11 +34,12 @@ const HeroSection = () => {
       />
       <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
         <Title level={1} style={{ color: "#fff", fontWeight: "bold" }}>
-          Welcome to Our Learning Platform
+          {settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() ??
+            `Welcome to Our Learning Platform`}
         </Title>
         <Text style={{ color: "#fff", fontSize: "18px" }}>
-          Master new skills, learn from expert instructors, and take your career
-          to the next level.
+          {settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() ??
+            `Welcome to Our Learning Platform`}
         </Text>
         <div style={{ marginTop: "20px" }}>
           <Button type="primary" size="large" style={{ fontWeight: "bold" }}>

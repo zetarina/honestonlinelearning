@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
 import TelegramService from "@/services/TelegramService";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { MESSAGING_SERVICE_KEYS } from "@/config/settings/MESSAGING_SERVICE_KEYS";
 
 const settingService = new SettingService();
 
@@ -36,15 +36,22 @@ export const POST = async (req: Request) => {
       return NextResponse.json({ status: "Non-command message ignored" });
     }
 
-    const settings = await settingService.getSettingsByKeys(
-      [SETTINGS_KEYS.TELEGRAM_BOT_TOKEN, SETTINGS_KEYS.TELEGRAM_CHAT_ID],
-      "production"
+    // Fetch all settings
+    const settings = await settingService.getAllSettings();
+
+    // Access Telegram settings
+    const telegramSettings = settings[MESSAGING_SERVICE_KEYS.TELEGRAM];
+    if (!telegramSettings?.botToken || !telegramSettings?.chatId) {
+      return NextResponse.json(
+        { error: "Telegram settings are not configured." },
+        { status: 500 }
+      );
+    }
+
+    const telegramService = new TelegramService(
+      telegramSettings.botToken,
+      telegramSettings.chatId
     );
-
-    const botToken = settings[SETTINGS_KEYS.TELEGRAM_BOT_TOKEN];
-    const defaultChatId = settings[SETTINGS_KEYS.TELEGRAM_CHAT_ID];
-
-    const telegramService = new TelegramService(botToken, defaultChatId);
 
     const availableCommands = {
       "/groupid": `The group ID is: ${chatId}`,

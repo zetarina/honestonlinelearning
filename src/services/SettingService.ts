@@ -1,77 +1,39 @@
-import { Setting } from "@/models/SettingModel";
+import { SettingsInterface } from "@/config/settingKeys";
 import { settingRepository } from "@/repositories/";
 
 class SettingService {
-  async getSettingByKey(
-    key: string,
-    environment = "production"
-  ): Promise<Setting | null> {
-    const setting = await settingRepository.findByKey(key, environment);
-    return setting;
-  }
-
-  async getSettingById(id: string): Promise<Setting | null> {
-    return await settingRepository.findById(id);
-  }
-  async getAllSettings(environment = "production"): Promise<Setting[]> {
-    const settings = await settingRepository.findAll(environment);
-    return settings;
-  }
-
-  async setSettingByKey(
-    key: string,
-    value: string ,
-    environment = "production",
-    isPublic?: boolean
-  ): Promise<Setting | null> {
-    const existingSetting = await settingRepository.findByKey(key, environment);
-    if (existingSetting) {
-      return settingRepository.updateByKey(key, value, environment, isPublic);
-    } else {
-      return settingRepository.create({ key, value, environment, isPublic });
-    }
-  }
-  async getSettingsByKeys(
-    keys: string[],
-    environment = "production"
-  ): Promise<Record<string, string | null>> {
-    const settings = await settingRepository.findByKeys(keys, environment);
-    return keys.reduce((acc, key) => {
-      const setting = settings.find((s) => s.key === key);
-      acc[key] = setting ? setting.value : null; // Assign `null` if setting is missing
-      return acc;
-    }, {} as Record<string, string | null>);
-  }
-  async updateSettingById(
-    id: string,
-    value: string ,
-    isPublic?: boolean
-  ): Promise<Setting | null> {
-    return await settingRepository.updateById(id, { value, isPublic });
+  async getAllSettings(environment = "production"): Promise<SettingsInterface> {
+    return await settingRepository.findAllStructured(environment);
   }
 
   async getPublicSettings(
     environment = "production"
-  ): Promise<Record<string, string >> {
-    const publicSettings = await settingRepository.findPublicSettings(
+  ): Promise<Partial<SettingsInterface>> {
+    return await settingRepository.findPublicSettings(environment);
+  }
+
+  async getSettingByKey(
+    key: keyof SettingsInterface,
+    environment = "production"
+  ): Promise<SettingsInterface[keyof SettingsInterface] | null> {
+    return await settingRepository.findByKey(key, environment);
+  }
+
+  async getSettingsByKeys(
+    keys: (keyof SettingsInterface)[],
+    environment = "production"
+  ): Promise<Partial<SettingsInterface>> {
+    return await settingRepository.findByKeys(keys, environment);
+  }
+
+  async upsertSettings(
+    updates: Partial<SettingsInterface>,
+    environment = "production"
+  ): Promise<SettingsInterface> {
+    return await settingRepository.upsertSettingsStructured(
+      updates,
       environment
     );
-    return publicSettings.reduce((acc, setting) => {
-      acc[setting.key] = setting.value;
-      return acc;
-    }, {} as Record<string, string >);
-  }
-
-  async getPublicSettingByKey(
-    key: string,
-    environment = "production"
-  ): Promise<string  | null> {
-    const setting = await settingRepository.findPublicByKey(key, environment);
-    return setting ? setting.value : null;
-  }
-
-  async deleteSettingById(id: string): Promise<Setting | null> {
-    return await settingRepository.deleteById(id);
   }
 }
 

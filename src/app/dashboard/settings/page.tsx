@@ -1,35 +1,47 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Space, message, Spin } from "antd";
-
-import { PlusOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import { Setting } from "@/models/SettingModel";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
-import SettingsTable from "@/components/SettingsTable";
-import SettingsModal from "@/components/SettingsModal";
-import GuideBookModal from "@/components/GuideBookModal";
+import { Tabs, Button, Spin, message, Space } from "antd";
 import apiClient from "@/utils/api/apiClient";
+import CombinedField from "@/components/forms/inputs/CombinedField";
+import { SETTINGS_GUIDE, SettingsInterface } from "@/config/settingKeys";
+import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
+import { MAIL_SERVICE_KEYS } from "@/config/settings/MAIL_SERVICE_KEYS";
+import { STORAGE_SETTINGS_KEYS } from "@/config/settings/STORAGE_SETTINGS_KEYS";
+import { PAYMENT_SETTINGS_KEYS } from "@/config/settings/PAYMENT_SETTINGS_KEYS";
+import { SOCIAL_MEDIA_KEYS } from "@/config/settings/SOCIAL_MEDIA_KEYS";
+import { MESSAGING_SERVICE_KEYS } from "@/config/settings/MESSAGING_SERVICE_KEYS";
+
+const groupedKeys = {
+  SiteSettings: Object.values(SITE_SETTINGS_KEYS),
+  MailService: Object.values(MAIL_SERVICE_KEYS),
+  StorageSettings: Object.values(STORAGE_SETTINGS_KEYS),
+  PaymentSettings: Object.values(PAYMENT_SETTINGS_KEYS),
+  SocialMedia: Object.values(SOCIAL_MEDIA_KEYS),
+  MessagingService: Object.values(MESSAGING_SERVICE_KEYS),
+};
+
+const tabLabels: Record<string, string> = {
+  SiteSettings: "Site Settings",
+  MailService: "Mail Service",
+  StorageSettings: "Storage Settings",
+  PaymentSettings: "Payment Settings",
+  SocialMedia: "Social Media Settings",
+  MessagingService: "Messaging Service Settings",
+};
 
 const SettingsPage: React.FC = () => {
-  
-  const [settings, setSettings] = useState<Setting[]>([]);
+  const [settings, setSettings] = useState<SettingsInterface | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
-  const [editingSetting, setEditingSetting] = useState<Setting | null>(null);
-  const [missingKeysQueue, setMissingKeysQueue] = useState<string[]>([]);
-  const [isAddingMissingKey, setIsAddingMissingKey] = useState(false);
-  const [currentMissingKey, setCurrentMissingKey] = useState<string | null>(
-    null
-  );
-  const [isMissingKeysLoading, setIsMissingKeysLoading] = useState(false);
+  const [modifiedSettings, setModifiedSettings] = useState<
+    Partial<Record<keyof SettingsInterface, any>>
+  >({});
 
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get("/settings");
+        const response = await apiClient.get<SettingsInterface>("/settings");
         setSettings(response.data);
       } catch (error) {
         message.error("Failed to fetch settings");
@@ -40,111 +52,90 @@ const SettingsPage: React.FC = () => {
     fetchSettings();
   }, []);
 
-  const openAddModal = () => {
-    setIsModalOpen(true);
-    setEditingSetting(null);
-    setCurrentMissingKey(null);
-    setIsAddingMissingKey(false);
+  const handleInputChange = (key: string, value: any) => {
+    setModifiedSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+
+    setSettings((prev) => {
+      if (!prev) return null;
+      const updatedSettings = { ...prev };
+      const keys = key.split(".");
+      let target = updatedSettings;
+
+      keys.forEach((k, idx) => {
+        if (idx === keys.length - 1) {
+          target[k] = value;
+        } else {
+          target[k] = target[k] || {};
+          target = target[k];
+        }
+      });
+
+      return updatedSettings;
+    });
   };
 
-  const handleEdit = (setting: Setting) => {
-    setCurrentMissingKey(null);
-    setIsAddingMissingKey(false);
-    setEditingSetting(setting);
-    setIsModalOpen(true);
-  };
-
-  const missingKeys = Object.values(SETTINGS_KEYS).filter(
-    (key) => !settings.some((setting) => setting.key === key)
-  );
-
-  const handleAddMissingKeys = () => {
-    setIsMissingKeysLoading(true);
-    setTimeout(() => {
-      if (missingKeys.length > 0) {
-        setMissingKeysQueue(missingKeys);
-        setCurrentMissingKey(missingKeys[0]);
-        setIsModalOpen(true);
-        setIsAddingMissingKey(true);
-      } else {
-        message.info("No missing keys found.");
-      }
-      setIsMissingKeysLoading(false);
-    }, 1000);
-  };
-
-  const onNextMissingKey = () => {
-    const remainingKeys = missingKeysQueue.slice(1);
-    setMissingKeysQueue(remainingKeys);
-    setCurrentMissingKey(remainingKeys[0] || null);
-    if (!remainingKeys.length) {
-      setIsModalOpen(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
+  const handleSaveAll = async () => {
+    setLoading(true);
     try {
-      await apiClient.delete(`/settings/${id}`);
-      setSettings(settings.filter((setting) => setting._id !== id));
-      message.success("Setting deleted successfully");
+      const updatedSettings = { ...settings, ...modifiedSettings };
+      console.log({ settings: updatedSettings });
+      await apiClient.put("/settings", { settings: updatedSettings });
+      setModifiedSettings({});
+      message.success("All changes saved successfully!");
     } catch (error) {
-      message.error("Failed to delete setting");
+      message.error("Failed to save changes.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  const renderTabContent = (keys: string[]) => {
+    if (!settings) return null;
+    return (
+      <div>
+        {keys.map((key) => {
+          const value = settings[key];
+          const config = SETTINGS_GUIDE[key];
+          if (!config) return null;
+
+          return (
+            <CombinedField
+              key={key}
+              title={config.label || key}
+              keyPrefix={key}
+              config={config}
+              values={value as Record<string, any>}
+              onChange={handleInputChange}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  const tabsItems = Object.entries(groupedKeys).map(([key, keys]) => ({
+    key,
+    label: tabLabels[key],
+    children: renderTabContent(keys),
+  }));
 
   return (
     <div>
-      <Space style={{ marginBottom: "20px" }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={openAddModal}>
-          Add New Setting
-        </Button>
-
-        {isMissingKeysLoading ? (
-          <Spin />
-        ) : (
-          missingKeys.length > 0 && (
-            <Button type="default" onClick={handleAddMissingKeys}>
-              Add Missing Keys ({missingKeys.length})
-            </Button>
-          )
-        )}
-
+      <Tabs defaultActiveKey="SiteSettings" items={tabsItems} />
+      <Space style={{ marginTop: "20px" }}>
         <Button
-          type="dashed"
-          icon={<InfoCircleOutlined />}
-          onClick={() => setIsGuideModalOpen(true)}
+          type="primary"
+          onClick={handleSaveAll}
+          disabled={Object.keys(modifiedSettings).length === 0}
+          loading={loading}
         >
-          Guide Book
+          Save All Changes
         </Button>
+        {loading && <Spin />}
       </Space>
-
-      <SettingsTable
-        settings={settings}
-        loading={loading}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onOpenModal={() => setIsModalOpen(true)}
-      />
-
-      {isModalOpen && (
-        <SettingsModal
-          isModalOpen={isModalOpen}
-          isAddingMissingKey={isAddingMissingKey}
-          currentMissingKey={currentMissingKey}
-          editingSetting={editingSetting}
-          missingKeysQueue={missingKeysQueue}
-          onNextMissingKey={onNextMissingKey}
-          setIsModalOpen={setIsModalOpen}
-          setSettings={setSettings}
-        />
-      )}
-
-      {isGuideModalOpen && (
-        <GuideBookModal
-          isModalOpen={isGuideModalOpen}
-          setIsModalOpen={setIsGuideModalOpen}
-        />
-      )}
     </div>
   );
 };
