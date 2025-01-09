@@ -5,7 +5,7 @@ import { Upload, message, Card, Radio } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 
 import AWS from "aws-sdk";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { SettingsInterface, SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 
 const { Dragger } = Upload;
@@ -13,17 +13,18 @@ const { Dragger } = Upload;
 const allowedImageTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
 
 const MultiImageUploader = () => {
-  
   const [selectedService, setSelectedService] = useState<string>("imgbb");
-  const [imageServices, setImageServices] = useState<any>({});
+  const [imageServices, setImageServices] = useState<
+    Partial<SettingsInterface>
+  >({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchImageProviders = async () => {
       try {
-        const response = await apiClient.get("/settings/image-providers");
+        const response = await apiClient.get<SettingsInterface>("/settings");
         setImageServices(response.data);
-        setSelectedService("imgbb"); // Default to imgbb or set a default provider
+        setSelectedService("imgbb"); // Default to imgbb or first available service
       } catch (error) {
         console.error("Error fetching image providers:", error);
         message.error("Failed to load image services.");
@@ -51,14 +52,13 @@ const MultiImageUploader = () => {
       formData.append("image", file);
 
       if (selectedService === "imgbb") {
-        const imgbbApiKey = imageServices[SETTINGS_KEYS.IMGBB_API_KEY];
+        const imgbbApiKey = imageServices[SETTINGS_KEYS.IMGBB]?.apiKey;
+        if (!imgbbApiKey) throw new Error("ImgBB API Key is not configured.");
         const response = await apiClient.post(
           `https://api.imgbb.com/1/upload?key=${imgbbApiKey}`,
           formData,
           {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
+            headers: { "Content-Type": "multipart/form-data" },
             onUploadProgress: (progressEvent) => {
               const percentCompleted = Math.round(
                 (progressEvent.loaded * 100) / progressEvent.total
@@ -69,9 +69,11 @@ const MultiImageUploader = () => {
         );
         imageUrl = response.data.data.url;
       } else if (selectedService === "cloudinary") {
-        const cloudName = imageServices[SETTINGS_KEYS.CLOUDINARY_CLOUD_NAME];
+        const cloudName = imageServices[SETTINGS_KEYS.CLOUDINARY]?.cloudName;
         const uploadPreset =
-          imageServices[SETTINGS_KEYS.CLOUDINARY_UPLOAD_PRESET];
+          imageServices[SETTINGS_KEYS.CLOUDINARY]?.uploadPreset;
+        if (!cloudName || !uploadPreset)
+          throw new Error("Cloudinary settings are not configured.");
         const cloudinaryFormData = new FormData();
         cloudinaryFormData.append("file", file);
         cloudinaryFormData.append("upload_preset", uploadPreset);
@@ -90,18 +92,15 @@ const MultiImageUploader = () => {
         );
         imageUrl = response.data.secure_url;
       } else if (selectedService === "aws") {
-        const bucket = imageServices[SETTINGS_KEYS.AWS_BUCKET];
-        const region = imageServices[SETTINGS_KEYS.AWS_REGION];
-        const accessKeyId = imageServices[SETTINGS_KEYS.AWS_ACCESS_KEY_ID];
+        const bucket = imageServices[SETTINGS_KEYS.AWS]?.bucket;
+        const region = imageServices[SETTINGS_KEYS.AWS]?.region;
+        const accessKeyId = imageServices[SETTINGS_KEYS.AWS]?.accessKeyId;
         const secretAccessKey =
-          imageServices[SETTINGS_KEYS.AWS_SECRET_ACCESS_KEY];
+          imageServices[SETTINGS_KEYS.AWS]?.secretAccessKey;
+        if (!bucket || !region || !accessKeyId || !secretAccessKey)
+          throw new Error("AWS settings are not configured.");
 
-        AWS.config.update({
-          accessKeyId,
-          secretAccessKey,
-          region,
-        });
-
+        AWS.config.update({ accessKeyId, secretAccessKey, region });
         const s3 = new AWS.S3();
         const params = {
           Bucket: bucket,
@@ -122,13 +121,9 @@ const MultiImageUploader = () => {
         {
           fileName: file.name,
           service: selectedService,
-          imageUrl: imageUrl,
+          imageUrl,
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -137,7 +132,7 @@ const MultiImageUploader = () => {
   };
 
   return (
-    <div style={{ padding: "24px" }}>
+    <div>
       <Card
         title="Multi Image Uploader"
         bordered={false}
@@ -151,15 +146,13 @@ const MultiImageUploader = () => {
           value={selectedService}
           style={{ marginBottom: "20px" }}
         >
-          {imageServices[SETTINGS_KEYS.IMGBB_API_KEY] && (
+          {imageServices[SETTINGS_KEYS.IMGBB] && (
             <Radio value="imgbb">ImgBB</Radio>
           )}
-          {imageServices[SETTINGS_KEYS.CLOUDINARY_CLOUD_NAME] && (
+          {imageServices[SETTINGS_KEYS.CLOUDINARY] && (
             <Radio value="cloudinary">Cloudinary</Radio>
           )}
-          {imageServices[SETTINGS_KEYS.AWS_BUCKET] && (
-            <Radio value="aws">AWS</Radio>
-          )}
+          {imageServices[SETTINGS_KEYS.AWS] && <Radio value="aws">AWS</Radio>}
         </Radio.Group>
 
         <Dragger

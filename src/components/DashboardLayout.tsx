@@ -42,7 +42,6 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
   return (
     <ImagePickerProvider>
       <Layout style={{ minHeight: "100vh", background: "none" }}>
-        {settings[SETTINGS_KEYS.SITE_LOGO]?.trim()}
         {isMobile ? (
           <Drawer
             placement="right"
