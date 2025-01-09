@@ -95,8 +95,8 @@ export type PrivateKeys = {
 }[keyof typeof SETTINGS_GUIDE];
 
 // Public and private settings types
-export type PublicSettings = Pick<SettingsInterface, PublicKeys>;
-export type PrivateSettings = Pick<SettingsInterface, PrivateKeys>;
+// export type PublicSettings = Pick<SettingsInterface, PublicKeys>;
+// export type PrivateSettings = Pick<SettingsInterface, PrivateKeys>;
 
-// All settings type (combining public and private settings)
-export type AllSettings = PublicSettings & PrivateSettings;
+// // All settings type (combining public and private settings)
+// export type AllSettings = PublicSettings & PrivateSettings;

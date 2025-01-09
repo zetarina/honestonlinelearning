@@ -11,7 +11,7 @@ import {
 import { SettingsInterface } from "@/config/settingKeys";
 
 interface SocialLinksProps {
-  settings: SettingsInterface;
+  settings: Partial<SettingsInterface>;
 }
 
 const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {

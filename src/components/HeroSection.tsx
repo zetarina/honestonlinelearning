@@ -34,12 +34,11 @@ const HeroSection = () => {
       />
       <div style={{ position: "relative", zIndex: 2, textAlign: "center" }}>
         <Title level={1} style={{ color: "#fff", fontWeight: "bold" }}>
-          {settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() ??
-            `Welcome to Our Learning Platform`}
+          Welcome to Our Learning Platform
         </Title>
         <Text style={{ color: "#fff", fontSize: "18px" }}>
-          {settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() ??
-            `Welcome to Our Learning Platform`}
+          Master new skills, learn from expert instructors, and take your career
+          to the next level
         </Text>
         <div style={{ marginTop: "20px" }}>
           <Button type="primary" size="large" style={{ fontWeight: "bold" }}>

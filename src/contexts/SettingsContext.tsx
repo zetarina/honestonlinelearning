@@ -1,10 +1,10 @@
 "use client";
 
 import React, { createContext, useContext } from "react";
-import { PublicSettings, SETTINGS_KEYS } from "@/config/settingKeys";
+import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 
 interface SettingsContextProps {
-  settings: PublicSettings;
+  settings: Partial<SettingsInterface>;
   isSetupRequired: boolean;
 }
 
@@ -13,7 +13,7 @@ const SettingsContext = createContext<SettingsContextProps | undefined>(
 );
 
 export const SettingsProvider: React.FC<{
-  settings: PublicSettings;
+  settings: Partial<SettingsInterface>;
   children: React.ReactNode;
 }> = ({ settings, children }) => {
   const isSetupRequired =
