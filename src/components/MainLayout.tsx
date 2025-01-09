@@ -9,7 +9,6 @@ import Link from "next/link";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import UserAvatar from "./UserAvatar";
-import MessengerChat from "./MessengerChat";
 import { getMainMenuItems, getMobileMenuItems } from "@/config/navigations";
 import SocialLinks from "./SocialLinks";
 
@@ -90,7 +89,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       <Content>
         <div style={{ minHeight: "360px" }}>{children}</div>
-        <MessengerChat />
       </Content>
 
       <Footer
