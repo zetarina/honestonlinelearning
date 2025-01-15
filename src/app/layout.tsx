@@ -3,17 +3,16 @@ import AppProvider from "@/providers/AppProvider";
 import SettingService from "@/services/SettingService";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Fetch settings server-side
   const settingService = new SettingService();
   const settings = await settingService.getPublicSettings();
 
-  // Display a loading spinner if settings are unavailable
   if (!settings) {
     return (
       <html lang="en">
@@ -36,7 +35,7 @@ export default async function AppLayout({
 
   // Coerce `siteName` to a string
   const siteName =
-    typeof settings.siteName === "string"
+    typeof settings[SITE_SETTINGS_KEYS.SITE_NAME] === "string"
       ? settings.siteName
       : "Online Learning App";
 
