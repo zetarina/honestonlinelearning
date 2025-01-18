@@ -1,0 +1,23 @@
+.ant-carousel .slick-dots {
+    bottom: -20px;
+    display: flex !important;
+    justify-content: center;
+  }
+  
+  .ant-carousel .slick-dots li {
+    margin: 0 6px;
+  }
+  
+  .ant-carousel .slick-dots li button {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #d9d9d9 !important;
+    transition: background-color 0.3s ease;
+  }
+  
+  .ant-carousel .slick-dots li.slick-active button {
+    background-color: #001529 !important;
+  }
+  
+  /* HHH */
