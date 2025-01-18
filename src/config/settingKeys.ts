@@ -61,27 +61,6 @@ export type SettingsInterface = SITE_SETTINGS_TYPES &
   SOCIAL_MEDIA_SETTINGS_TYPES &
   MESSAGING_SERVICE_TYPES;
 
-export const SAMPLE_SETTINGS: SITE_SETTINGS_TYPES = {
-  siteName: "Sample Site",
-  siteUrl: "https://www.samplesite.com",
-  siteBanner: "https://www.samplesite.com/banner.jpg",
-  siteLogo: "https://www.samplesite.com/logo.png",
-  currency: "USD",
-  heroBanner: "https://www.samplesite.com/hero.jpg",
-  featureCoursesLimit: 10,
-  maxInstructorsCount: 5,
-  contactUsInfo: {
-    address: "example example ",
-    phone: "1234567890",
-    email: "chaon@gmail.com",
-  },
-  studentReviews: [
-    {
-      name: "John Doe",
-      comment: "Great site!",
-    },
-  ],
-};
 export type PublicKeys = {
   [K in keyof typeof SETTINGS_GUIDE]: (typeof SETTINGS_GUIDE)[K]["visibility"] extends "public"
     ? K
