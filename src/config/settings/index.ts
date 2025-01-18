@@ -1,25 +1,41 @@
+export enum FormType {
+  TEXT = "text",
+  NUMBER = "number",
+  BOOLEAN = "boolean",
+  URL = "url",
+  FILE = "file",
+  IMAGE = "image",
+  SELECT = "select",
+  EMAIL = "email",
+}
+export enum NestedFieldType {
+  JSON = "json",
+  ARRAY = "array",
+}
 export type FieldInfo = {
   label: string;
   guide?: string;
-  formType: "string" | "number" | "boolean" | "url" | "file" | "image";
+  formType: FormType;
   visibility: "public" | "private";
 };
 export type NestedField = {
   label: string;
-  type: "array" | "json";
+  type: NestedFieldType;
   visibility: "public" | "private";
   fields: Record<string, ChildFieldInfo | ChildNestedField>;
+  options?: { label: string; value: string | number }[];
 };
 
 export type ChildFieldInfo = {
   label: string;
   guide: string;
-  formType: "string" | "number" | "boolean" | "url" | "file" | "image";
+  formType: FormType;
+  options?: { label: string; value: string | number }[];
 };
 
 export type ChildNestedField = {
   label: string;
-  type: "array" | "json";
+  type: NestedFieldType;
   fields: Record<string, ChildFieldInfo | ChildNestedField>;
 };
 

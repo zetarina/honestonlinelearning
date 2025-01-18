@@ -1,4 +1,4 @@
-import { GeneralConfig } from ".";
+import { FormType, GeneralConfig, NestedFieldType } from ".";
 
 export const PAYMENT_SETTINGS_KEYS = {
   STRIPE: "stripe",
@@ -9,53 +9,53 @@ export const PAYMENT_SETTINGS_KEYS = {
 export const PAYMENT_SETTINGS: GeneralConfig<typeof PAYMENT_SETTINGS_KEYS> = {
   [PAYMENT_SETTINGS_KEYS.STRIPE]: {
     label: "Stripe Payment Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "private",
 
     fields: {
       publicKey: {
         label: "Stripe Public Key",
         guide: "Enter your Stripe public API key.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       secretKey: {
         label: "Stripe Secret Key",
         guide: "Enter your Stripe secret API key.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       webhookSecret: {
         label: "Stripe Webhook Secret",
         guide: "Enter your Stripe webhook secret for event verification.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
   [PAYMENT_SETTINGS_KEYS.PAYPAL]: {
     label: "PayPal Payment Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "private",
     fields: {
       clientId: {
         label: "PayPal Client ID",
         guide: "Enter your PayPal client ID.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       clientSecret: {
         label: "PayPal Client Secret",
         guide: "Enter your PayPal client secret.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
   [PAYMENT_SETTINGS_KEYS.SQUARE]: {
     label: "Square Payment Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "private",
     fields: {
       accessToken: {
         label: "Square Access Token",
         guide: "Enter your Square access token.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },

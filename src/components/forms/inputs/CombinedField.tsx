@@ -1,7 +1,7 @@
 import React from "react";
-import { Typography, Input, Button } from "antd";
+import { Typography, Input, Button, Select, Tooltip } from "antd";
 import ImageSelection from "@/components/forms/inputs/ImageSelection";
-import { ChildFieldInfo, ChildNestedField } from "@/config/settings";
+import { ChildFieldInfo, ChildNestedField, FormType } from "@/config/settings";
 
 type CombinedFieldProps = {
   title?: string;
@@ -193,15 +193,85 @@ const CombinedField: React.FC<CombinedFieldProps> = ({
           }}
         >
           {config.label || title}
+          {config.guide && (
+            <Tooltip title={config.guide}>
+              <Typography.Text
+                style={{
+                  fontSize: "12px",
+                  color: "#f9f9f9",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  width: "20px",
+                  height: "20px",
+                  justifyContent: "center",
+                }}
+              >
+                ℹ️
+              </Typography.Text>
+            </Tooltip>
+          )}
         </Typography.Text>
-        {config.formType === "image" ? (
+
+        {config.formType === FormType.IMAGE ? (
           <ImageSelection
             value={typeof values === "string" ? values : ""}
             onChange={(newValue) => onChange(keyPrefix, newValue)}
           />
+        ) : config.formType === FormType.SELECT ? (
+          <Select
+            style={{ width: "100%", marginTop: "8px" }}
+            value={values}
+            onChange={(value) => onChange(keyPrefix, value)}
+            options={config.options}
+          />
+        ) : config.formType === FormType.BOOLEAN ? (
+          <Select
+            style={{ width: "100%", marginTop: "8px" }}
+            value={values}
+            onChange={(value) => onChange(keyPrefix, value)}
+            options={[
+              { label: "Yes", value: true },
+              { label: "No", value: false },
+            ]}
+          />
+        ) : config.formType === FormType.FILE ? (
+          <Input
+            type="file"
+            onChange={(e) => onChange(keyPrefix, e.target.files?.[0])}
+            style={{
+              marginTop: "8px",
+              borderRadius: "4px",
+              padding: "8px",
+            }}
+          />
+        ) : config.formType === FormType.URL ? (
+          <Input
+            type="url"
+            value={typeof values === "string" ? values : ""}
+            onChange={(e) => onChange(keyPrefix, e.target.value)}
+            style={{
+              marginTop: "8px",
+              borderRadius: "4px",
+              border: "1px solid #ddd",
+              padding: "8px",
+            }}
+          />
+        ) : config.formType === FormType.EMAIL ? (
+          <Input
+            type="email"
+            value={typeof values === "string" ? values : ""}
+            onChange={(e) => onChange(keyPrefix, e.target.value)}
+            style={{
+              marginTop: "8px",
+              borderRadius: "4px",
+              border: "1px solid #ddd",
+              padding: "8px",
+            }}
+          />
         ) : (
           <Input
-            type={config.formType === "number" ? "number" : "text"}
+            type={config.formType === FormType.NUMBER ? "number" : "text"}
             value={
               typeof values === "string" || typeof values === "number"
                 ? values

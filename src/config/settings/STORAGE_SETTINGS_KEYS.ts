@@ -1,4 +1,4 @@
-import { GeneralConfig } from ".";
+import { FormType, GeneralConfig, NestedFieldType } from ".";
 
 export const STORAGE_SETTINGS_KEYS = {
   IMGBB: "imgbb",
@@ -9,57 +9,57 @@ export const STORAGE_SETTINGS_KEYS = {
 export const STORAGE_SETTINGS: GeneralConfig<typeof STORAGE_SETTINGS_KEYS> = {
   [STORAGE_SETTINGS_KEYS.IMGBB]: {
     label: "ImgBB Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "public",
     fields: {
       apiKey: {
         label: "ImgBB API Key",
         guide: "This is the API key for ImgBB image service.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
   [STORAGE_SETTINGS_KEYS.CLOUDINARY]: {
     label: "Cloudinary Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "public",
     fields: {
       cloudName: {
         label: "Cloudinary Cloud Name",
         guide: "This is the Cloudinary cloud name for image uploads.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       uploadPreset: {
         label: "Cloudinary Upload Preset",
         guide: "This is the Cloudinary upload preset for image uploads.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
   [STORAGE_SETTINGS_KEYS.AWS]: {
     label: "AWS Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "private",
     fields: {
       bucket: {
         label: "AWS Bucket",
         guide: "This is the AWS S3 bucket name.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       region: {
         label: "AWS Region",
         guide: "This is the AWS S3 bucket region.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       accessKeyId: {
         label: "AWS Access Key ID",
         guide: "This is the AWS access key ID.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       secretAccessKey: {
         label: "AWS Secret Access Key",
         guide: "This is the AWS secret access key.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },

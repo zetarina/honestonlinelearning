@@ -1,4 +1,4 @@
-import { GeneralConfig } from ".";
+import { FormType, GeneralConfig, NestedFieldType } from ".";
 
 export const MESSAGING_SERVICE_KEYS = {
   TELEGRAM: "telegram",
@@ -10,30 +10,30 @@ export const MESSAGING_SERVICE_SETTINGS: GeneralConfig<
 > = {
   [MESSAGING_SERVICE_KEYS.TELEGRAM]: {
     label: "Telegram Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "public",
     fields: {
       botToken: {
         label: "Telegram Bot Token",
         guide: "Enter your Telegram bot token.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       chatId: {
         label: "Telegram Chat ID",
         guide: "Enter your Telegram chat ID.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
   [MESSAGING_SERVICE_KEYS.VIBER]: {
     label: "Viber Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "public",
     fields: {
       botToken: {
         label: "Viber Bot Token",
         guide: "Enter your Viber bot token.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },

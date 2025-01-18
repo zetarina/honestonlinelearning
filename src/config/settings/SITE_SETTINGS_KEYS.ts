@@ -1,4 +1,4 @@
-import { GeneralConfig } from ".";
+import { FormType, GeneralConfig, NestedFieldType } from ".";
 
 export const SITE_SETTINGS_KEYS = {
   SITE_NAME: "siteName",
@@ -18,120 +18,120 @@ export const SITE_SETTINGS: GeneralConfig<typeof SITE_SETTINGS_KEYS> = {
   [SITE_SETTINGS_KEYS.SITE_NAME]: {
     label: "Site Name",
     guide: "This is the name of your site.",
-    formType: "string",
+    formType: FormType.TEXT,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.SITE_URL]: {
     label: "Site URL",
     guide: "This is the URL of your site.",
-    formType: "string",
+    formType: FormType.TEXT,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.SITE_BANNER]: {
     label: "Site Banner",
     guide: "This is the banner image URL for your site.",
-    formType: "image",
+    formType: FormType.IMAGE,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.SITE_LOGO]: {
     label: "Site Logo",
     guide: "This is the logo image URL for your site.",
-    formType: "image",
+    formType: FormType.IMAGE,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.CURRENCY]: {
     label: "Currency",
     guide: "This is the currency you will be using.",
-    formType: "string",
+    formType: FormType.TEXT,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.HERO_BANNER]: {
     label: "Hero Banner",
     guide: "This is the main hero banner image URL for your homepage.",
-    formType: "image",
+    formType: FormType.IMAGE,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.FEATURE_COURSES_LIMIT]: {
     label: "Feature Courses Limit",
     guide:
       "This specifies how many featured courses to display on the homepage.",
-    formType: "number",
+    formType: FormType.NUMBER,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.MAX_INSTRUCTORS_COUNT]: {
     label: "Max Instructors Count",
     guide: "This is the maximum number of instructors allowed on the platform.",
-    formType: "number",
+    formType: FormType.NUMBER,
     visibility: "public",
   },
   [SITE_SETTINGS_KEYS.CONTACT_US_INFO]: {
     label: "Contact Us Information",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "public",
     fields: {
       address: {
         label: "Contact Address",
         guide: "The physical address for contact.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       phone: {
         label: "Contact Phone",
         guide: "The phone number for contact.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       email: {
         label: "Contact Email",
         guide: "The email address for contact.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       mapLink: {
         label: "Google Maps Link",
         guide: "Embed link for the Google Maps location.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
   [SITE_SETTINGS_KEYS.STUDENT_REVIEWS]: {
     label: "Student Reviews",
-    type: "array",
+    type: NestedFieldType.ARRAY,
     visibility: "public",
     fields: {
       name: {
         label: "Student Name",
         guide: "The name of the student.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       comment: {
         label: "Student Comment",
         guide: "The comment from the student.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
   [SITE_SETTINGS_KEYS.SEO_SETTINGS]: {
     label: "SEO Settings",
-    type: "json",
+    type: NestedFieldType.JSON,
     visibility: "public",
     fields: {
       metaTitle: {
         label: "Meta Title",
         guide: "This is the title displayed in search engines.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       metaDescription: {
         label: "Meta Description",
         guide: "This is the description displayed in search engines.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
       ogImage: {
         label: "Open Graph Image",
         guide: "Image URL for social media previews (1200x630 recommended).",
-        formType: "image",
+        formType: FormType.IMAGE,
       },
       keywords: {
         label: "Keywords",
         guide: "Comma-separated keywords for SEO.",
-        formType: "string",
+        formType: FormType.TEXT,
       },
     },
   },
