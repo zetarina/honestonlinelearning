@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/learning-service";
+const MONGODB_NAME = process.env.MONGODB_NAME || "default-db"; // Use default if MONGODB_NAME is not defined
 
 if (!MONGODB_URI) {
   throw new Error(
@@ -29,6 +30,7 @@ async function dbConnect() {
     cached.promise = mongoose
       .connect(MONGODB_URI, {
         bufferCommands: false,
+        dbName: MONGODB_NAME, // Pass the database name here
       })
       .then((mongoose) => {
         return mongoose;
