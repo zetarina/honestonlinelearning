@@ -1,4 +1,5 @@
 "use client";
+
 import { Button, Input, Form, Alert, Typography, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useContext, useEffect } from "react";
@@ -10,34 +11,27 @@ import apiClient from "@/utils/api/apiClient";
 const { Title } = Typography;
 
 export default function SignupPage() {
-  
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
   const { refreshUser, user } = useContext(UserContext);
 
-  const [form] = Form.useForm(); // Initialize form instance here
+  const [form] = Form.useForm(); // Ant Design form instance
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Redirect user if already logged in
   useEffect(() => {
     if (user) {
       handleRoleBasedRedirect();
     }
-  }, [user, router]);
+  }, [user]);
 
   const handleRoleBasedRedirect = () => {
-    if (redirect) {
-      router.push(redirect);
-      return;
-    }
-
-    if (user.role === UserRole.STUDENT) {
-      router.push("/profile");
-    } else {
-      router.push("/dashboard");
-    }
+    const target =
+      redirect || (user?.role === UserRole.STUDENT ? "/profile" : "/dashboard");
+    router.replace(target);
   };
 
   const onFinish = async (values: any) => {
@@ -45,23 +39,17 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const response = await apiClient.post("/auth/signup", {
-        username: values.username,
-        email: values.email,
-        password: values.password,
-      });
+      const { status, data } = await apiClient.post("/auth/signup", values);
 
-      if (response.status === 201) {
-        refreshUser();
+      if (status === 201) {
+        refreshUser(); // Refresh user data after successful signup
         handleRoleBasedRedirect();
       } else {
-        setError(
-          response.data?.error || "Signup failed! Please check your details."
-        );
+        setError(data?.error || "Signup failed. Please check your details.");
       }
-    } catch (error: any) {
+    } catch (err: any) {
       setError(
-        error.response?.data?.error ||
+        err.response?.data?.error ||
           "An unexpected error occurred. Please try again."
       );
     } finally {
@@ -70,7 +58,6 @@ export default function SignupPage() {
   };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Convert input to lowercase and remove spaces
     const formattedUsername = e.target.value.toLowerCase().replace(/\s+/g, "");
     form.setFieldsValue({ username: formattedUsername });
   };
@@ -83,6 +70,7 @@ export default function SignupPage() {
         justifyContent: "center",
         minHeight: "100vh",
         backgroundColor: "#f5f5f5",
+        padding: "16px",
       }}
     >
       <div
@@ -92,8 +80,8 @@ export default function SignupPage() {
           backgroundColor: "white",
           padding: "32px",
           borderRadius: "8px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          transition: "all 0.3s ease-in-out",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          transition: "box-shadow 0.3s ease",
         }}
       >
         <Title
@@ -105,16 +93,28 @@ export default function SignupPage() {
         >
           Sign Up
         </Title>
+
         {error && (
           <Alert
-            message={error}
+            message="Signup Error"
+            description={error}
             type="error"
             showIcon
             closable
             style={{ marginBottom: "16px" }}
           />
         )}
-        <Form form={form} layout="vertical" onFinish={onFinish}>
+
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{
+            username: "",
+            email: "",
+            password: "",
+          }}
+        >
           <Form.Item
             name="username"
             label="Username"
@@ -122,7 +122,7 @@ export default function SignupPage() {
               { required: true, message: "Please input your username!" },
               {
                 pattern: /^[a-z0-9]+$/,
-                message: "Username must be lowercase and contain no spaces",
+                message: "Username must be lowercase and contain no spaces.",
               },
             ]}
           >
@@ -130,22 +130,39 @@ export default function SignupPage() {
               placeholder="Username"
               size="large"
               onChange={handleUsernameChange}
+              autoComplete="username"
             />
           </Form.Item>
+
           <Form.Item
             name="email"
             label="Email"
-            rules={[{ required: true, message: "Please input your email!" }]}
+            rules={[
+              { required: true, message: "Please input your email!" },
+              { type: "email", message: "Please enter a valid email address." },
+            ]}
           >
-            <Input placeholder="Email" size="large" />
+            <Input placeholder="Email" size="large" autoComplete="email" />
           </Form.Item>
+
           <Form.Item
             name="password"
             label="Password"
-            rules={[{ required: true, message: "Please input your password!" }]}
+            rules={[
+              { required: true, message: "Please input your password!" },
+              {
+                min: 6,
+                message: "Password must be at least 6 characters long.",
+              },
+            ]}
           >
-            <Input.Password placeholder="Password" size="large" />
+            <Input.Password
+              placeholder="Password"
+              size="large"
+              autoComplete="new-password"
+            />
           </Form.Item>
+
           <Form.Item>
             <Button
               type="primary"
@@ -155,10 +172,11 @@ export default function SignupPage() {
               disabled={loading}
               size="large"
             >
-              {loading ? <Spin /> : "Sign Up"}
+              Sign Up
             </Button>
           </Form.Item>
         </Form>
+
         <div
           style={{
             textAlign: "center",

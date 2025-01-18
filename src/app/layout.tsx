@@ -11,11 +11,21 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const settingService = new SettingService();
-  const settings = await settingService.getPublicSettings();
+
+  let settings;
+  try {
+    settings = await settingService.getPublicSettings();
+  } catch (error) {
+    console.error("Failed to fetch settings:", error);
+    settings = null;
+  }
 
   if (!settings) {
     return (
       <html lang="en">
+        <head>
+          <title>Loading...</title>
+        </head>
         <body
           style={{
             margin: 0,
@@ -27,17 +37,15 @@ export default async function AppLayout({
             alignItems: "center",
           }}
         >
-          <LoadingSpinner />
+          <LoadingSpinner message="Loading application settings..." />
         </body>
       </html>
     );
   }
 
-  // Coerce `siteName` to a string
+  // Safely access `siteName` with fallback
   const siteName =
-    typeof settings[SITE_SETTINGS_KEYS.SITE_NAME] === "string"
-      ? settings.siteName
-      : "Online Learning App";
+    settings[SITE_SETTINGS_KEYS.SITE_NAME]?.toString() || "Online Learning App";
 
   return (
     <html lang="en">

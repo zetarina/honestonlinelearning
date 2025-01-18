@@ -5,9 +5,9 @@ import { message, Spin } from "antd";
 import { Course } from "@/models/CourseModel";
 import CourseForm from "@/components/forms/CourseForm";
 import apiClient from "@/utils/api/apiClient";
+import SubLoader from "@/components/SubLoader";
 
 const CourseEditPage: React.FC = () => {
-  
   const [courseData, setCourseData] = useState<Course | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
@@ -40,12 +40,7 @@ const CourseEditPage: React.FC = () => {
   }, [courseId, router]);
 
   if (loading) {
-    return (
-      <Spin
-        size="large"
-        style={{ display: "block", margin: "0 auto", marginTop: "100px" }}
-      />
-    );
+    return <SubLoader tip="Loading course..." />;
   }
 
   return courseData ? (

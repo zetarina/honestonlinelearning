@@ -3,16 +3,16 @@
 import React, { useEffect, useState } from "react";
 import { Card, Col, Row, Tag, Typography, Button, Space, Tooltip } from "antd";
 import Link from "next/link";
-
-import { ApplicationLevelCourse } from "@/models/CourseModel";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import CacheImage from "@/components/CacheImage";
-import ExpandableContent from "@/components/ExpandableContent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+
+import { ApplicationLevelCourse } from "@/models/CourseModel";
+import CacheImage from "@/components/CacheImage";
+import ExpandableContent from "@/components/ExpandableContent";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
+import SubLoader from "@/components/SubLoader";
 
 // Extend Day.js with the UTC plugin
 dayjs.extend(utc);
@@ -48,11 +48,22 @@ const CoursesPage: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <SubLoader tip="Loading courses..." />;
   }
 
   if (!courses || courses.length === 0) {
-    return <p>No courses available.</p>;
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: "50px",
+          fontSize: "18px",
+          color: "#999",
+        }}
+      >
+        No courses available.
+      </div>
+    );
   }
 
   return (

@@ -28,7 +28,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [hasShownLogoutMessage, setHasShownLogoutMessage] = useState(false); // Flag for message
+  const [hasShownLogoutMessage, setHasShownLogoutMessage] = useState(false);
 
   const fetcher = (url: string) => apiClient.get(url).then((res) => res.data);
 
@@ -42,6 +42,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }
   );
 
+  // Update user and initial loading state when data changes
   useEffect(() => {
     setUser(data || null);
     if (!isValidating) {
@@ -49,20 +50,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [data, isValidating]);
 
+  // Handle session changes (e.g., token changes in localStorage)
   useEffect(() => {
     const handleStorageChange = () => {
       const accessToken = localStorage.getItem("accessToken");
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (!accessToken || !refreshToken) {
-        // If the user is already null, don't show the message
-        if (user !== null) {
-          setUser(null);
-          mutate(null, false);
-          if (!hasShownLogoutMessage) {
-            message.info("Logged out due to session change.");
-            setHasShownLogoutMessage(true); // Set the flag
-          }
+        if (user) {
+          logoutUser("Logged out due to session change.");
         }
       } else {
         mutate();
@@ -72,20 +68,30 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     window.addEventListener("storage", handleStorageChange);
 
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, [user, mutate, hasShownLogoutMessage]);
+  }, [user, mutate]);
 
+  // Centralized error handling
+  const handleError = (error: any, defaultMessage: string) => {
+    console.error(error);
+    const errorMessage = error?.response?.data?.message || defaultMessage;
+    message.error(errorMessage);
+  };
+
+  // Refresh user data
   const refreshUser = () => {
     mutate();
   };
 
+  // Refresh user data and handle errors
   const awaitRefreshUser = async () => {
     try {
       await mutate();
-    } catch (err) {
-      console.error("Error refreshing user:", err);
+    } catch (error) {
+      handleError(error, "Failed to refresh user data.");
     }
   };
 
+  // Handle user login
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -95,25 +101,36 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
 
-      setHasShownLogoutMessage(false); // Reset the flag on successful login
+      setHasShownLogoutMessage(false);
       await mutate();
       message.success("Login successful!");
-    } catch (err) {
-      console.error("Login failed:", err);
-      throw new Error("Invalid email or password.");
+    } catch (error) {
+      handleError(error, "Invalid email or password.");
+      throw error;
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle user logout
+  const logoutUser = (infoMessage?: string) => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setUser(null);
+    mutate(null, false);
+
+    if (infoMessage && !hasShownLogoutMessage) {
+      message.info(infoMessage);
+      setHasShownLogoutMessage(true);
+    } else {
+      message.success("Logout successful!");
     }
   };
 
   const logout = () => {
     setLoading(true);
     try {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      setUser(null);
-      mutate(null, false);
-      message.success("Logout successful!");
+      logoutUser();
     } finally {
       setLoading(false);
     }
@@ -121,6 +138,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
 
   const isCurrentlyLoading = initialLoading || isValidating;
 
+  // Memoize context value for performance
   const value = useMemo(
     () => ({
       user,

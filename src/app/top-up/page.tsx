@@ -9,37 +9,38 @@ import {
   message,
   Typography,
   Card,
-  Image,
   Spin,
   Alert,
   Radio,
 } from "antd";
-import { InboxOutlined, DeleteOutlined } from "@ant-design/icons";
+import { InboxOutlined } from "@ant-design/icons";
 
 import UserContext from "@/contexts/UserContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 import { loadStripe } from "@stripe/stripe-js";
+import SubLoader from "@/components/SubLoader";
 
 const { Dragger } = Upload;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const TopUpPage: React.FC = () => {
   const { user, refreshUser } = useContext(UserContext);
   const { settings } = useSettings();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fileList, setFileList] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "offline">(
     settings[SETTINGS_KEYS.STRIPE]?.publicKey ? "stripe" : "offline"
   );
-  const [fetchingUserData, setFetchingUserData] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   const stripePromise = settings[SETTINGS_KEYS.STRIPE]?.publicKey
     ? loadStripe(settings[SETTINGS_KEYS.STRIPE].publicKey)
@@ -48,11 +49,27 @@ const TopUpPage: React.FC = () => {
   useEffect(() => {
     if (!user) {
       router.push("/login?redirect=/top-up");
-    } else {
-      refreshUser();
-      setFetchingUserData(false);
     }
-  }, [user, router]);
+  }, [user, redirect, router]);
+
+  const fetchUserData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await apiClient.get("/me", { withCredentials: true });
+      refreshUser();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch user data.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const handlePaymentMethodChange = (e: any) => {
     setPaymentMethod(e.target.value);
@@ -152,18 +169,34 @@ const TopUpPage: React.FC = () => {
     }
   };
 
-  if (fetchingUserData) {
+  if (loading) {
+    return <SubLoader tip="Loading user account info..." />;
+  }
+
+  if (error) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          display: "flex",
-          justifyContent: "center",
-          minHeight: "100vh",
-          alignItems: "center",
-        }}
-      >
-        <Spin size="large" tip="Loading user profile..." />
+      <div style={{ maxWidth: 600, margin: "50px auto" }}>
+        <Alert message="Error" description={error} type="error" showIcon />
+        <Button
+          type="primary"
+          onClick={fetchUserData}
+          style={{ marginTop: 20 }}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ maxWidth: 600, margin: "50px auto" }}>
+        <Alert
+          message="User Not Found"
+          description="No user data available."
+          type="warning"
+          showIcon
+        />
       </div>
     );
   }
@@ -173,16 +206,6 @@ const TopUpPage: React.FC = () => {
       <Title level={2} style={{ textAlign: "center", marginBottom: "20px" }}>
         Top-Up Your Account
       </Title>
-
-      {error && (
-        <Alert
-          message="Error"
-          description={error}
-          type="error"
-          showIcon
-          style={{ marginBottom: "20px" }}
-        />
-      )}
 
       <Card
         style={{

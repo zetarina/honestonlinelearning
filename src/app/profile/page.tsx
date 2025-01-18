@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useContext } from "react";
-import { Button, Card, Descriptions, Spin, Alert } from "antd";
+import { Button, Card, Descriptions, Alert } from "antd";
 
 import ProfileUpdateForm from "@/components/forms/ProfileUpdateForm";
 import UserContext from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
+import SubLoader from "@/components/SubLoader";
 
 const UserProfile: React.FC = () => {
-  
   const { user, refreshUser } = useContext(UserContext);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,13 +60,7 @@ const UserProfile: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "50px 0" }}>
-        <Spin size="large" tip="Loading user profile...">
-          <div style={{ height: "100px" }}></div>
-        </Spin>
-      </div>
-    );
+    return <SubLoader tip="Loading user profile..." />;
   }
 
   if (error) {

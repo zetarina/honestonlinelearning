@@ -12,19 +12,16 @@ import { message, Card, Typography, Button } from "antd";
 import CourseContent from "@/components/CourseContent";
 import CoursePurchase from "@/components/CoursePurchase";
 import UserContext from "@/contexts/UserContext";
-
-import LoadingSpinner from "@/components/LoadingSpinner";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import apiClient from "@/utils/api/apiClient";
+import SubLoader from "@/components/SubLoader";
 
-// Extend Day.js with the UTC plugin
 dayjs.extend(utc);
 
 const { Title, Text } = Typography;
 
 const CoursePage: React.FC = () => {
-  
   const { id: courseId } = useParams();
   const { refreshUser, user } = useContext(UserContext);
 
@@ -73,7 +70,7 @@ const CoursePage: React.FC = () => {
 
   const courseContent = useMemo(() => {
     if (loading) {
-      return <LoadingSpinner />;
+      return <SubLoader tip="Loading course..." />;
     }
 
     if (error === "network") {

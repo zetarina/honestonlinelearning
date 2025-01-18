@@ -6,6 +6,7 @@ import CacheImage from "@/components/CacheImage";
 
 import { useMediaQuery } from "react-responsive"; // To detect screen size
 import apiClient from "@/utils/api/apiClient";
+import SubLoader from "./SubLoader";
 
 const { Title, Text } = Typography;
 
@@ -48,9 +49,7 @@ const InstructorsSection: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ padding: "60px 0", textAlign: "center" }}>
-        <Spin size="large" />
-      </div>
+      <SubLoader tip="Loading our instructors" />
     );
   }
 

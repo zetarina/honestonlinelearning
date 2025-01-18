@@ -10,6 +10,7 @@ import {
   Tag,
   message,
   Tooltip,
+  Spin,
 } from "antd";
 import CacheImage from "@/components/CacheImage";
 
@@ -23,6 +24,7 @@ import utc from "dayjs/plugin/utc";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
+import SubLoader from "./SubLoader";
 
 dayjs.extend(utc);
 
@@ -30,7 +32,6 @@ const { Title, Text } = Typography;
 const { Meta } = Card;
 
 const FeaturedCoursesSection: React.FC = () => {
-  
   const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -61,7 +62,7 @@ const FeaturedCoursesSection: React.FC = () => {
   }, []);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <SubLoader tip="Loading featured courses..." />;
   }
 
   if (error) {

@@ -12,66 +12,47 @@ import { useSettings } from "@/contexts/SettingsContext";
 interface LayoutRouterProps {
   children: React.ReactNode;
 }
-
 const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
   const { user, initialLoading } = useContext(UserContext);
   const pathname = usePathname();
   const router = useRouter();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
 
-  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const handleRouteChangeStart = () => setLoading(true);
-    const handleRouteChangeComplete = () => setLoading(false);
-
-    
-    setLoading(true);
-    handleRouteChangeStart();
-
-    const timeoutId = setTimeout(() => {
-      handleRouteChangeComplete();
-    }, 500); 
-
-    return () => {
-      clearTimeout(timeoutId);
+    const handleRouteChange = () => {
+      setLoading(true);
+      setTimeout(() => setLoading(false), 300); // Short debounce
     };
+    handleRouteChange();
   }, [pathname]);
 
   useEffect(() => {
     if (!initialLoading) {
+      console.log(user);
       if (isDashboardRoute && !user) {
         router.push("/login");
-        return;
-      }
-
-      if (
+      } else if (
         isDashboardRoute &&
         user &&
-        ![UserRole.ADMIN, UserRole.INSTRUCTOR].includes(user.role)
+        !["ADMIN", "INSTRUCTOR"].includes(user.role.toUpperCase())
       ) {
         router.push("/profile");
-        return;
       }
-
-      setInitialCheckDone(true);
     }
-  }, [initialLoading, user, isDashboardRoute, router]);
+  }, [initialLoading, isDashboardRoute, user, router]);
+  
 
-  if (!initialCheckDone && initialLoading) {
+  if (initialLoading || loading) {
     return <LoadingSpinner />;
   }
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  if (isDashboardRoute && user) {
-    return <DashboardLayout>{children}</DashboardLayout>;
-  }
-
-  return <MainLayout>{children}</MainLayout>;
+  return isDashboardRoute && user ? (
+    <DashboardLayout>{children}</DashboardLayout>
+  ) : (
+    <MainLayout>{children}</MainLayout>
+  );
 };
 
 export default LayoutRouter;
