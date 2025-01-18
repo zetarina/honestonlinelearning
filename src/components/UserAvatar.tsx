@@ -64,9 +64,11 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
             <Title level={4} style={{ margin: 0, fontSize: "14px" }}>
               {user ? user.name || user.username : "Guest"}
             </Title>
-            <Text type="secondary" style={{ fontSize: "14px" }}>
-              {user ? `${user.pointsBalance || 0} ${currency}` : "0"}
-            </Text>
+            {user && (
+              <Text type="secondary" style={{ fontSize: "14px" }}>
+                {`${user.pointsBalance || 0} ${currency}`}
+              </Text>
+            )}
           </div>
         </div>
       ) : (
@@ -91,10 +93,11 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
               <Title level={4} style={{ margin: 0, fontSize: "14px" }}>
                 {user ? user.name || user.username : "Guest"}
               </Title>
-              <Text type="secondary" style={{ fontSize: "14px" }}>
-                {user ? `${user.pointsBalance || 0} ${currency}` : "0"}{" "}
-                {/* Show points balance if user is logged in */}
-              </Text>
+              {user && (
+                <Text type="secondary" style={{ fontSize: "14px" }}>
+                  {`${user.pointsBalance || 0} ${currency}`}
+                </Text>
+              )}
             </div>
           </div>
         </Dropdown>

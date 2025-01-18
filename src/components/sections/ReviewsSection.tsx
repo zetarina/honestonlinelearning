@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { Row, Col, Card, Typography, Avatar, Rate, Carousel } from "antd";
+import { Row, Col, Card, Typography, Avatar, Rate } from "antd";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
+import CustomCarousel from "@/components/CustomCarousel";
 
 const { Title, Text } = Typography;
 
@@ -42,12 +43,7 @@ const ReviewsSection: React.FC = () => {
         What Our Students Say
       </Title>
 
-      <Carousel
-        autoplay
-        dots={{ className: "custom-carousel-dots" }}
-        dotPosition="bottom"
-        style={{ paddingBottom: "10px" }}
-      >
+      <CustomCarousel autoplay slidesToShow={1} dots>
         {studentReviews.map((review, index) => (
           <div key={index}>
             <Row
@@ -124,7 +120,7 @@ const ReviewsSection: React.FC = () => {
             </Row>
           </div>
         ))}
-      </Carousel>
+      </CustomCarousel>
     </div>
   );
 };

@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Carousel } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import "@/styles/carousel.css";
 
 interface CustomCarouselProps {
@@ -11,7 +10,17 @@ interface CustomCarouselProps {
   autoplay?: boolean;
   autoplaySpeed?: number;
   infinite?: boolean;
+  dots?: boolean;
+  arrowColor?: string;
+  dotColor?: string;
+  dotActiveColor?: string;
 }
+
+const defaultResponsiveSettings = [
+  { breakpoint: 1024, slidesToShow: 3 },
+  { breakpoint: 768, slidesToShow: 2 },
+  { breakpoint: 576, slidesToShow: 1 },
+];
 
 const CustomCarousel: React.FC<CustomCarouselProps> = ({
   children,
@@ -19,62 +28,31 @@ const CustomCarousel: React.FC<CustomCarouselProps> = ({
   autoplay = true,
   autoplaySpeed = 2000,
   infinite = true,
+  dots = true,
+  arrowColor = "black",
+  dotColor = "#d9d9d9",
+  dotActiveColor = "red",
 }) => {
+  const carouselStyles = {
+    "--arrow-color": arrowColor,
+    "--dot-color": dotColor,
+    "--dot-active-color": dotActiveColor,
+  } as React.CSSProperties;
+
   return (
-    <div style={{ position: "relative", padding: "20px 0" }}>
+    <div style={{ position: "relative", padding: "0", ...carouselStyles }}>
       <Carousel
         autoplay={autoplay}
         autoplaySpeed={autoplaySpeed}
-        dots
-        arrows
-        prevArrow={
-          <button
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              border: "none",
-              borderRadius: "50%",
-              padding: "1rem",
-              height: "auto",
-              width: "auto",
-              cursor: "pointer",
-              zIndex: 10,
-              position: "absolute",
-              top: "50%",
-              left: "-40px",
-              transform: "translateY(-50%)",
-            }}
-          >
-            <LeftOutlined style={{ fontSize: "2rem", color: "#fff" }} />
-          </button>
-        }
-        nextArrow={
-          <button
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              border: "none",
-              borderRadius: "50%",
-              padding: "1rem",
-              height: "auto",
-              width: "auto",
-              cursor: "pointer",
-              zIndex: 10,
-              position: "absolute",
-              top: "50%",
-              right: "-40px",
-              transform: "translateY(-50%)",
-            }}
-          >
-            <RightOutlined style={{ fontSize: "2rem", color: "#fff" }} />
-          </button>
-        }
+        dots={dots}
         infinite={infinite}
         slidesToShow={slidesToShow}
         swipeToSlide
-        responsive={[
-          { breakpoint: 1024, settings: { slidesToShow: 3 } },
-          { breakpoint: 768, settings: { slidesToShow: 2 } },
-          { breakpoint: 576, settings: { slidesToShow: 1 } },
-        ]}
+        responsive={defaultResponsiveSettings.map((setting) => ({
+          breakpoint: setting.breakpoint,
+          settings: { slidesToShow: setting.slidesToShow },
+        }))}
+        style={{ padding: "50px 20px" }}
       >
         {children}
       </Carousel>

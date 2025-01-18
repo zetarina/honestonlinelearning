@@ -43,15 +43,51 @@ export default async function AppLayout({
     );
   }
 
-  // Safely access `siteName` with fallback
+  // Fallback values
+  const defaultProductName = "Multi-Company Product";
+  const defaultProductDescription =
+    "A versatile platform tailored for multiple organizations.";
+  const defaultProductLogo = "/images/product-logo.png";
+  const defaultFavicon = "/images/favicon.ico";
+  const defaultKeywords = "education, e-learning, online courses";
+
+  // Extract settings
   const siteName =
-    settings[SITE_SETTINGS_KEYS.SITE_NAME]?.toString() || "Online Learning App";
+    settings?.[SITE_SETTINGS_KEYS.SITE_NAME]?.toString() || defaultProductName;
+  const seoSettings = settings?.[SITE_SETTINGS_KEYS.SEO_SETTINGS];
+  const metaTitle = seoSettings?.metaTitle || siteName; // Use SITE_NAME as fallback
+  const metaDescription =
+    seoSettings?.metaDescription || defaultProductDescription;
+  const ogImage = seoSettings?.ogImage || defaultProductLogo;
+  const keywords = seoSettings?.keywords || defaultKeywords;
+  const favicon = settings?.[SITE_SETTINGS_KEYS.SITE_LOGO]?.toString() || defaultFavicon;
 
   return (
     <html lang="en">
       <head>
-        <title>{siteName}</title>
-        <link rel="icon" href="/images/favicon.ico" />
+        {/* Basic SEO Metadata */}
+        <title>{metaTitle}</title>
+        <meta name="description" content={metaDescription} />
+        <meta name="keywords" content={keywords} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="/" />
+        <link rel="icon" href={favicon} />
+
+        {/* Open Graph Metadata */}
+        <meta property="og:title" content={metaTitle} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:url" content="/" />
+        <meta property="og:type" content="website" />
+
+        {/* Twitter Card Metadata */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={metaTitle} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={ogImage} />
+
+        {/* Performance Optimization */}
+        <link rel="preload" href={ogImage} as="image" />
       </head>
       <body
         style={{

@@ -11,6 +11,7 @@ export const SITE_SETTINGS_KEYS = {
   MAX_INSTRUCTORS_COUNT: "maxInstructorsCount",
   CONTACT_US_INFO: "contactUsInfo",
   STUDENT_REVIEWS: "studentReviews",
+  SEO_SETTINGS: "seoSettings",
 } as const;
 
 export const SITE_SETTINGS: GeneralConfig<typeof SITE_SETTINGS_KEYS> = {
@@ -107,6 +108,33 @@ export const SITE_SETTINGS: GeneralConfig<typeof SITE_SETTINGS_KEYS> = {
       },
     },
   },
+  [SITE_SETTINGS_KEYS.SEO_SETTINGS]: {
+    label: "SEO Settings",
+    type: "json",
+    visibility: "public",
+    fields: {
+      metaTitle: {
+        label: "Meta Title",
+        guide: "This is the title displayed in search engines.",
+        formType: "string",
+      },
+      metaDescription: {
+        label: "Meta Description",
+        guide: "This is the description displayed in search engines.",
+        formType: "string",
+      },
+      ogImage: {
+        label: "Open Graph Image",
+        guide: "Image URL for social media previews (1200x630 recommended).",
+        formType: "image",
+      },
+      keywords: {
+        label: "Keywords",
+        guide: "Comma-separated keywords for SEO.",
+        formType: "string",
+      },
+    },
+  },
 };
 
 export type SITE_SETTINGS_TYPES = {
@@ -128,4 +156,10 @@ export type SITE_SETTINGS_TYPES = {
     name: string;
     comment: string;
   }[];
+  [SITE_SETTINGS_KEYS.SEO_SETTINGS]: {
+    metaTitle: string;
+    metaDescription: string;
+    ogImage: string;
+    keywords: string;
+  };
 };

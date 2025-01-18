@@ -77,85 +77,91 @@ const FeaturedCoursesSection: React.FC = () => {
     const buttonLabel = isEnrollmentActive ? "View Course" : "Buy Course";
 
     return (
-      <Card
-        hoverable
-        cover={
-          <ImageComponent
-            src={imageUrl}
-            alt={course.title || "Course Thumbnail"}
-            style={{
-              width: "100%",
-              height: "225px",
-              borderRadius: "8px",
-              objectFit: "cover",
-            }}
-          />
-        }
+      <div
         style={{
-          borderRadius: "8px",
-          overflow: "hidden",
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-          height: "100%",
+          padding: "8px",
         }}
       >
-        <Meta
-          title={
-            <Tooltip title={course.title}>
-              <Text strong style={{ fontSize: "16px" }}>
-                {course.title}
-              </Text>
-            </Tooltip>
+        <Card
+          hoverable
+          cover={
+            <ImageComponent
+              src={imageUrl}
+              alt={course.title || "Course Thumbnail"}
+              style={{
+                width: "100%",
+                height: "225px",
+                borderRadius: "8px",
+                objectFit: "cover",
+              }}
+            />
           }
-        />
-        <ExpandableContent
-          content={course.highlights || "No highlights available"}
-          linesToShow={2}
-        />
-        <div style={{ marginTop: "5px" }}>
-          <Tag color="blue" style={{ fontSize: "12px" }}>
-            {course.category || "General"}
-          </Tag>
-          <Tag color="green" style={{ fontSize: "12px" }}>
-            {course.level || "Beginner"}
-          </Tag>
-        </div>
-        <div
           style={{
-            marginTop: "10px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            borderRadius: "8px",
+            overflow: "hidden",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+            height: "100%",
           }}
         >
-          <div style={{ fontSize: "14px", color: "#ff4d4f" }}>
-            {course.price === 0
-              ? "Free"
-              : `${course.price.toLocaleString()} ${currency}`}
+          <Meta
+            title={
+              <Tooltip title={course.title}>
+                <Text strong style={{ fontSize: "16px" }}>
+                  {course.title}
+                </Text>
+              </Tooltip>
+            }
+          />
+          <ExpandableContent
+            content={course.highlights || "No highlights available"}
+            linesToShow={2}
+          />
+          <div style={{ marginTop: "5px" }}>
+            <Tag color="blue" style={{ fontSize: "12px" }}>
+              {course.category || "General"}
+            </Tag>
+            <Tag color="green" style={{ fontSize: "12px" }}>
+              {course.level || "Beginner"}
+            </Tag>
           </div>
-          <Tooltip title="Number of students enrolled">
-            <UsergroupAddOutlined style={{ marginRight: "4px" }} />
-            <Text type="secondary" style={{ fontSize: "12px" }}>
-              {Math.floor(Math.random() * 500) + 50}
-            </Text>
-          </Tooltip>
-        </div>
-        <Link href={`/courses/${course._id}`}>
-          <Button
-            type="primary"
-            size="middle"
+          <div
             style={{
               marginTop: "10px",
-              width: "100%",
-              borderRadius: "8px",
-              color: "white",
-              background: isEnrollmentActive ? "#001529" : "#ff4d4f",
-              borderColor: isEnrollmentActive ? "#001529" : "#ff4d4f",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            {buttonLabel}
-          </Button>
-        </Link>
-      </Card>
+            <div style={{ fontSize: "14px", color: "#ff4d4f" }}>
+              {course.price === 0
+                ? "Free"
+                : `${course.price.toLocaleString()} ${currency}`}
+            </div>
+            <Tooltip title="Number of students enrolled">
+              <UsergroupAddOutlined style={{ marginRight: "4px" }} />
+              <Text type="secondary" style={{ fontSize: "12px" }}>
+                {Math.floor(Math.random() * 500) + 50}
+              </Text>
+            </Tooltip>
+          </div>
+          <Link href={`/courses/${course._id}`}>
+            <Button
+              type="primary"
+              size="middle"
+              style={{
+                marginTop: "10px",
+                width: "100%",
+                borderRadius: "8px",
+                color: "white",
+                background: isEnrollmentActive ? "#001529" : "#ff4d4f",
+                borderColor: isEnrollmentActive ? "#001529" : "#ff4d4f",
+              }}
+            >
+              {buttonLabel}
+            </Button>
+          </Link>
+        </Card>
+      </div>
     );
   };
 
