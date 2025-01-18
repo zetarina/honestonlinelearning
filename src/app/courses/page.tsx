@@ -7,12 +7,12 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
 import { ApplicationLevelCourse } from "@/models/CourseModel";
-import CacheImage from "@/components/CacheImage";
+import ImageComponent from "@/components/ImageComponent";
 import ExpandableContent from "@/components/ExpandableContent";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
-import SubLoader from "@/components/SubLoader";
+import SubLoader from "@/components/loaders/SubLoader";
 
 // Extend Day.js with the UTC plugin
 dayjs.extend(utc);
@@ -107,7 +107,7 @@ const CoursesPage: React.FC = () => {
                       }}
                     >
                       {course.thumbnailUrl ? (
-                        <CacheImage
+                        <ImageComponent
                           src={course.thumbnailUrl}
                           alt={course.title || "Course Thumbnail"}
                           width={300}

@@ -5,7 +5,7 @@ import { User } from "@/models/UserModel";
 import { message, Result, Button } from "antd";
 import UserForm from "@/components/forms/UserForm";
 import apiClient from "@/utils/api/apiClient";
-import SubLoader from "@/components/SubLoader";
+import SubLoader from "@/components/loaders/SubLoader";
 
 const EditUserPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);

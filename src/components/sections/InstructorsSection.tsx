@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Row, Col, Typography, Carousel, Spin, Alert } from "antd";
-import CacheImage from "@/components/CacheImage";
-
-import { useMediaQuery } from "react-responsive"; // To detect screen size
+import ImageComponent from "@/components/ImageComponent";
+import { useMediaQuery } from "react-responsive";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
 import apiClient from "@/utils/api/apiClient";
-import SubLoader from "./SubLoader";
 
 const { Title, Text } = Typography;
 
@@ -18,21 +18,24 @@ interface Instructor {
 }
 
 const InstructorsSection: React.FC = () => {
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const { settings } = useSettings();
+  const maxInstructorsCount =
+    settings[SITE_SETTINGS_KEYS.MAX_INSTRUCTORS_COUNT] || 5;
+
+  const [instructors, setInstructors] = React.useState<Instructor[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   // Media queries to detect screen size
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1023 });
-  const isDesktop = useMediaQuery({ minWidth: 1024 });
 
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchInstructors = async () => {
       try {
         const response = await apiClient.get<Instructor[]>("/instructors");
         if (response.data && Array.isArray(response.data)) {
-          setInstructors(response.data);
+          setInstructors(response.data.slice(0, maxInstructorsCount));
         } else {
           throw new Error("Unexpected response format");
         }
@@ -45,23 +48,10 @@ const InstructorsSection: React.FC = () => {
     };
 
     fetchInstructors();
-  }, []);
+  }, [maxInstructorsCount]);
 
-  if (loading) {
-    return (
-      <SubLoader tip="Loading our instructors" />
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ padding: "60px 20px" }}>
-        <Alert message="Error" description={error} type="error" showIcon />
-      </div>
-    );
-  }
-
-  // Custom function to group instructors based on the number of columns
+  // Group instructors for carousel slides based on the number of columns
+  const columns = isMobile ? 1 : isTablet ? 2 : 5;
   const groupInstructors = (instructors: Instructor[], columns: number) => {
     const groups = [];
     for (let i = 0; i < instructors.length; i += columns) {
@@ -69,9 +59,6 @@ const InstructorsSection: React.FC = () => {
     }
     return groups;
   };
-
-  // Set the number of columns based on the screen size
-  const columns = isMobile ? 1 : isTablet ? 2 : 5;
   const instructorGroups = groupInstructors(instructors, columns);
 
   return (
@@ -80,8 +67,27 @@ const InstructorsSection: React.FC = () => {
         Meet Our Instructors
       </Title>
 
-      {instructors && instructors.length && instructors.length > 0 ? (
-        <Carousel autoplay dots={true} style={{ marginTop: "40px" }}>
+      {loading && (
+        <div style={{ textAlign: "center", margin: "20px 0" }}>
+          <Spin size="large" tip="Loading instructors..." />
+        </div>
+      )}
+
+      {error ? (
+        <div style={{ padding: "60px 20px" }}>
+          <Alert
+            message="Error"
+            description={error}
+            type="error"
+            showIcon
+          />
+        </div>
+      ) : instructors.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "20px", color: "white" }}>
+          <Text>No instructors available at the moment.</Text>
+        </div>
+      ) : (
+        <Carousel autoplay dots={{ className: "custom-carousel-dots" }}>
           {instructorGroups.map((group, index) => (
             <div key={index}>
               <Row justify="center" gutter={[24, 24]}>
@@ -97,9 +103,9 @@ const InstructorsSection: React.FC = () => {
                         padding: "20px",
                       }}
                     >
-                      <CacheImage
+                      <ImageComponent
                         src={instructor.avatar}
-                        alt={instructor.name || instructor.username}
+                        alt={instructor.name}
                         width={120}
                         height={120}
                         objectFit="cover"
@@ -111,7 +117,7 @@ const InstructorsSection: React.FC = () => {
                         priority
                       />
                       <Title level={4} style={{ color: "white" }}>
-                        {instructor.name || instructor.username}
+                        {instructor.name}
                       </Title>
                       <Text style={{ color: "white" }}>{instructor.bio}</Text>
                     </div>
@@ -121,10 +127,6 @@ const InstructorsSection: React.FC = () => {
             </div>
           ))}
         </Carousel>
-      ) : (
-        <div style={{ textAlign: "center", padding: "20px", color: "white" }}>
-          <Text>No instructors available at the moment.</Text>
-        </div>
       )}
     </div>
   );

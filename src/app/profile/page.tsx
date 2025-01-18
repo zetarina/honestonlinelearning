@@ -7,7 +7,7 @@ import ProfileUpdateForm from "@/components/forms/ProfileUpdateForm";
 import UserContext from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
-import SubLoader from "@/components/SubLoader";
+import SubLoader from "@/components/loaders/SubLoader";
 
 const UserProfile: React.FC = () => {
   const { user, refreshUser } = useContext(UserContext);

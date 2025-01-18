@@ -15,7 +15,7 @@ import {
 import Image from "next/image";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
-import UserAvatar from "./UserAvatar";
+import UserAvatar from "../components/UserAvatar";
 
 const { Sider, Content, Header, Footer } = Layout;
 

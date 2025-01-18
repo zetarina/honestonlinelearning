@@ -1,7 +1,7 @@
 import React from "react";
 import AppProvider from "@/providers/AppProvider";
 import SettingService from "@/services/SettingService";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
 

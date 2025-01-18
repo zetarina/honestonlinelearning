@@ -21,7 +21,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 import { loadStripe } from "@stripe/stripe-js";
-import SubLoader from "@/components/SubLoader";
+import SubLoader from "@/components/loaders/SubLoader";
 
 const { Dragger } = Upload;
 const { Title } = Typography;

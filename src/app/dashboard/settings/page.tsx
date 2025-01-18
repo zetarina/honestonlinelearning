@@ -11,7 +11,7 @@ import { PAYMENT_SETTINGS_KEYS } from "@/config/settings/PAYMENT_SETTINGS_KEYS";
 import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
 import { SOCIAL_MEDIA_KEYS } from "@/config/settings/SOCIAL_MEDIA_KEYS";
 import { STORAGE_SETTINGS_KEYS } from "@/config/settings/STORAGE_SETTINGS_KEYS";
-import SubLoader from "@/components/SubLoader";
+import SubLoader from "@/components/loaders/SubLoader";
 
 const groupedKeys = {
   SiteSettings: Object.values(SITE_SETTINGS_KEYS),

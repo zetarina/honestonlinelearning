@@ -2,11 +2,11 @@
 
 import React from "react";
 import { UserProvider } from "@/contexts/UserContext";
-import LayoutRouter from "@/components/LayoutRouter";
-import SetupPage from "@/components/SetupPage";
+import LayoutRouter from "@/router/LayoutRouter";
+import SetupForm from "@/components/forms/SetupForm";
 import { useSettings } from "@/contexts/SettingsContext";
 import { ImagePickerProvider } from "@/contexts/ImagePickerContext";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 
 interface AppProviderProps {
   children: React.ReactNode;
@@ -21,7 +21,7 @@ const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }
 
   if (isSetupRequired) {
-    return <SetupPage />;
+    return <SetupForm />;
   }
 
   return (

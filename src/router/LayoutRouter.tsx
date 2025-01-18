@@ -2,12 +2,11 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import DashboardLayout from "./DashboardLayout";
-import MainLayout from "./MainLayout";
-import LoadingSpinner from "./LoadingSpinner";
+import DashboardLayout from "../layouts/DashboardLayout";
+import MainLayout from "../layouts/MainLayout";
+import LoadingSpinner from "../components/loaders/LoadingSpinner";
 import UserContext from "@/contexts/UserContext";
 import { UserRole } from "@/models/UserModel";
-import { useSettings } from "@/contexts/SettingsContext";
 
 interface LayoutRouterProps {
   children: React.ReactNode;
@@ -36,13 +35,12 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
       } else if (
         isDashboardRoute &&
         user &&
-        !["ADMIN", "INSTRUCTOR"].includes(user.role.toUpperCase())
+        ![UserRole.ADMIN, UserRole.INSTRUCTOR].includes(user.role)
       ) {
         router.push("/profile");
       }
     }
   }, [initialLoading, isDashboardRoute, user, router]);
-  
 
   if (initialLoading || loading) {
     return <LoadingSpinner />;

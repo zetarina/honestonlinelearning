@@ -18,7 +18,7 @@ import apiClient from "@/utils/api/apiClient";
 
 const { Title } = Typography;
 
-const SetupPage: React.FC = () => {
+const SetupForm: React.FC = () => {
   
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -212,4 +212,4 @@ const SetupPage: React.FC = () => {
   );
 };
 
-export default SetupPage;
+export default SetupForm;

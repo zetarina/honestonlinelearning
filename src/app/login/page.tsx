@@ -4,7 +4,7 @@ import { Button, Input, Form, Alert, Typography, Spin } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useContext } from "react";
 import UserContext from "@/contexts/UserContext";
-import SubLoader from "@/components/SubLoader";
+import SubLoader from "@/components/loaders/SubLoader";
 import { UserRole } from "@/models/UserModel";
 
 const { Title } = Typography;

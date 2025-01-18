@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import SettingService from "@/services/SettingService";
 import {
-  Mail_SETTINGS_TYPES,
   MAIL_SERVICE_KEYS,
 } from "@/config/settings/MAIL_SERVICE_KEYS";
 import { SettingsInterface } from "@/config/settingKeys";

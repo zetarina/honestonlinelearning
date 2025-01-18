@@ -5,7 +5,7 @@ import { message, Spin } from "antd";
 import { Course } from "@/models/CourseModel";
 import CourseForm from "@/components/forms/CourseForm";
 import apiClient from "@/utils/api/apiClient";
-import SubLoader from "@/components/SubLoader";
+import SubLoader from "@/components/loaders/SubLoader";
 
 const CourseEditPage: React.FC = () => {
   const [courseData, setCourseData] = useState<Course | null>(null);

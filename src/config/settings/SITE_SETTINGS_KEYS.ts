@@ -83,6 +83,11 @@ export const SITE_SETTINGS: GeneralConfig<typeof SITE_SETTINGS_KEYS> = {
         guide: "The email address for contact.",
         formType: "string",
       },
+      mapLink: {
+        label: "Google Maps Link",
+        guide: "Embed link for the Google Maps location.",
+        formType: "string",
+      },
     },
   },
   [SITE_SETTINGS_KEYS.STUDENT_REVIEWS]: {
@@ -117,6 +122,7 @@ export type SITE_SETTINGS_TYPES = {
     address: string;
     phone: string;
     email: string;
+    mapLink: string;
   };
   [SITE_SETTINGS_KEYS.STUDENT_REVIEWS]: {
     name: string;

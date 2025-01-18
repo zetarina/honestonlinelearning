@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Select } from "antd";
 import apiClient from "@/utils/api/apiClient";
-import InlineLoader from "@/components/InlineLoader";
+import InlineLoader from "@/components/loaders/InlineLoader";
 
 const { Option } = Select;
 

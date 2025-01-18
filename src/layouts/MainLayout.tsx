@@ -8,9 +8,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
-import UserAvatar from "./UserAvatar";
+import UserAvatar from "../components/UserAvatar";
 import { getMainMenuItems, getMobileMenuItems } from "@/config/navigations";
-import SocialLinks from "./SocialLinks";
+import SocialLinks from "../components/SocialLinks";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;

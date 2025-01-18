@@ -1,14 +1,55 @@
-// components/ContactUsSection.tsx
 "use client";
+
 import React from "react";
-import { Form, Input, Button, Typography, message, Row, Col } from "antd";
+import { Form, Input, Button, Typography, Row, Col, message } from "antd";
+import { useSettings } from "@/contexts/SettingsContext";
+import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
+import apiClient from "@/utils/api/apiClient"; // Import apiClient for API requests
 
 const { Title, Text } = Typography;
 
-const ContactUsSection = () => {
+const ContactUsSection: React.FC = () => {
+  const { settings } = useSettings();
+
+  // Fetch contact information from settings
+  const contactInfo = settings[SITE_SETTINGS_KEYS.CONTACT_US_INFO] || {
+    address: "N/A",
+    phone: "N/A",
+    email: "N/A",
+    mapLink: "https://www.google.com/maps", // Default fallback map link
+  };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      // Use apiClient to send the form data to the API
+      const response = await apiClient.post("/contact-us", values);
+
+      if (response.status === 200) {
+        message.success(response.data.message || "Message sent successfully!");
+      } else {
+        message.error(response.data.error || "Failed to send your message.");
+      }
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      message.error("An unexpected error occurred. Please try again later.");
+    }
+  };
+
   return (
-    <div style={{ padding: "60px 20px", backgroundColor: "rgb(0, 21, 41)" }}>
-      <Title level={2} style={{ textAlign: "center", color: "white", marginBottom: "40px" }}>
+    <div
+      style={{
+        padding: "60px 20px",
+        backgroundColor: "rgb(0, 21, 41)",
+      }}
+    >
+      <Title
+        level={2}
+        style={{
+          textAlign: "center",
+          color: "white",
+          marginBottom: "40px",
+        }}
+      >
         Contact Us
       </Title>
 
@@ -18,18 +59,17 @@ const ContactUsSection = () => {
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
-          display: "flex",
-          flexWrap: "wrap", 
         }}
       >
-                <Col
-          xs={24} 
+        {/* Contact Form */}
+        <Col
+          xs={24}
           md={12}
-          style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            justifyContent: "center" 
-          }} 
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
         >
           <Form
             layout="vertical"
@@ -38,9 +78,9 @@ const ContactUsSection = () => {
               background: "#fff",
               borderRadius: "10px",
               boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
-              height: "100%", // Ensure full height
+              height: "100%",
             }}
-            onFinish={() => message.success("Message sent successfully!")}
+            onFinish={handleSubmit}
           >
             <Form.Item
               label="Name"
@@ -77,14 +117,15 @@ const ContactUsSection = () => {
           </Form>
         </Col>
 
-                <Col
-          xs={24} 
+        {/* Contact Information */}
+        <Col
+          xs={24}
           md={12}
-          style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            justifyContent: "center" 
-          }} // Flex properties to match height
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
         >
           <div
             style={{
@@ -92,21 +133,26 @@ const ContactUsSection = () => {
               background: "#fff",
               borderRadius: "10px",
               boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
-              height: "100%", // Ensure full height
+              height: "100%",
             }}
           >
             <Title level={4} style={{ color: "rgb(0, 21, 41)" }}>
               Our Location
             </Title>
-            <Text>19/B (First Floor), Min Ye Kyaw Swar Rd, Kyauk Kone Rd, Yangon</Text>
-            <br />
-            <Text>Phone: +959792824522</Text>
-            <br />
-            <Text>Email: honestonlinelearninghh@gmail.com</Text>
+            <Text style={{ display: "block", marginBottom: "10px" }}>
+              Address: {contactInfo.address}
+            </Text>
+            <Text style={{ display: "block", marginBottom: "10px" }}>
+              Phone: {contactInfo.phone}
+            </Text>
+            <Text style={{ display: "block", marginBottom: "20px" }}>
+              Email: {contactInfo.email}
+            </Text>
 
+            {/* Google Maps Embed */}
             <div style={{ marginTop: "20px" }}>
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4692.57839143553!2d96.1655511727486!3d16.831122473419477!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30c1edef226c8615%3A0x84274ec55cef47e0!2sHonest%20Hour!5e0!3m2!1sen!2smm!4v1735809818245!5m2!1sen!2smm"
+                src={contactInfo.mapLink} // Dynamic map link
                 width="100%"
                 height="300"
                 style={{
@@ -124,4 +170,5 @@ const ContactUsSection = () => {
     </div>
   );
 };
+
 export default ContactUsSection;
