@@ -44,12 +44,13 @@ export default async function AppLayout({
   }
 
   // Fallback values
-  const defaultProductName = "Multi-Company Product";
+  const defaultProductName = "WisdomWave";
   const defaultProductDescription =
-    "A versatile platform tailored for multiple organizations.";
-  const defaultProductLogo = "/images/product-logo.png";
+    "An innovative learning platform designed to empower learners and educators.";
+  const defaultProductLogo = "/images/product-logo.webp";
   const defaultFavicon = "/images/favicon.ico";
-  const defaultKeywords = "education, e-learning, online courses";
+  const defaultKeywords =
+    "learning, education, e-learning, online courses, knowledge, training";
 
   // Extract settings
   const siteName =
@@ -60,7 +61,8 @@ export default async function AppLayout({
     seoSettings?.metaDescription || defaultProductDescription;
   const ogImage = seoSettings?.ogImage || defaultProductLogo;
   const keywords = seoSettings?.keywords || defaultKeywords;
-  const favicon = settings?.[SITE_SETTINGS_KEYS.SITE_LOGO]?.toString() || defaultFavicon;
+  const favicon =
+    settings?.[SITE_SETTINGS_KEYS.SITE_LOGO]?.toString() || defaultFavicon;
 
   return (
     <html lang="en">
