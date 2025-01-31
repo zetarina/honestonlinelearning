@@ -17,6 +17,7 @@ export const APP_PERMISSIONS = {
 
 export type AppPermissionType =
   (typeof APP_PERMISSIONS)[keyof typeof APP_PERMISSIONS];
+export const GUEST_APP_PERMISSIONS = [APP_PERMISSIONS.ENROLL_IN_COURSES];
 
 export const ALL_PERMISSIONS = Object.values(APP_PERMISSIONS);
 

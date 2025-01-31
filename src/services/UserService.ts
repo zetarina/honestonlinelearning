@@ -1,10 +1,10 @@
 import { PointTransactionType, User } from "../models/UserModel";
-import { userRepository, roleRepository } from "@/repositories";
+import { userRepository, roleRepository, cacheRepository } from "@/repositories";
 import { Role, RoleType } from "@/models/RoleModel";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
-import { APP_PERMISSIONS } from "@/config/permissions";
+import { APP_PERMISSIONS, GUEST_APP_PERMISSIONS } from "@/config/permissions";
 
 class UserService {
   async getAllSafeUsers(): Promise<Partial<User>[]> {
@@ -58,7 +58,7 @@ class UserService {
       guestRole = await roleRepository.create({
         name: "Guest",
         type: RoleType.GUEST,
-        permissions: [],
+        permissions: GUEST_APP_PERMISSIONS,
         color: "gray",
         nonPermissionsEditable: true,
         level: 1,
@@ -111,6 +111,14 @@ class UserService {
     return userRepository.create(userData);
   }
   async syncRolePermissions(): Promise<void> {
+    const lastSyncTime = await cacheRepository.get<number>("lastRoleSyncTime");
+
+    const ONE_HOUR = 60 * 60 * 1000; // 1 hour
+    if (lastSyncTime && Date.now() - lastSyncTime < ONE_HOUR) {
+      console.log("Skipping role sync, recently updated.");
+      return;
+    }
+
     const systemRole = await roleRepository.findByRoleType(RoleType.SYSTEM);
     const guestRole = await roleRepository.findByRoleType(RoleType.GUEST);
 
@@ -126,11 +134,14 @@ class UserService {
     }
 
     if (guestRole) {
-      updates.push(roleRepository.updatePermissions(guestRole._id, []));
+      updates.push(
+        roleRepository.updatePermissions(guestRole._id, GUEST_APP_PERMISSIONS)
+      );
     }
-    await Promise.all(updates);
-  }
 
+    await Promise.all(updates);
+    await cacheRepository.set("lastRoleSyncTime", Date.now(), ONE_HOUR);
+  }
   async updateUser(
     id: string,
     updateData: Partial<User>

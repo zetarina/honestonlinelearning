@@ -132,4 +132,6 @@ export const defaultMenu: MenuItem[] = [
 
 export const defaultMainMenu: MenuItem[] = [
   { key: "home", icon: "HomeOutlined", label: "Home", link: "/" },
+  { key: "courses", icon: "BookOutlined", label: "Courses", link: "/courses" },
+  { key: "top-up", icon: "WalletOutlined", label: "Top Up", link: "/top-up" },
 ];

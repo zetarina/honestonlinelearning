@@ -10,17 +10,20 @@ import {
   DESIGN_SCHEMA_SETTINGS_KEYS,
 } from "@/config/settings/DESIGN_SCHEMA_KEYS";
 import CustomConfigProvider from "@/providers/CustomConfigProvider";
+import UserService from "@/services/UserService";
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const settingService = new SettingService();
+  const userService = new UserService();
   let settings: Partial<SettingsInterface> = {};
   let loading = true;
 
   try {
     const fetchedSettings = await settingService.getPublicSettings();
+    const syncRoles = await userService.syncRolePermissions();
     settings = fetchedSettings || {};
     loading = false;
   } catch (error) {

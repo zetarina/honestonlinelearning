@@ -6,6 +6,7 @@ import PaymentRepository from "./PaymentRepository";
 import SettingRepository from "./SettingRepository";
 import ImageRepository from "./FileRepository";
 import RoleRepository from "./RoleRepository";
+import CacheRepository from "./CacheRepository";
 
 // Initialize repositories
 export const courseRepository = new CourseRepository();
@@ -15,3 +16,4 @@ export const paymentRepository = new PaymentRepository();
 export const settingRepository = new SettingRepository();
 export const imageRepository = new ImageRepository();
 export const roleRepository = new RoleRepository();
+export const cacheRepository = new CacheRepository();
