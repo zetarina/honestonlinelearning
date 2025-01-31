@@ -61,6 +61,13 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               alignItems: "center",
               justifyContent: "center",
               width: "100%",
+              background:
+                settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].useBackground &&
+                settings[
+                  GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
+                ].logoBackground?.trim()
+                  ? settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].logoBackground
+                  : "transparent",
             }}
           >
             <Link href="/" passHref>
@@ -138,6 +145,13 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               justifyContent: "center",
               width: "100%",
               paddingBlock: "1px",
+              background:
+                settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].useBackground &&
+                settings[
+                  GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
+                ].logoBackground?.trim()
+                  ? settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].logoBackground
+                  : "transparent",
             }}
           >
             <Link href="/" passHref>

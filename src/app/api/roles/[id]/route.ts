@@ -29,7 +29,7 @@ export const GET = async (
       }
     },
     true,
-    [APP_PERMISSIONS.MANAGE_USERS]
+    [APP_PERMISSIONS.MANAGE_ROLES]
   )(request);
 
 export const PUT = async (

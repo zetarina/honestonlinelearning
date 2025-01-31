@@ -106,7 +106,6 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
             colorSplit: xcolor.interface.colorSplit,
           },
           Card: {
-         
             colorBgContainer: xcolor.container.background.default,
             headerBg: xcolor.container.trigger.background.default,
             actionsBg: xcolor.container.trigger.background.default,

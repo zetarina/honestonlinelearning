@@ -32,6 +32,16 @@ export const GLOBAL_SETTINGS: GeneralConfig<typeof GLOBAL_SETTINGS_KEYS> = {
         guide: "The logo image for your site.",
         formType: FormType.IMAGE,
       },
+      logoBackground: {
+        label: "Logo background color",
+        guide: "Select a color for the logo background.",
+        formType: FormType.COLOR,
+      },
+      useBackground: {
+        label: "Use logo background",
+        guide: "Enable or disable the logo background color.",
+        formType: FormType.BOOLEAN,
+      },
     },
   },
   [GLOBAL_SETTINGS_KEYS.HOMEPAGE]: {
@@ -144,7 +154,8 @@ export type GLOBAL_SETTINGS_TYPES = {
     siteUrl: string;
     siteBanner: string;
     siteLogo: string;
-    currency: string;
+    logoBackground: string;
+    useBackground: boolean;
   };
   [GLOBAL_SETTINGS_KEYS.HOMEPAGE]: {
     heroBanner: string;

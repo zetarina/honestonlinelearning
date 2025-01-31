@@ -12,7 +12,11 @@ import UserAvatar from "../components/UserAvatar";
 import SocialLinks from "../components/SocialLinks";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { usePathname } from "next/navigation";
-import { getMainDesktopMenu, getMainMobileMenu, getSelectedKey } from "@/config/navigations";
+import {
+  getMainDesktopMenu,
+  getMainMobileMenu,
+  getSelectedKey,
+} from "@/config/navigations";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -27,7 +31,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
   const pathname = usePathname();
-  const selectedKey = getSelectedKey(user, pathname, true);
+  const selectedKey = getSelectedKey(user, pathname, false);
+
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
   const handleLogout = async () => {
@@ -46,7 +51,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+        <Link
+          href="/"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            background:
+              settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].useBackground &&
+              settings[
+                GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
+              ].logoBackground?.trim()
+                ? settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].logoBackground
+                : "transparent",
+          }}
+        >
           <img
             src={
               settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteLogo
@@ -72,6 +90,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Menu
               style={{ marginRight: "20px" }}
               mode="horizontal"
+              selectedKeys={[selectedKey || ""]}
               items={getMainDesktopMenu(user)}
             />
           )}
@@ -96,6 +115,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Menu
               mode="vertical"
               items={getMainMobileMenu(user, logout)}
+              selectedKeys={[selectedKey || ""]}
               onClick={toggleDrawer}
             />
           </Drawer>

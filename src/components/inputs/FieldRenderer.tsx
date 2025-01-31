@@ -1,5 +1,5 @@
 import React from "react";
-import { Typography, Input, Tooltip, Card } from "antd";
+import { Typography, Input, Tooltip, Card, Switch } from "antd";
 import ImageSelection from "@/components/inputs/ImageSelection";
 import { ChildFieldInfo, FormType } from "@/config/settings";
 import DynamicDropdown from "./DynamicDropdown";
@@ -79,6 +79,18 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({
           value={value}
           onChange={onChange}
         />
+      ) : config.formType === FormType.BOOLEAN ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            marginTop: "8px",
+          }}
+        >
+          <Switch checked={!!value} onChange={onChange} />
+          <Typography.Text>{value ? "Enabled" : "Disabled"}</Typography.Text>
+        </div>
       ) : (
         <Input
           type={
