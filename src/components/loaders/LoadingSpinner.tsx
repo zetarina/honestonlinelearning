@@ -1,23 +1,23 @@
+"use client";
+
 import React, { FC } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
+import { lighten } from "polished";
 
 interface LoadingSpinnerProps {
-  backgroundColor?: string;
-  height?: string | number;
   message?: string;
 }
 
-const LoadingSpinner: FC<LoadingSpinnerProps> = ({
-  backgroundColor = "white",
-  height = "100vh",
-  message = "",
-}) => {
+const LoadingSpinner: FC<LoadingSpinnerProps> = ({ message = "" }) => {
+  const { colors } = useSettings(); // Fetch dynamic colors from settings
+
   const spinnerStyle: React.CSSProperties = {
-    background: backgroundColor,
+    background: colors.uiBackground.default, // Dynamically set background color
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    height: height,
+    height: "100vh",
     fontFamily: "'Roboto', sans-serif",
     color: "#555",
   };
@@ -27,7 +27,7 @@ const LoadingSpinner: FC<LoadingSpinnerProps> = ({
     fontSize: "24px", // Larger font for better visibility
     fontWeight: 600, // Bold text
     textAlign: "center",
-    background: "linear-gradient(90deg, #1890ff, #40a9ff)", // Blue gradient text
+    background: `linear-gradient(90deg, ${colors.primary.default}, ${colors.secondary.default})`, // Gradient text using dynamic colors
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent", // Makes the gradient visible
   };
@@ -39,25 +39,29 @@ const LoadingSpinner: FC<LoadingSpinnerProps> = ({
     display: "inline-block",
   };
 
-  const spinnerSegmentStyle = (color: string, delay: string): React.CSSProperties => ({
+  const spinnerSegmentStyle = (
+    color: string,
+    delay: number
+  ): React.CSSProperties => ({
     width: "100%",
     height: "100%",
     border: "6px solid transparent", // Thicker border for more prominent spinner
-    borderTop: `6px solid ${color}`,
+    borderTop: `6px solid ${lighten(delay / 2, color)}`,
     borderRadius: "50%",
     position: "absolute",
     animation: "spin 1s cubic-bezier(0.4, 0.0, 0.2, 1) infinite",
-    animationDelay: delay,
+    animationDelay: `${delay}s`,
   });
 
   return (
     <div style={spinnerStyle}>
       <div style={spinnerWrapperStyle}>
-        <div style={spinnerSegmentStyle("#1890ff", "0s")}></div> {/* Blue */}
-        <div style={spinnerSegmentStyle("#40a9ff", "0.1s")}></div> {/* Sky Blue */}
-        <div style={spinnerSegmentStyle("#69c0ff", "0.2s")}></div> {/* Lighter Blue */}
-        <div style={spinnerSegmentStyle("#91d5ff", "0.3s")}></div> {/* Pale Blue */}
-        <div style={spinnerSegmentStyle("#d6e4ff", "0.4s")}></div> {/* Almost White */}
+        <div style={spinnerSegmentStyle(colors.primary.default, 0)}></div>
+
+        <div style={spinnerSegmentStyle(colors.primary.default, 0.1)}></div>
+        <div style={spinnerSegmentStyle(colors.primary.default, 0.2)}></div>
+        <div style={spinnerSegmentStyle(colors.primary.default, 0.3)}></div>
+        <div style={spinnerSegmentStyle(colors.primary.default, 0.4)}></div>
       </div>
       {message && <div style={messageStyle}>{message}</div>}
       <style>

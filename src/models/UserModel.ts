@@ -1,10 +1,7 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
+import { Role,  } from "./RoleModel";
+import { coursesModelName, paymentsModelName, roleModelName, usersModelName } from ".";
 
-export enum UserRole {
-  STUDENT = "Student",
-  INSTRUCTOR = "Instructor",
-  ADMIN = "Admin",
-}
 
 export enum PointTransactionType {
   ADDED_BY_SYSTEM = "Added by System",
@@ -14,8 +11,6 @@ export enum PointTransactionType {
   BONUS_REWARD = "Bonus Reward",
   PURCHASED_POINTS = "Purchased Points",
 }
-
-export const usersModelName: string = "users";
 
 export interface DeviceToken {
   deviceName: string;
@@ -30,7 +25,6 @@ export interface PointTransaction {
   date: Date;
   courseId?: Types.ObjectId | string;
 }
-
 export interface User extends Document {
   _id: Types.ObjectId | string;
   name?: string;
@@ -42,7 +36,8 @@ export interface User extends Document {
   salt: string;
   pointTransactions: PointTransaction[];
   pointsBalance: number;
-  role: UserRole;
+  role_ids: Types.ObjectId[];
+  roles: Role[];
   devices: DeviceToken[];
   created_at: Date;
   updated_at: Date;
@@ -56,9 +51,13 @@ const pointTransactionSchema = new Schema({
     required: true,
   },
   points: { type: Number, required: true },
-  paymentId: { type: Schema.Types.ObjectId, ref: "Payment", sparse: true },
+  paymentId: {
+    type: Schema.Types.ObjectId,
+    ref: paymentsModelName,
+    sparse: true,
+  },
   date: { type: Date, default: Date.now },
-  courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+  courseId: { type: Schema.Types.ObjectId, ref: coursesModelName },
 });
 
 const deviceTokenSchema = new Schema({
@@ -66,7 +65,6 @@ const deviceTokenSchema = new Schema({
   token: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
-
 const userSchema = new Schema(
   {
     name: { type: String, trim: true },
@@ -77,15 +75,16 @@ const userSchema = new Schema(
     salt: { type: String, required: true },
     avatar: { type: String, default: "/images/default-avatar.webp" },
     pointTransactions: [pointTransactionSchema],
-    role: {
-      type: String,
-      enum: Object.values(UserRole),
-      default: UserRole.STUDENT,
-    },
+    role_ids: [{ type: Schema.Types.ObjectId, ref: roleModelName }],
     devices: [deviceTokenSchema],
   },
   { timestamps: true }
 );
+userSchema.virtual("roles", {
+  ref: roleModelName,
+  localField: "role_ids",
+  foreignField: "_id",
+});
 
 userSchema.virtual("pointsBalance").get(function () {
   return (

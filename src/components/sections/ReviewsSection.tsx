@@ -3,7 +3,7 @@
 import React from "react";
 import { Row, Col, Card, Typography, Avatar, Rate } from "antd";
 import { useSettings } from "@/contexts/SettingsContext";
-import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import CustomCarousel from "@/components/CustomCarousel";
 
 const { Title, Text } = Typography;
@@ -18,7 +18,7 @@ const ReviewsSection: React.FC = () => {
 
   // Safely fetch reviews from settings
   const studentReviews: Review[] =
-    settings[SITE_SETTINGS_KEYS.STUDENT_REVIEWS] || [];
+    settings[GLOBAL_SETTINGS_KEYS.HOMEPAGE]?.studentReviews || [];
 
   // Render nothing if there are no reviews
   if (!studentReviews.length) {

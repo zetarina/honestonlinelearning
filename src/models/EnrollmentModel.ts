@@ -1,6 +1,7 @@
 import mongoose, { Schema, Types, Document } from "mongoose";
-import { usersModelName, User } from "./UserModel";
-import { coursesModelName, Course } from "./CourseModel";
+import { User } from "./UserModel";
+import { Course, } from "./CourseModel";
+import { coursesModelName, enrollmentsModelName, usersModelName } from ".";
 
 export interface EnrollmentHistoryEntry {
   action: "ENROLL" | "EXTEND" | "COMPLETE";
@@ -12,8 +13,6 @@ export enum EnrollmentStatus {
   EXPIRED = "expired",
   COMPLETED = "completed",
 }
-
-export const enrollmentsModelName: string = "enrollments";
 
 export interface Enrollment extends Document {
   _id: Types.ObjectId | string;

@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import { usersModelName } from "./UserModel";
+import { paymentsModelName, usersModelName } from ".";
 
 export enum PaymentMethod {
   STRIPE = "stripe",
@@ -11,8 +11,6 @@ export enum PaymentStatus {
   COMPLETED = "completed",
   FAILED = "failed",
 }
-
-export const paymentsModelName: string = "payments";
 
 export interface Payment extends Document {
   _id: Types.ObjectId | string;

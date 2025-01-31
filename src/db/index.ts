@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/learning-service";
-const MONGODB_NAME = process.env.MONGODB_NAME || "default-db"; // Use default if MONGODB_NAME is not defined
+const MONGODB_NAME = process.env.MONGODB_NAME || "default-db";
 
 if (!MONGODB_URI) {
   throw new Error(

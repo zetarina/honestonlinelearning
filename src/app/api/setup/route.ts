@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import SettingService from "@/services/SettingService";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
-import { UserRole } from "@/models/UserModel";
+import userRepository from "@/repositories/UserRepository"; // Ensure correct import
 
 const userService = new UserService();
 const settingService = new SettingService();
@@ -11,58 +11,46 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    if (
-      !data.user ||
-      !data.user.email ||
-      !data.user.password ||
-      !data.user.username
-    ) {
+    // Validate required fields
+    if (!data.user?.email || !data.user?.password || !data.user?.username) {
       return NextResponse.json(
         { error: "Username, email, and password are required" },
         { status: 400 }
       );
     }
 
-    if (
-      !data.settings ||
-      !data.settings[SETTINGS_KEYS.SITE_NAME] ||
-      !data.settings[SETTINGS_KEYS.SITE_URL] ||
-      !data.settings[SETTINGS_KEYS.CURRENCY]
-    ) {
+    const siteSettings = data.settings?.[SETTINGS_KEYS.SITE_SETTINGS];
+    if (!siteSettings?.siteName || !siteSettings?.siteUrl) {
       return NextResponse.json(
-        { error: "Site name, URL, and currency are required" },
+        { error: "Site name and URL are required in site settings" },
         { status: 400 }
       );
     }
 
-    const existingUser = await userService.getUserByEmail(data.user.email);
-    if (existingUser) {
+    const currency = data.settings?.[SETTINGS_KEYS.CURRENCY];
+    if (!currency) {
       return NextResponse.json(
-        { error: "User already exists with this email" },
+        { error: "Currency is required" },
         { status: 400 }
       );
     }
 
-    const newUser = await userService.createUser(data.user, UserRole.ADMIN);
+    // Ensure only one system user exists
+    await userService.setupDefaultRolesAndSystemUser(data.user);
 
-    // Use upsertSettings to handle settings update in one call
+    // Save settings
     const settingsUpdates = {
-      [SETTINGS_KEYS.SITE_NAME]: data.settings[SETTINGS_KEYS.SITE_NAME],
-      [SETTINGS_KEYS.SITE_URL]: data.settings[SETTINGS_KEYS.SITE_URL],
-      [SETTINGS_KEYS.CURRENCY]: data.settings[SETTINGS_KEYS.CURRENCY],
+      [SETTINGS_KEYS.SITE_SETTINGS]: siteSettings,
+      [SETTINGS_KEYS.CURRENCY]: currency,
     };
-
     await settingService.upsertSettings(settingsUpdates, "production");
 
     return NextResponse.json(
-      {
-        message: "User created and settings saved successfully!",
-        user: newUser,
-      },
+      { message: "Setup completed successfully!" },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error creating user and saving settings:", error);
+    console.error("Error during setup:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

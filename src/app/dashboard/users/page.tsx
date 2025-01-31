@@ -1,4 +1,3 @@
-// /app/dashboard/users/page.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import {
@@ -19,7 +18,7 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import type { ColumnsType } from "antd/es/table";
-import { User, UserRole } from "@/models/UserModel"; // Adjust the path accordingly
+import { User } from "@/models/UserModel";
 import apiClient from "@/utils/api/apiClient";
 
 const UsersPage: React.FC = () => {
@@ -29,7 +28,6 @@ const UsersPage: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Fetch all users from the backend
     const fetchUsers = async () => {
       try {
         const response = await apiClient.get("/users");
@@ -49,7 +47,6 @@ const UsersPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  // Handle deleting a user
   const handleDelete = async (userId: string) => {
     try {
       const response = await apiClient.delete(`/users/${userId}`);
@@ -85,27 +82,17 @@ const UsersPage: React.FC = () => {
       sorter: (a, b) => a.email.localeCompare(b.email),
     },
     {
-      title: "Role",
-      dataIndex: "role",
-      key: "role",
-      filters: [
-        { text: "Student", value: UserRole.STUDENT },
-        { text: "Instructor", value: UserRole.INSTRUCTOR },
-        { text: "Admin", value: UserRole.ADMIN },
-      ],
-      onFilter: (value, record) => record.role === value,
-      render: (role: UserRole) => (
-        <Tag
-          color={
-            role === UserRole.ADMIN
-              ? "red"
-              : role === UserRole.INSTRUCTOR
-              ? "green"
-              : "blue"
-          }
-        >
-          {role.charAt(0).toUpperCase() + role.slice(1)}
-        </Tag>
+      title: "Roles",
+      dataIndex: "roles",
+      key: "roles",
+      render: (roles) => (
+        <>
+          {roles?.map((role) => (
+            <Tag key={role._id} color={role.color || "red"}>
+              {role.name}
+            </Tag>
+          ))}
+        </>
       ),
     },
     {

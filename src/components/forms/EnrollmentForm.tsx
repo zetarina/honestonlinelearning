@@ -16,8 +16,8 @@ import { useRouter } from "next/navigation";
 import { Enrollment } from "@/models/EnrollmentModel";
 import dayjs from "dayjs";
 import apiClient from "@/utils/api/apiClient";
-import CourseSelector from "./inputs/CourseSelector";
-import UserSelector from "./inputs/UserSelector";
+import CourseSelector from "../inputs/CourseSelector";
+import UserSelector from "../inputs/UserSelector";
 
 const { Option } = Select;
 

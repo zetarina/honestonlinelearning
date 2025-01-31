@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/db";
 import CourseService from "@/services/CourseService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const courseService = new CourseService();
 
@@ -12,7 +12,6 @@ async function handleGetCourseRequest(
   params: { id: string }
 ) {
   try {
-  
     const course = await courseService.getCourseById(params.id);
     if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
@@ -33,7 +32,6 @@ async function handleUpdateCourseRequest(
   params: { id: string }
 ) {
   try {
-    
     const body = await request.json();
     const updatedCourse = await courseService.updateCourse(params.id, body);
 
@@ -56,7 +54,6 @@ async function handleDeleteCourseRequest(
   params: { id: string }
 ) {
   try {
-
     const deletedCourse = await courseService.deleteCourse(params.id);
 
     if (!deletedCourse) {
@@ -79,7 +76,7 @@ export const GET = async (
   withAuthMiddleware(
     (req, userId) => handleGetCourseRequest(req, userId, context.params),
     true,
-    [UserRole.INSTRUCTOR, UserRole.ADMIN]
+    [APP_PERMISSIONS.MANAGE_COURSES]
   )(request);
 
 export const PUT = async (
@@ -89,7 +86,7 @@ export const PUT = async (
   withAuthMiddleware(
     (req, userId) => handleUpdateCourseRequest(req, userId, context.params),
     true,
-    [UserRole.INSTRUCTOR, UserRole.ADMIN]
+    [APP_PERMISSIONS.MANAGE_COURSES]
   )(request);
 
 export const DELETE = async (
@@ -99,5 +96,5 @@ export const DELETE = async (
   withAuthMiddleware(
     (req, userId) => handleDeleteCourseRequest(req, userId, context.params),
     true,
-    [UserRole.INSTRUCTOR, UserRole.ADMIN]
+    [APP_PERMISSIONS.MANAGE_COURSES]
   )(request);

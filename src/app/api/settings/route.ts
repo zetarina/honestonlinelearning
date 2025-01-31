@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
 import { SettingsInterface } from "@/config/settingKeys";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const settingService = new SettingService();
 
@@ -57,11 +57,11 @@ async function handleUpsertSettingsRequest(request: Request) {
 
 export const GET = async (request: Request) =>
   withAuthMiddleware((req, userId) => handleGetAllSettingsRequest(req), true, [
-    UserRole.ADMIN,
+    APP_PERMISSIONS.ADMIN,
   ])(request);
 
 // PUT: Bulk update settings (admin only)
 export const PUT = async (request: Request) =>
   withAuthMiddleware((req) => handleUpsertSettingsRequest(req), true, [
-    UserRole.ADMIN,
+    APP_PERMISSIONS.EDIT_SETTINGS,
   ])(request);

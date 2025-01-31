@@ -1,14 +1,14 @@
 import { FormType, GeneralConfig, NestedFieldType } from ".";
 
-export const MAIL_SERVICE_KEYS = {
+export const MAIL_SERVICE_SETTINGS_KEYS = {
   GMAIL: "gmail",
   OUTLOOK: "outlook",
   SENDGRID: "sendgrid",
   ADMIN_EMAIL: "adminEmail",
 } as const;
 
-export const MAIL_SERVICE_SETTINGS: GeneralConfig<typeof MAIL_SERVICE_KEYS> = {
-  [MAIL_SERVICE_KEYS.GMAIL]: {
+export const MAIL_SERVICE_SETTINGS: GeneralConfig<typeof MAIL_SERVICE_SETTINGS_KEYS> = {
+  [MAIL_SERVICE_SETTINGS_KEYS.GMAIL]: {
     label: "Gmail Settings",
     type: NestedFieldType.JSON,
     visibility: "private",
@@ -25,7 +25,7 @@ export const MAIL_SERVICE_SETTINGS: GeneralConfig<typeof MAIL_SERVICE_KEYS> = {
       },
     },
   },
-  [MAIL_SERVICE_KEYS.OUTLOOK]: {
+  [MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK]: {
     label: "Outlook Settings",
     type: NestedFieldType.JSON,
     visibility: "private",
@@ -42,7 +42,7 @@ export const MAIL_SERVICE_SETTINGS: GeneralConfig<typeof MAIL_SERVICE_KEYS> = {
       },
     },
   },
-  [MAIL_SERVICE_KEYS.SENDGRID]: {
+  [MAIL_SERVICE_SETTINGS_KEYS.SENDGRID]: {
     label: "SendGrid Settings",
     type: NestedFieldType.JSON,
     visibility: "private",
@@ -54,7 +54,7 @@ export const MAIL_SERVICE_SETTINGS: GeneralConfig<typeof MAIL_SERVICE_KEYS> = {
       },
     },
   },
-  [MAIL_SERVICE_KEYS.ADMIN_EMAIL]: {
+  [MAIL_SERVICE_SETTINGS_KEYS.ADMIN_EMAIL]: {
     label: "Admin Email",
     guide: "Enter the admin email for notifications.",
     formType: FormType.EMAIL,
@@ -63,16 +63,16 @@ export const MAIL_SERVICE_SETTINGS: GeneralConfig<typeof MAIL_SERVICE_KEYS> = {
 };
 
 export type Mail_SETTINGS_TYPES = {
-  [MAIL_SERVICE_KEYS.GMAIL]: {
+  [MAIL_SERVICE_SETTINGS_KEYS.GMAIL]: {
     user: string;
     password: string;
   };
-  [MAIL_SERVICE_KEYS.OUTLOOK]: {
+  [MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK]: {
     user: string;
     password: string;
   };
-  [MAIL_SERVICE_KEYS.SENDGRID]: {
+  [MAIL_SERVICE_SETTINGS_KEYS.SENDGRID]: {
     apiKey: string;
   };
-  [MAIL_SERVICE_KEYS.ADMIN_EMAIL]: string;
+  [MAIL_SERVICE_SETTINGS_KEYS.ADMIN_EMAIL]: string;
 };

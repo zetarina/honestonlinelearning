@@ -9,8 +9,10 @@ import Link from "next/link";
 import { useSettings } from "@/contexts/SettingsContext";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import UserAvatar from "../components/UserAvatar";
-import { getMainMenuItems, getMobileMenuItems } from "@/config/navigations";
 import SocialLinks from "../components/SocialLinks";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
+import { usePathname } from "next/navigation";
+import { getMainDesktopMenu, getMainMobileMenu, getSelectedKey } from "@/config/navigations";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -24,7 +26,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { settings } = useSettings();
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
-
+  const pathname = usePathname();
+  const selectedKey = getSelectedKey(user, pathname, true);
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
   const handleLogout = async () => {
@@ -37,45 +40,40 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         style={{
           display: "flex",
           alignItems: "center",
-          backgroundColor: "#ffffff",
           justifyContent: "space-between",
           height: "80px",
-          padding: "0 20px",
+          padding: "0 10px 0 0",
           boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-          borderBottom: "1px solid #f1f1f1",
         }}
       >
         <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-          <Image
+          <img
             src={
-              settings[SETTINGS_KEYS.SITE_LOGO]
-                ? encodeURI(settings[SETTINGS_KEYS.SITE_LOGO].trim())
+              settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteLogo
+                ? encodeURI(
+                    settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteLogo.trim()
+                  )
                 : "/images/logo.png"
             }
-            alt={settings[SETTINGS_KEYS.SITE_NAME]?.trim() || "Site Logo"}
-            width={120}
-            height={120}
-            priority
-            style={{ objectFit: "contain" }}
+            alt={
+              settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteName?.trim() ||
+              "Site Logo"
+            }
+            style={{
+              maxHeight: "80px",
+              width: "auto",
+              objectFit: "contain",
+            }}
           />
         </Link>
 
         <Space>
-          {isMobile ? (
-            <Drawer
-              title="Menu"
-              placement="right"
-              onClose={toggleDrawer}
-              open={drawerVisible}
-            >
-              <Menu
-                mode="vertical"
-                items={getMobileMenuItems(user, logout)}
-                onClick={toggleDrawer}
-              />
-            </Drawer>
-          ) : (
-            <Menu mode="horizontal" items={getMainMenuItems()} />
+          {!isMobile && (
+            <Menu
+              style={{ marginRight: "20px" }}
+              mode="horizontal"
+              items={getMainDesktopMenu(user)}
+            />
           )}
           <UserAvatar
             user={user}
@@ -88,12 +86,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </Header>
 
       <Content>
+        {isMobile && (
+          <Drawer
+            title="Menu"
+            placement="right"
+            onClose={toggleDrawer}
+            open={drawerVisible}
+          >
+            <Menu
+              mode="vertical"
+              items={getMainMobileMenu(user, logout)}
+              onClick={toggleDrawer}
+            />
+          </Drawer>
+        )}
         <div style={{ minHeight: "360px" }}>{children}</div>
       </Content>
 
       <Footer
         style={{
-          backgroundColor: "#ffffff",
           textAlign: "center",
           padding: "20px",
           flexDirection: "column",
@@ -105,7 +116,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <SocialLinks settings={settings} />
         </Space>
         <Text>
-          {settings[SETTINGS_KEYS.SITE_NAME]?.trim()} ©{" "}
+          {settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteName?.trim()} ©{" "}
           {new Date().getFullYear()} All rights reserved.
         </Text>
       </Footer>

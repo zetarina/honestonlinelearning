@@ -28,7 +28,7 @@ const FeaturedCoursesSection: React.FC = () => {
 
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
   const featureCoursesLimit =
-    settings[SETTINGS_KEYS.FEATURE_COURSES_LIMIT] || 4;
+    settings[SETTINGS_KEYS.HOMEPAGE]?.featureCoursesLimit || 4;
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -49,7 +49,7 @@ const FeaturedCoursesSection: React.FC = () => {
     };
 
     fetchCourses();
-  }, []);
+  }, [featureCoursesLimit]);
 
   if (loading) {
     return (
@@ -67,6 +67,11 @@ const FeaturedCoursesSection: React.FC = () => {
         </Title>
       </div>
     );
+  }
+
+  // If there are no courses after loading and no error, hide the section.
+  if (!loading && !error && courses.length === 0) {
+    return null;
   }
 
   const CourseCard = (course: ApplicationLevelCourse) => {
@@ -90,7 +95,7 @@ const FeaturedCoursesSection: React.FC = () => {
               alt={course.title || "Course Thumbnail"}
               style={{
                 width: "100%",
-                height: "225px",
+                height: "325px",
                 borderRadius: "8px",
                 objectFit: "cover",
               }}
@@ -132,11 +137,11 @@ const FeaturedCoursesSection: React.FC = () => {
               alignItems: "center",
             }}
           >
-            <div style={{ fontSize: "14px", color: "#ff4d4f" }}>
+            <Typography.Paragraph style={{ fontSize: "14px" }}>
               {course.price === 0
                 ? "Free"
                 : `${course.price.toLocaleString()} ${currency}`}
-            </div>
+            </Typography.Paragraph>
             <Tooltip title="Number of students enrolled">
               <UsergroupAddOutlined style={{ marginRight: "4px" }} />
               <Text type="secondary" style={{ fontSize: "12px" }}>
@@ -153,8 +158,8 @@ const FeaturedCoursesSection: React.FC = () => {
                 width: "100%",
                 borderRadius: "8px",
                 color: "white",
-                background: isEnrollmentActive ? "#001529" : "#ff4d4f",
-                borderColor: isEnrollmentActive ? "#001529" : "#ff4d4f",
+                // background: isEnrollmentActive ? "#001529" : "#ff4d4f",
+                // borderColor: isEnrollmentActive ? "#001529" : "#ff4d4f",
               }}
             >
               {buttonLabel}
@@ -166,7 +171,7 @@ const FeaturedCoursesSection: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: "40px 10px", backgroundColor: "#f9f9f9" }}>
+    <div style={{ padding: "40px 10px" }}>
       <Title level={3} style={{ textAlign: "center", marginBottom: "20px" }}>
         Featured Courses
       </Title>
@@ -186,13 +191,12 @@ const FeaturedCoursesSection: React.FC = () => {
       </CustomCarousel>
       <div>
         <Link href="/courses" passHref>
-          {/* Wrapping the Button with an anchor tag */}
           <p
             style={{
               display: "block",
               width: "max-content",
               margin: "0 auto",
-              textDecoration: "none", // remove default link styles if needed
+              textDecoration: "none",
             }}
           >
             <Button

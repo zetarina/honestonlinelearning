@@ -1,5 +1,6 @@
 import { SettingsInterface } from "@/config/settingKeys";
 import mongoose, { Document, Schema, Types } from "mongoose";
+const settingModelName: string = "Settings";
 
 export interface Setting extends Document {
   _id: Types.ObjectId | string;
@@ -8,8 +9,6 @@ export interface Setting extends Document {
   environment?: string;
   isPublic: boolean;
 }
-
-const settingModelName = "Setting";
 
 const SettingSchema = new Schema<Setting>({
   key: { type: String, required: true, unique: true },

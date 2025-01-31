@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newUser = await userService.createUser(data);
+    const newUser = await userService.signup(data);
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {

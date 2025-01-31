@@ -1,0 +1,22 @@
+.ant-layout-sider-trigger {
+  background-color: var(--colorUiBackground); /* Use your theme token here */
+  color: var(--colorUiText);
+  border-top: 1px solid var(--colorUiBorder); /* Optional: border */
+}
+
+.ant-layout-sider-trigger:hover {
+  background-color: var(--colorMenuItemHover);
+  color: var(--colorPrimary);
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease-in-out;
+  background-color: #ffffff; /* Fallback for light theme */
+}
+
+@media (prefers-color-scheme: dark) {
+  html, body {
+    background-color: #000000; /* Dark theme default */
+  }
+}

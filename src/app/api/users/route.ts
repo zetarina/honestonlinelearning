@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
-
+import { APP_PERMISSIONS } from "@/config/permissions";
 const userService = new UserService();
 
 async function handleGetAllUsersRequest(
@@ -57,12 +56,13 @@ async function handleCreateUserRequest(
 export const GET = async (request: Request) =>
   withAuthMiddleware(
     (req, userId) => handleGetAllUsersRequest(req, userId),
-    false
+    false,
+    [APP_PERMISSIONS.ADMIN]
   )(request);
 
 export const POST = async (request: Request) =>
   withAuthMiddleware(
     (req, userId) => handleCreateUserRequest(req, userId),
     true,
-    [UserRole.ADMIN]
+    [APP_PERMISSIONS.MANAGE_USERS]
   )(request);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import CourseService from "@/services/CourseService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const courseService = new CourseService();
 const userService = new UserService();
@@ -51,5 +52,6 @@ export const POST = async (
 ) =>
   withAuthMiddleware(
     (req, userId) => handleCoursePurchaseRequest(req, userId, context.params),
-    true
+    true,
+    [APP_PERMISSIONS.ENROLL_IN_COURSES]
   )(request);

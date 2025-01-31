@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
-import { usersModelName } from "./UserModel";
+import { coursesModelName, usersModelName } from ".";
 
-export const coursesModelName = "courses";
 
 export enum CourseLevel {
   BEGINNER = "beginner",
@@ -57,14 +56,14 @@ export interface Subscription {
 }
 
 export interface ZoomSlot {
-  startTimeUTC: string; // e.g., "16:00"
-  endTimeUTC: string; // e.g., "18:00"
+  startTimeUTC: string;
+  endTimeUTC: string;
   zoomLink: string;
 }
 
 export interface LiveSession {
-  dayOfWeek: string; // e.g., "Monday"
-  slots: ZoomSlot[]; // Multiple slots per day
+  dayOfWeek: string;
+  slots: ZoomSlot[];
 }
 
 export interface Course extends Document {
@@ -95,14 +94,12 @@ export interface ApplicationLevelCourse extends Course {
   isEnrollmentPermanent?: boolean;
 }
 
-// ZoomSlot schema to capture individual slots with times and links
 const zoomSlotSchema = new Schema<ZoomSlot>({
   startTimeUTC: { type: String, required: true },
   endTimeUTC: { type: String, required: true },
   zoomLink: { type: String, required: true },
 });
 
-// LiveSession schema to organize multiple slots by day of the week
 const liveSessionSchema = new Schema<LiveSession>({
   dayOfWeek: {
     type: String,
@@ -117,10 +114,9 @@ const liveSessionSchema = new Schema<LiveSession>({
       "Sunday",
     ],
   },
-  slots: [zoomSlotSchema], // Array of time-specific Zoom slots
+  slots: [zoomSlotSchema],
 });
 
-// Define other necessary schemas (videos, chapters, resources, etc.)
 const videoSchema = new Schema<Video>({
   title: { type: String, required: true },
   key: {
@@ -207,7 +203,6 @@ const courseSchema = new Schema<Course>(
   { timestamps: true, collection: coursesModelName }
 );
 
-// Virtual for instructor reference
 courseSchema.virtual("instructor", {
   ref: usersModelName,
   localField: "instructorId",

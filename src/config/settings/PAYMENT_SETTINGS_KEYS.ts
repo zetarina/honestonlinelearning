@@ -1,17 +1,23 @@
 import { FormType, GeneralConfig, NestedFieldType } from ".";
 
 export const PAYMENT_SETTINGS_KEYS = {
+  CURRENCY: "currency",
   STRIPE: "stripe",
   PAYPAL: "paypal",
   SQUARE: "square",
 } as const;
 
 export const PAYMENT_SETTINGS: GeneralConfig<typeof PAYMENT_SETTINGS_KEYS> = {
+  [PAYMENT_SETTINGS_KEYS.CURRENCY]: {
+    label: "Currency",
+    guide: "The default currency for transactions (e.g., USD, EUR).",
+    formType: FormType.TEXT,
+    visibility: "public",
+  },
   [PAYMENT_SETTINGS_KEYS.STRIPE]: {
     label: "Stripe Payment Settings",
     type: NestedFieldType.JSON,
     visibility: "private",
-
     fields: {
       publicKey: {
         label: "Stripe Public Key",
@@ -62,6 +68,7 @@ export const PAYMENT_SETTINGS: GeneralConfig<typeof PAYMENT_SETTINGS_KEYS> = {
 };
 
 export type PAYMENT_SETTINGS_TYPES = {
+  [PAYMENT_SETTINGS_KEYS.CURRENCY]: string;
   [PAYMENT_SETTINGS_KEYS.STRIPE]: {
     publicKey: string;
     secretKey: string;

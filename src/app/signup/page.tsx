@@ -1,12 +1,12 @@
 "use client";
 
-import { Button, Input, Form, Alert, Typography, Spin } from "antd";
+import { Button, Input, Form, Alert, Typography, Spin, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useContext, useEffect } from "react";
 
 import UserContext from "@/contexts/UserContext";
-import { UserRole } from "@/models/UserModel";
 import apiClient from "@/utils/api/apiClient";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const { Title } = Typography;
 
@@ -29,8 +29,11 @@ export default function SignupPage() {
   }, [user]);
 
   const handleRoleBasedRedirect = () => {
-    const target =
-      redirect || (user?.role === UserRole.STUDENT ? "/profile" : "/dashboard");
+    const canViewProfile = user?.roles?.some((role) =>
+      role.permissions.includes(APP_PERMISSIONS.VIEW_DASHBOARD)
+    );
+
+    const target = redirect || (canViewProfile ? "/dashboard" : "/profile");
     router.replace(target);
   };
 
@@ -66,34 +69,23 @@ export default function SignupPage() {
     <div
       style={{
         display: "flex",
-        alignItems: "center",
         justifyContent: "center",
+        alignItems: "center",
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        width: "100vw",
         padding: "16px",
       }}
     >
-      <div
+      <Card
+        title="Sign Up"
         style={{
           width: "100%",
           maxWidth: "400px",
-          backgroundColor: "white",
-          padding: "32px",
           borderRadius: "8px",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
           transition: "box-shadow 0.3s ease",
         }}
       >
-        <Title
-          level={2}
-          style={{
-            textAlign: "center",
-            marginBottom: "24px",
-          }}
-        >
-          Sign Up
-        </Title>
-
         {error && (
           <Alert
             message="Signup Error"
@@ -185,7 +177,7 @@ export default function SignupPage() {
         >
           Already have an account? <a href="/login">Log In</a>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

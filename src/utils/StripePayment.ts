@@ -1,4 +1,5 @@
 import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { initializeStripe } from "@/utils/stripe";
 
 export async function StripePayment(
@@ -13,7 +14,8 @@ export async function StripePayment(
 
   const stripe = initializeStripe(stripeSettings.secretKey);
 
-  const siteUrl = settings.siteUrl || process.env.SITE_URL;
+  const siteUrl =
+    settings[SETTINGS_KEYS.SITE_SETTINGS].siteUrl || process.env.SITE_URL;
   if (!siteUrl) {
     throw new Error("Site URL is not configured. Please contact the admin.");
   }

@@ -1,280 +1,67 @@
-import {
-  HomeOutlined,
-  PlusOutlined,
-  UploadOutlined,
-  DashboardOutlined,
-  BookOutlined,
-  FormOutlined,
-  PictureOutlined,
-  SettingOutlined,
-  TeamOutlined,
-  UserOutlined,
-  FileOutlined,
-  LogoutOutlined,
-  LoginOutlined,
-  WalletOutlined,
-} from "@ant-design/icons";
-
-import { Button } from "antd";
 import Link from "next/link";
-import { User, UserRole } from "@/models/UserModel";
 
-interface MenuItem {
-  key: string;
-  icon?: string;
-  label: string;
-  link?: string;
-  children?: MenuItem[];
-}
+import { iconMapper } from "./navigations/IconMappter";
+import { MenuItem } from "./navigations/menu";
+import { buildMenu } from "./navigations/menuBuilder";
+import { User } from "@/models/UserModel";
 
-export const iconMapper: { [key: string]: React.ReactNode } = {
-  HomeOutlined: <HomeOutlined />,
-  UserOutlined: <UserOutlined />,
-  TeamOutlined: <TeamOutlined />,
-  BookOutlined: <BookOutlined />,
-  PictureOutlined: <PictureOutlined />,
-  PlusOutlined: <PlusOutlined />,
-  UploadOutlined: <UploadOutlined />,
-  SettingOutlined: <SettingOutlined />,
-  FormOutlined: <FormOutlined />,
-  FileOutlined: <FileOutlined />,
-  WalletOutlined: <WalletOutlined />,
-  DashboardOutlined: <DashboardOutlined />,
-  LogoutOutlined: <LogoutOutlined />,
-  LoginOutlined: <LoginOutlined />,
-};
-
-export const dashboardMenuData: MenuItem[] = [
-  {
-    key: "courses",
-    icon: "BookOutlined",
-    label: "Courses",
-    children: [
-      {
-        key: "create-course",
-        label: "Create Course",
-        link: "/dashboard/courses/create",
-        icon: "FormOutlined",
-      },
-      {
-        key: "course-list",
-        label: "Courses List",
-        link: "/dashboard/courses",
-        icon: "BookOutlined",
-      },
-    ],
-  },
-  {
-    key: "users",
-    icon: "TeamOutlined",
-    label: "Users",
-    children: [
-      {
-        key: "create-user",
-        label: "Create User",
-        link: "/dashboard/users/create",
-        icon: "UserOutlined",
-      },
-      {
-        key: "user-list",
-        label: "Users List",
-        link: "/dashboard/users",
-        icon: "TeamOutlined",
-      },
-    ],
-  },
-  {
-    key: "images",
-    icon: "PictureOutlined",
-    label: "Images",
-    children: [
-      {
-        key: "upload-image",
-        label: "Upload Image",
-        link: "/dashboard/images/upload",
-        icon: "UploadOutlined",
-      },
-      {
-        key: "images-list",
-        label: "Images List",
-        link: "/dashboard/images",
-        icon: "PictureOutlined",
-      },
-    ],
-  },
-  {
-    key: "enrollments",
-    icon: "FileOutlined",
-    label: "Enrollments",
-    children: [
-      {
-        key: "create-enrollment",
-        label: "Create Enrollment",
-        link: "/dashboard/enrollments/create",
-        icon: "FormOutlined",
-      },
-      {
-        key: "enrollments-list",
-        label: "Enrollments List",
-        link: "/dashboard/enrollments",
-        icon: "FileOutlined",
-      },
-    ],
-  },
-  {
-    key: "add-points",
-    icon: "PlusOutlined",
-    label: "Add Points",
-    link: "/dashboard/add-points",
-  },
-  {
-    key: "settings",
-    icon: "SettingOutlined",
-    label: "Settings",
-    link: "/dashboard/settings",
-  },
-];
-
-export const mainMenuData: MenuItem[] = [
-  { key: "home", icon: "HomeOutlined", label: "Home", link: "/" },
-  { key: "courses", icon: "BookOutlined", label: "Courses", link: "/courses" },
-  { key: "top-up", icon: "WalletOutlined", label: "Top Up", link: "/top-up" },
-];
-
-// Common function to generate menu items for both desktop and mobile
 export const generateMenuItems = (menuData: MenuItem[]) => {
-  return menuData.map((menu) => {
-    if (menu.children && menu.children.length > 0) {
-      // For items with nested children (submenus)
-      return {
-        key: menu.key,
-        icon: iconMapper[menu.icon || ""],
-        label: <span style={{ color: "white" }}>{menu.label}</span>,
-        children: menu.children.map((child) => ({
-          key: child.key,
-          icon: iconMapper[child.icon || ""],
-          label: (
-            <Link href={child.link || "#"} passHref>
-              <span style={{ color: "white" }}>{child.label}</span>
-            </Link>
-          ),
-        })),
-      };
-    } else {
-      // For single-level items
-      return {
-        key: menu.key,
-        icon: iconMapper[menu.icon || ""],
-        label: (
-          <Link href={menu.link || "#"} passHref>
-            <span style={{ color: "white" }}>{menu.label}</span>
-          </Link>
-        ),
-      };
-    }
-  });
+  return menuData.map((menu) => ({
+    key: menu.key,
+    icon: iconMapper[menu.icon || ""],
+    label: menu.link ? (
+      <Link href={menu.link} passHref>
+        {menu.label}
+      </Link>
+    ) : (
+      <span>{menu.label}</span>
+    ),
+    children: menu.children ? generateMenuItems(menu.children) : undefined,
+  }));
 };
 
-// Desktop Menu Items
-export const getDashboardMenuItems = () => generateMenuItems(dashboardMenuData);
+export const getDashboardDesktopMenu = (user: User | null) =>
+  generateMenuItems(buildMenu(user, true));
 
-// Mobile Menu Items - with logout using UserContext
-export const getMobileDashboardMenuItems = (
+export const getDashboardMobileMenu = (
   user: User | null,
   logout: () => void
 ) => {
-  const mobileMenuData = generateMenuItems(dashboardMenuData);
-
+  const baseMenu = buildMenu(user, true);
+  const mobileMenu = generateMenuItems(baseMenu);
   if (user) {
-    mobileMenuData.push({
+    mobileMenu.push({
       key: "logout",
       icon: iconMapper["LogoutOutlined"],
-      label: (
-        <span onClick={logout} style={{ color: "white" }}>
-          Logout
-        </span>
-      ),
+      label: <span onClick={logout}>Logout</span>,
     });
   }
-
-  return mobileMenuData;
-};
-export const getMainMenuItems = () => {
-  return mainMenuData.map((menu) => ({
-    key: menu.key,
-    icon: iconMapper[menu.icon] || null,
-    label: (
-      <Link href={menu.link || "#"} passHref>
-        <Button type="link" style={{ padding: 0, color: "black" }}>
-          {menu.label}
-        </Button>
-      </Link>
-    ),
-  }));
+  return mobileMenu;
 };
 
-export const mobileMenuData = (user: User | null): MenuItem[] => [
-  ...mainMenuData,
-  ...(user && user.role !== UserRole.STUDENT
-    ? [
-        {
-          key: "dashboard",
-          icon: "DashboardOutlined",
-          label: "Dashboard",
-          link: "/dashboard",
-        },
-      ]
-    : []),
-  {
-    key: "profile",
-    icon: "UserOutlined",
-    label: "Profile",
-    link: "/profile",
-  },
-  user
-    ? {
-        key: "logout",
-        icon: "LogoutOutlined",
-        label: "Logout",
-      }
-    : {
-        key: "login",
-        icon: "LoginOutlined",
-        label: "Login",
-        link: "/login",
-      },
-];
+export const getMainDesktopMenu = (user: User | null) =>
+  generateMenuItems(buildMenu(user, false));
 
-export const getMobileMenuItems = (user: User | null, logout: () => void) =>
-  mobileMenuData(user).map((menu) => ({
-    key: menu.key,
-    icon: iconMapper[menu.icon || ""] || null,
-    label: menu.link ? (
-      <Link href={menu.link} passHref>
-        <Button type="link" style={{ padding: 0, color: "black" }}>
-          {menu.label}
-        </Button>
-      </Link>
-    ) : (
-      <span onClick={menu.key === "logout" ? logout : undefined}>
-        <Button type="link" style={{ padding: 0, color: "black" }}>
-          {menu.label}
-        </Button>
-      </span>
-    ),
-  }));
+export const getMainMobileMenu = (user: User | null, logout: () => void) => {
+  const baseMenu = buildMenu(user, false);
+  const mobileMenu = generateMenuItems(baseMenu);
+  if (user) {
+    mobileMenu.push({
+      key: "logout",
+      icon: iconMapper["LogoutOutlined"],
+      label: <span onClick={logout}>Logout</span>,
+    });
+  }
+  return mobileMenu;
+};
+export const getSelectedKey = (
+  user: User | null,
+  pathname: string,
+  isDashboard: boolean
+) => {
+  const menuData = buildMenu(user, isDashboard);
 
-export const mobileDashboardMenuData = (user: User | null): MenuItem[] => [
-  ...dashboardMenuData,
-  {
-    key: "profile",
-    icon: "UserOutlined",
-    label: "Profile",
-    link: "/profile",
-  },
-  {
-    key: "logout",
-    icon: "LogoutOutlined",
-    label: "Logout",
-  },
-];
+  return menuData
+    .flatMap((item) => [item, ...(item.children || [])])
+    .find((item) => item.link === pathname)?.key;
+};

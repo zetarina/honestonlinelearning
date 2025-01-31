@@ -1,7 +1,8 @@
 import React from "react";
 import { Avatar, Tooltip, Typography, Dropdown, Menu, MenuProps } from "antd";
-import { User, UserRole } from "@/models/UserModel";
+import { User } from "@/models/UserModel";
 import Link from "next/link";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const { Title, Text } = Typography;
 
@@ -21,7 +22,10 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   toggleDrawer,
 }) => {
   const menuItems: MenuProps["items"] = [
-    ...(user && user.role !== UserRole.STUDENT
+    ...(user &&
+    user.roles?.some((role) =>
+      role.permissions.includes(APP_PERMISSIONS.VIEW_DASHBOARD)
+    )
       ? [
           {
             key: "dashboard",

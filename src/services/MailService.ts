@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import SettingService from "@/services/SettingService";
 import {
-  MAIL_SERVICE_KEYS,
+  MAIL_SERVICE_SETTINGS_KEYS,
 } from "@/config/settings/MAIL_SERVICE_KEYS";
 import { SettingsInterface } from "@/config/settingKeys";
 
@@ -21,35 +21,35 @@ export default class MailService {
         "production"
       )) as SettingsInterface;
 
-      this.adminEmail = settings[MAIL_SERVICE_KEYS.ADMIN_EMAIL];
+      this.adminEmail = settings[MAIL_SERVICE_SETTINGS_KEYS.ADMIN_EMAIL];
 
       if (
-        settings[MAIL_SERVICE_KEYS.GMAIL]?.user &&
-        settings[MAIL_SERVICE_KEYS.GMAIL]?.password
+        settings[MAIL_SERVICE_SETTINGS_KEYS.GMAIL]?.user &&
+        settings[MAIL_SERVICE_SETTINGS_KEYS.GMAIL]?.password
       ) {
         this.transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
-            user: settings[MAIL_SERVICE_KEYS.GMAIL].user,
-            pass: settings[MAIL_SERVICE_KEYS.GMAIL].password,
+            user: settings[MAIL_SERVICE_SETTINGS_KEYS.GMAIL].user,
+            pass: settings[MAIL_SERVICE_SETTINGS_KEYS.GMAIL].password,
           },
         });
       } else if (
-        settings[MAIL_SERVICE_KEYS.OUTLOOK]?.user &&
-        settings[MAIL_SERVICE_KEYS.OUTLOOK]?.password
+        settings[MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK]?.user &&
+        settings[MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK]?.password
       ) {
         this.transporter = nodemailer.createTransport({
           service: "outlook",
           auth: {
-            user: settings[MAIL_SERVICE_KEYS.OUTLOOK].user,
-            pass: settings[MAIL_SERVICE_KEYS.OUTLOOK].password,
+            user: settings[MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK].user,
+            pass: settings[MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK].password,
           },
         });
-      } else if (settings[MAIL_SERVICE_KEYS.SENDGRID]?.apiKey) {
+      } else if (settings[MAIL_SERVICE_SETTINGS_KEYS.SENDGRID]?.apiKey) {
         this.transporter = nodemailer.createTransport({
           service: "SendGrid",
           auth: {
-            api_key: settings[MAIL_SERVICE_KEYS.SENDGRID].apiKey,
+            api_key: settings[MAIL_SERVICE_SETTINGS_KEYS.SENDGRID].apiKey,
           },
         });
       } else {

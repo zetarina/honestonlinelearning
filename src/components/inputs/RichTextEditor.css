@@ -1,0 +1,37 @@
+.custom-quill-editor .ql-editor {
+  background: var(--colorBgContainer, #1f1f1f) !important;
+  color: var(--colorText, #ffffff) !important;
+  min-height: 150px;
+  font-size: 16px;
+  padding: 10px;
+}
+
+.custom-quill-editor .ql-toolbar {
+  background: var(--addonBg, #2a2a2a) !important;
+}
+
+.custom-quill-editor .ql-formats,
+.custom-quill-editor .ql-picker,
+.custom-quill-editor .ql-stroke {
+  color: var(--colorText, #ffffff) !important;
+}
+
+.custom-quill-editor .ql-picker-label,
+.custom-quill-editor .ql-picker-item {
+  background: var(--colorBgContainer, #1f1f1f) !important;
+  color: var(--colorText, #ffffff) !important;
+}
+
+.custom-quill-editor .ql-picker-item:hover {
+  background: var(--hoverBg, #444) !important;
+  color: var(--colorTextHovered, #ddd) !important;
+}
+
+.custom-quill-editor .ql-picker-item.ql-selected {
+  background: var(--optionSelectedBg, #555) !important;
+  color: var(--optionSelectedText, #fff) !important;
+}
+.ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+  border: 0px;
+  padding: 0;
+}

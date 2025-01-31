@@ -6,19 +6,19 @@ import { ReactNode } from "react";
 interface SocialLinkProps {
   url: string;
   icon: ReactNode;
-  type?: "link" | "primary" | "default" | "dashed" | "text";
 }
 
-const SocialLink: React.FC<SocialLinkProps> = ({
-  url,
-  icon,
-  type = "link",
-}) => {
+const SocialLink: React.FC<SocialLinkProps> = ({ url, icon }) => {
   if (!url) return null;
 
   return (
-    <Link href={url} target="_blank" rel="noopener noreferrer">
-      <Button icon={icon} type={type} />
+    <Link
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ margin: "0 2px" }}
+    >
+      <Button icon={icon} type="dashed" />
     </Link>
   );
 };

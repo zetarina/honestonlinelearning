@@ -4,11 +4,12 @@ import React, {
   useMemo,
   useState,
   useEffect,
+  useCallback,
 } from "react";
 import useSWR from "swr";
 import { User } from "@/models/UserModel";
 import { message } from "antd";
-import apiClient from "@/utils/api/apiClient";
+import apiClient, { saveTokens, clearTokens } from "@/utils/api/apiClient";
 
 interface UserContextProps {
   user: User | null;
@@ -30,19 +31,27 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   const [loading, setLoading] = useState(false);
   const [hasShownLogoutMessage, setHasShownLogoutMessage] = useState(false);
 
-  const fetcher = (url: string) => apiClient.get(url).then((res) => res.data);
+  const fetcher = useCallback(
+    async (url: string) => {
+      try {
+        return await apiClient.get(url).then((res) => res.data);
+      } catch (error) {
+        return null;
+      }
+    },
+    []
+  );
 
   const { data, mutate, isValidating } = useSWR<User>(
     () => (localStorage.getItem("accessToken") ? "/me" : null),
     fetcher,
     {
-      refreshInterval: 6000,
+      refreshInterval: 10 * 1000,
       revalidateOnFocus: true,
       shouldRetryOnError: false,
     }
   );
 
-  // Update user and initial loading state when data changes
   useEffect(() => {
     setUser(data || null);
     if (!isValidating) {
@@ -50,13 +59,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [data, isValidating]);
 
-  // Handle session changes (e.g., token changes in localStorage)
   useEffect(() => {
     const handleStorageChange = () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const refreshToken = localStorage.getItem("refreshToken");
-
-      if (!accessToken || !refreshToken) {
+      if (!localStorage.getItem("accessToken") || !localStorage.getItem("refreshToken")) {
         if (user) {
           logoutUser("Logged out due to session change.");
         }
@@ -66,40 +71,32 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     window.addEventListener("storage", handleStorageChange);
-
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [user, mutate]);
 
-  // Centralized error handling
-  const handleError = (error: any, defaultMessage: string) => {
+  const handleError = useCallback((error: any, defaultMessage: string) => {
     console.error(error);
     const errorMessage = error?.response?.data?.message || defaultMessage;
     message.error(errorMessage);
-  };
+  }, []);
 
-  // Refresh user data
-  const refreshUser = () => {
+  const refreshUser = useCallback(() => {
     mutate();
-  };
+  }, [mutate]);
 
-  // Refresh user data and handle errors
-  const awaitRefreshUser = async () => {
+  const awaitRefreshUser = useCallback(async () => {
     try {
       await mutate();
     } catch (error) {
       handleError(error, "Failed to refresh user data.");
     }
-  };
+  }, [mutate, handleError]);
 
-  // Handle user login
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
       const { data } = await apiClient.post("/auth/login", { email, password });
-      const { accessToken, refreshToken } = data;
-
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
+      saveTokens(data.accessToken, data.refreshToken);
 
       setHasShownLogoutMessage(false);
       await mutate();
@@ -110,12 +107,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [mutate, handleError]);
 
-  // Handle user logout
-  const logoutUser = (infoMessage?: string) => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+  const logoutUser = useCallback((infoMessage?: string) => {
+    clearTokens();
     setUser(null);
     mutate(null, false);
 
@@ -125,20 +120,19 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     } else {
       message.success("Logout successful!");
     }
-  };
+  }, [mutate, hasShownLogoutMessage]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setLoading(true);
     try {
       logoutUser();
     } finally {
       setLoading(false);
     }
-  };
+  }, [logoutUser]);
 
   const isCurrentlyLoading = initialLoading || isValidating;
 
-  // Memoize context value for performance
   const value = useMemo(
     () => ({
       user,
@@ -149,7 +143,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       signIn,
       logout,
     }),
-    [user, initialLoading, isCurrentlyLoading]
+    [user, initialLoading, isCurrentlyLoading, refreshUser, awaitRefreshUser, signIn, logout]
   );
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

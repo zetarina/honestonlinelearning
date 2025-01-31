@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import EnrollmentService from "@/services/EnrollmentService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const enrollmentService = new EnrollmentService();
 
@@ -62,7 +62,7 @@ export const GET = async (
   withAuthMiddleware(
     (req, userId) => handleGetEnrollmentRequest(req, userId, context.params),
     true,
-    [UserRole.ADMIN, UserRole.INSTRUCTOR]
+    [APP_PERMISSIONS.ADMIN]
   )(request);
 
 export const DELETE = async (
@@ -72,5 +72,5 @@ export const DELETE = async (
   withAuthMiddleware(
     (req, userId) => handleDeleteEnrollmentRequest(req, userId, context.params),
     true,
-    [UserRole.ADMIN, UserRole.INSTRUCTOR]
+    [APP_PERMISSIONS.MANAGE_ENROLLMENTS]
   )(request);

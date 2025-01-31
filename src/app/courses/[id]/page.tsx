@@ -147,11 +147,7 @@ const CoursePage: React.FC = () => {
     isEnrollmentActive,
   ]);
 
-  return (
-    <div style={{ backgroundColor: "#f9f9f9", paddingBottom: "60px" }}>
-      {courseContent}
-    </div>
-  );
+  return <div>{courseContent}</div>;
 };
 
 export default CoursePage;

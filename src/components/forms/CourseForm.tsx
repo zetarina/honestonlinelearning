@@ -20,12 +20,13 @@ import {
   LiveSession,
 } from "@/models/CourseModel";
 import { useRouter } from "next/navigation";
-import ChaptersModal from "@/components/forms/inputs/ChaptersModal";
-import ImageSelection from "@/components/forms/inputs/ImageSelection";
-import InstructorSelection from "@/components/forms/inputs/InstructorSelection";
-import RichTextEditor from "@/components/forms/inputs/RichTextEditor";
-import LiveSessionsModal from "./inputs/LiveSessionsModal";
 import apiClient from "@/utils/api/apiClient";
+import ImageSelection from "../inputs/ImageSelection";
+import InstructorSelection from "../inputs/InstructorSelection";
+import LiveSessionsModal from "../inputs/LiveSessionsModal";
+import RichTextEditor from "../inputs/RichTextEditor";
+import ChaptersModal from "../modals/ChaptersModal";
+import DynamicDropdown from "../inputs/DynamicDropdown";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -35,7 +36,6 @@ interface CourseFormProps {
 }
 
 const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
-  
   const [form] = Form.useForm();
   const router = useRouter();
   const [chapters, setChapters] = useState(course?.chapters || []);
@@ -137,21 +137,29 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         >
           <Input />
         </Form.Item>
-
-        <RichTextEditor
+        <Form.Item
           label="Course Highlights"
           name="highlights"
           rules={[
             { required: true, message: "Please provide course highlights." },
           ]}
-        />
-        <RichTextEditor
+          valuePropName="value"
+          getValueFromEvent={(e) => e}
+        >
+          <RichTextEditor />
+        </Form.Item>
+
+        <Form.Item
           label="Course Description"
           name="description"
           rules={[
             { required: true, message: "Please provide a course description." },
           ]}
-        />
+          valuePropName="value"
+          getValueFromEvent={(e) => e}
+        >
+          <RichTextEditor />
+        </Form.Item>
 
         <Form.Item label="Price" name="price" rules={[{ required: true }]}>
           <InputNumber min={0} style={{ width: "100%" }} />
@@ -196,11 +204,20 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
         >
           <ImageSelection />
         </Form.Item>
-
-        <InstructorSelection />
+        <Form.Item
+          label="Instructor"
+          name="instructorId"
+          rules={[{ required: true, message: "Please select an instructor!" }]}
+        >
+          <DynamicDropdown
+            endpoint="/instructors"
+            valueKey="_id"
+            labelKey="username"
+            placeholder="Select an instructor"
+          />
+        </Form.Item>
         <Form.Item label="Subscription" required>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            {/* Recurrence Type Select */}
             <Form.Item
               name={["subscription", "recurrenceType"]}
               style={{ flex: "1 1 50%" }}
@@ -294,6 +311,13 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
 
         {courseType === CourseType.SELF_PACED && (
           <>
+            <div style={{ fontWeight: "bold", marginBottom: "8px" }}>
+              Chapters: {chapters.length} | Videos:
+              {chapters.reduce(
+                (total, chapter) => total + (chapter.videos?.length || 0),
+                0
+              )}
+            </div>
             <Button
               type="dashed"
               onClick={() => setIsChaptersModalOpen(true)}

@@ -14,7 +14,7 @@ import {
 
 import { useRouter, useSearchParams } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
-import UserSelector from "@/components/forms/inputs/UserSelector";
+import UserSelector from "@/components/inputs/UserSelector";
 
 const { Text } = Typography;
 

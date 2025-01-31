@@ -111,7 +111,12 @@ const UserProfile: React.FC = () => {
             {user.username}
           </Descriptions.Item>
           <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
-          <Descriptions.Item label="Role">{user.role}</Descriptions.Item>
+          <Descriptions.Item label="Roles">
+            {user?.roles?.length
+              ? user.roles.map((role) => role.name).join(", ")
+              : "N/A"}
+          </Descriptions.Item>
+
           <Descriptions.Item label="Points Balance">
             {user.pointsBalance || 0}
           </Descriptions.Item>

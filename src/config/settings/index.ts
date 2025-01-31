@@ -7,10 +7,14 @@ export enum FormType {
   IMAGE = "image",
   SELECT = "select",
   EMAIL = "email",
+  COLOR = "color",
+  TEXTAREA = "textarea",
+  ROLE_SELECTION = "role-selection",
 }
 export enum NestedFieldType {
   JSON = "json",
   ARRAY = "array",
+  INTELLIGENT_JSON = "intelligent-json",
 }
 export type FieldInfo = {
   label: string;

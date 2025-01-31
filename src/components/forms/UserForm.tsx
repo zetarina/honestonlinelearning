@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Select, Card, message } from "antd";
-import { User, UserRole } from "@/models/UserModel";
-
-import ImageSelection from "./inputs/ImageSelection";
+import { Form, Input, Button, Card, message } from "antd";
+import { User } from "@/models/UserModel";
 import { useRouter } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
+import ImageSelection from "../inputs/ImageSelection";
+import DynamicMultiSelect from "../inputs/DynamicMultiSelect";
 
-const { Option } = Select;
 const { TextArea } = Input;
 
 interface UserFormProps {
@@ -18,40 +17,33 @@ interface UserFormProps {
 const UserForm: React.FC<UserFormProps> = ({ user }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(false);
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   useEffect(() => {
     if (user) {
-      form.setFieldsValue(user);
+      form.setFieldsValue({
+        ...user,
+        role_ids: user.roles?.map((role) => role._id) || [],
+      });
     }
   }, [user, form]);
 
   const onFinish = async (values: any) => {
     setLoading(true);
+    const { password, role_ids, ...otherValues } = values;
 
-    // Prepare the user payload
-    const { password, ...otherValues } = values;
     const userData = {
       ...otherValues,
-      ...(password ? { password } : {}), // Include password only if it's provided
+      role_ids, // Multiple roles
+      ...(password ? { password } : {}),
     };
 
     try {
       if (user?._id) {
-        // Update existing user
-        await apiClient.put(`/users/${user._id}`, userData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        await apiClient.put(`/users/${user._id}`, userData);
         message.success("User updated successfully!");
       } else {
-        // Create new user
-        await apiClient.post("/users", userData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        await apiClient.post("/users", userData);
         message.success("User created successfully!");
       }
 
@@ -76,7 +68,6 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
         form={form}
         layout="vertical"
         onFinish={onFinish}
-        initialValues={{ role: UserRole.STUDENT }}
         autoComplete="off"
       >
         <Form.Item
@@ -117,7 +108,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
           <ImageSelection />
         </Form.Item>
 
-        <Form.Item label="Bio" name="bio" rules={[{ required: false }]}>
+        <Form.Item label="Bio" name="bio">
           <TextArea
             rows={4}
             placeholder="Tell us a bit about yourself"
@@ -126,15 +117,19 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
         </Form.Item>
 
         <Form.Item
-          label="Role"
-          name="role"
-          rules={[{ required: true, message: "Please select a role" }]}
+          label="Roles"
+          name="role_ids"
+          rules={[
+            { required: true, message: "Please select at least one role" },
+          ]}
         >
-          <Select>
-            <Option value={UserRole.STUDENT}>Student</Option>
-            <Option value={UserRole.INSTRUCTOR}>Instructor</Option>
-            <Option value={UserRole.ADMIN}>Admin</Option>
-          </Select>
+          <DynamicMultiSelect
+            endpoint="/roles"
+            valueKey="_id"
+            labelKey="name"
+            placeholder="Select roles"
+            disabled={user?.roles?.some(role => role.type === "system")}
+          />
         </Form.Item>
 
         <Form.Item>

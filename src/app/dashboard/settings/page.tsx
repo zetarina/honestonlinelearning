@@ -1,34 +1,39 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Tabs, Button, message, Space, Result } from "antd";
 import apiClient from "@/utils/api/apiClient";
-import CombinedField from "@/components/forms/inputs/CombinedField";
+import CombinedField from "@/components/inputs/CombinedField";
 import { SETTINGS_GUIDE, SettingsInterface } from "@/config/settingKeys";
-import { MAIL_SERVICE_KEYS } from "@/config/settings/MAIL_SERVICE_KEYS";
-import { MESSAGING_SERVICE_KEYS } from "@/config/settings/MESSAGING_SERVICE_KEYS";
+import { MAIL_SERVICE_SETTINGS_KEYS } from "@/config/settings/MAIL_SERVICE_KEYS";
+import { MESSAGING_SERVICE_SETTINGS_KEYS } from "@/config/settings/MESSAGING_SERVICE_KEYS";
 import { PAYMENT_SETTINGS_KEYS } from "@/config/settings/PAYMENT_SETTINGS_KEYS";
-import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
-import { SOCIAL_MEDIA_KEYS } from "@/config/settings/SOCIAL_MEDIA_KEYS";
-import { STORAGE_SETTINGS_KEYS } from "@/config/settings/STORAGE_SETTINGS_KEYS";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
+import { SOCIAL_MEDIA_SETTINGS_KEYS } from "@/config/settings/SOCIAL_MEDIA_KEYS";
+import { FIREBASE_SETTINGS_KEYS } from "@/config/settings/STORAGE_SETTINGS_KEYS";
+import { DESIGN_SCHEMA_SETTINGS_KEYS } from "@/config/settings/DESIGN_SCHEMA_KEYS";
+
 import SubLoader from "@/components/loaders/SubLoader";
+import { debounce } from "lodash";
 
 const groupedKeys = {
-  SiteSettings: Object.values(SITE_SETTINGS_KEYS),
-  MailService: Object.values(MAIL_SERVICE_KEYS),
-  StorageSettings: Object.values(STORAGE_SETTINGS_KEYS),
-  PaymentSettings: Object.values(PAYMENT_SETTINGS_KEYS),
-  SocialMedia: Object.values(SOCIAL_MEDIA_KEYS),
-  MessagingService: Object.values(MESSAGING_SERVICE_KEYS),
+  Global: Object.values(GLOBAL_SETTINGS_KEYS),
+  MailService: Object.values(MAIL_SERVICE_SETTINGS_KEYS),
+  Firebase: Object.values(FIREBASE_SETTINGS_KEYS),
+  Payment: Object.values(PAYMENT_SETTINGS_KEYS),
+  SocialMedia: Object.values(SOCIAL_MEDIA_SETTINGS_KEYS),
+  MessagingService: Object.values(MESSAGING_SERVICE_SETTINGS_KEYS),
+  DesignSchema: Object.values(DESIGN_SCHEMA_SETTINGS_KEYS),
 };
 
 const tabLabels: Record<string, string> = {
-  SiteSettings: "Site Settings",
+  Global: "Site Settings",
   MailService: "Mail Service",
-  StorageSettings: "Storage Settings",
-  PaymentSettings: "Payment Settings",
+  Firebase: "Firebase Settings",
+  Payment: "Payment Settings",
   SocialMedia: "Social Media Settings",
   MessagingService: "Messaging Service Settings",
+  DesignSchema: "Design Schema Settings",
 };
 
 const SettingsPage: React.FC = () => {
@@ -57,30 +62,44 @@ const SettingsPage: React.FC = () => {
     fetchSettings();
   }, []);
 
-  const handleInputChange = (key: string, value: any) => {
-    setModifiedSettings((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+  const debouncedHandleInputChange = useMemo(
+    () =>
+      debounce((key: string, value: any, type: string) => {
+        const shouldDebounce = ["color"].includes(type);
 
-    setSettings((prev) => {
-      if (!prev) return null;
-      const updatedSettings = { ...prev };
-      const keys = key.split(".");
-      let target = updatedSettings;
+        const updateSettings = () => {
+          setModifiedSettings((prev) => ({
+            ...prev,
+            [key]: value,
+          }));
 
-      keys.forEach((k, idx) => {
-        if (idx === keys.length - 1) {
-          target[k] = value;
+          setSettings((prev) => {
+            if (!prev) return null;
+            const updatedSettings = { ...prev };
+            const keys = key.split(".");
+            let target = updatedSettings;
+
+            keys.forEach((k, idx) => {
+              if (idx === keys.length - 1) {
+                target[k] = value;
+              } else {
+                target[k] = target[k] || {};
+                target = target[k];
+              }
+            });
+
+            return updatedSettings;
+          });
+        };
+
+        if (!shouldDebounce) {
+          updateSettings();
         } else {
-          target[k] = target[k] || {};
-          target = target[k];
+          debounce(updateSettings, 50)();
         }
-      });
-
-      return updatedSettings;
-    });
-  };
+      }, 50),
+    []
+  );
 
   const handleSaveAll = async () => {
     setLoading(true);
@@ -113,7 +132,7 @@ const SettingsPage: React.FC = () => {
           keyPrefix={key}
           config={config}
           values={value as Record<string, any>}
-          onChange={handleInputChange}
+          onChange={debouncedHandleInputChange}
         />
       );
     });
@@ -156,6 +175,7 @@ const SettingsPage: React.FC = () => {
   return (
     <div style={{ padding: "24px" }}>
       <Tabs defaultActiveKey="SiteSettings" items={tabsItems} />
+
       <Space style={{ marginTop: "20px" }}>
         <Button
           type="primary"

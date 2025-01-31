@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import { userRepository } from "@/repositories";
-import { PointTransactionType, UserRole } from "@/models/UserModel";
+import { PointTransactionType } from "@/models/UserModel";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const userService = new UserService();
 
@@ -47,5 +48,5 @@ export const POST = async (request: Request) =>
   withAuthMiddleware(
     (req, userId) => handleAddPointsRequest(req, userId),
     true,
-    [UserRole.ADMIN]
+    [APP_PERMISSIONS.ADD_POINTS]
   )(request);

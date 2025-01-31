@@ -42,7 +42,6 @@ export default class TelegramService {
     chatId?: string
   ) {
     const targetChatId = chatId || this.defaultChatId;
-    console.log(targetChatId);
 
     if (!this.bot) {
       console.error("Telegram bot is not initialized properly.");

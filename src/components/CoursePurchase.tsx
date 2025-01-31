@@ -76,7 +76,7 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0f2f5", padding: "20px" }}>
+    <div style={{ minHeight: "100vh", padding: "20px" }}>
       <Row
         gutter={[24, 24]}
         justify="center"

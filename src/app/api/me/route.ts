@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
 
 const userService = new UserService();
 
@@ -15,7 +14,7 @@ async function handleGetUserProfileRequest(
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
+    console.log(userId)
     const user = await userService.getUserById(userId);
 
     if (!user) {
@@ -43,6 +42,7 @@ async function handleUpdateUserProfileRequest(
     }
 
     const user = await userService.getUserById(userId);
+
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import UserService from "@/services/UserService";
-import { UserRole } from "@/models/UserModel";
+import { APP_PERMISSIONS, AppPermissionType } from "@/config/permissions";
 
 const userService = new UserService();
 
 async function authMiddleware(
   request: Request,
   showError: boolean = false,
-  requiredRoles?: UserRole[]
+  requiredPermissions?: AppPermissionType[]
 ): Promise<{ userId: string | null } | NextResponse> {
   let userId: string | null = null;
-
   const authorizationHeader = request.headers.get("authorization");
 
   if (authorizationHeader?.startsWith("Bearer ")) {
@@ -38,12 +37,27 @@ async function authMiddleware(
     );
   }
 
-  if (userId && requiredRoles?.length) {
+  if (userId && requiredPermissions?.length) {
     try {
       const user = await userService.getUserById(userId);
-      if (!user || !requiredRoles.includes(user.role)) {
+      if (!user || !user.roles) {
         return NextResponse.json(
-          { error: "Forbidden: Insufficient role" },
+          { error: "Forbidden: User roles not found" },
+          { status: 403 }
+        );
+      }
+
+      const userPermissions = new Set(
+        user.roles.flatMap((role) => role.permissions)
+      );
+      console.log(userPermissions);
+      const hasPermission = requiredPermissions.some((perm) =>
+        userPermissions.has(perm)
+      );
+
+      if (!hasPermission) {
+        return NextResponse.json(
+          { error: "Forbidden: Insufficient permissions" },
           { status: 403 }
         );
       }
@@ -65,13 +79,13 @@ export function withAuthMiddleware(
     userId: string | null
   ) => Promise<NextResponse>,
   isProtected: boolean = false,
-  requiredRoles?: UserRole[]
+  requiredPermissions?: AppPermissionType[]
 ) {
   return async (request: Request): Promise<NextResponse> => {
     const authResult = await authMiddleware(
       request,
       isProtected,
-      requiredRoles
+      requiredPermissions
     );
 
     if (authResult instanceof NextResponse) {
@@ -79,7 +93,6 @@ export function withAuthMiddleware(
     }
 
     const { userId } = authResult;
-
     return routeHandler(request, userId);
   };
 }

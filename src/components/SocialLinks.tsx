@@ -1,5 +1,5 @@
 // components/SocialLinks.tsx
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+
 import SocialLink from "./SocialLink";
 import {
   FacebookOutlined,
@@ -7,50 +7,48 @@ import {
   InstagramOutlined,
   LinkedinOutlined,
   GithubOutlined,
+  YoutubeOutlined,
+  RedditOutlined,
+  WhatsAppOutlined,
+  WechatOutlined,
+  DribbbleOutlined,
+  BehanceOutlined,
+  MediumOutlined,
+  TikTokOutlined,
 } from "@ant-design/icons";
 import { SettingsInterface } from "@/config/settingKeys";
+import { SOCIAL_MEDIA_SETTINGS_KEYS } from "@/config/settings/SOCIAL_MEDIA_KEYS";
 
 interface SocialLinksProps {
   settings: Partial<SettingsInterface>;
 }
 
-const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {
-  const socialLinks = [
-    {
-      key: SETTINGS_KEYS.FACEBOOK,
-      url: settings[SETTINGS_KEYS.FACEBOOK]?.url,
-      icon: <FacebookOutlined />,
-    },
-    {
-      key: SETTINGS_KEYS.TWITTER,
-      url: settings[SETTINGS_KEYS.TWITTER]?.url,
-      icon: <TwitterOutlined />,
-    },
-    {
-      key: SETTINGS_KEYS.INSTAGRAM,
-      url: settings[SETTINGS_KEYS.INSTAGRAM]?.url,
-      icon: <InstagramOutlined />,
-    },
-    {
-      key: SETTINGS_KEYS.LINKEDIN,
-      url: settings[SETTINGS_KEYS.LINKEDIN]?.url,
-      icon: <LinkedinOutlined />,
-    },
-    {
-      key: SETTINGS_KEYS.GITHUB,
-      url: settings[SETTINGS_KEYS.GITHUB]?.url,
-      icon: <GithubOutlined />,
-    },
-  ];
+// Mapping of social media keys to Ant Design icons
+const ICON_MAP: Record<string, React.ReactNode> = {
+  [SOCIAL_MEDIA_SETTINGS_KEYS.FACEBOOK]: <FacebookOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.TWITTER]: <TwitterOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.INSTAGRAM]: <InstagramOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.LINKEDIN]: <LinkedinOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.GITHUB]: <GithubOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.TIKTOK]: <TikTokOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.YOUTUBE]: <YoutubeOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.REDDIT]: <RedditOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.WHATSAPP]: <WhatsAppOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.WECHAT]: <WechatOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.DRIBBBLE]: <DribbbleOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.BEHANCE]: <BehanceOutlined />,
+  [SOCIAL_MEDIA_SETTINGS_KEYS.MEDIUM]: <MediumOutlined />,
+};
 
+const SocialLinks: React.FC<SocialLinksProps> = ({ settings }) => {
   return (
     <>
-      {socialLinks.map(
-        (link) =>
-          link.url && (
-            <SocialLink key={link.key} url={link.url} icon={link.icon} />
-          )
-      )}
+      {Object.entries(SOCIAL_MEDIA_SETTINGS_KEYS).map(([key, platform]) => {
+        const url = settings[platform]?.url;
+        if (!url) return null;
+
+        return <SocialLink key={key} url={url} icon={ICON_MAP[platform]} />;
+      })}
     </>
   );
 };

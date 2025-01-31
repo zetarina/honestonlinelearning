@@ -5,8 +5,9 @@ import { UserProvider } from "@/contexts/UserContext";
 import LayoutRouter from "@/router/LayoutRouter";
 import SetupForm from "@/components/forms/SetupForm";
 import { useSettings } from "@/contexts/SettingsContext";
-import { ImagePickerProvider } from "@/contexts/ImagePickerContext";
+
 import LoadingSpinner from "@/components/loaders/LoadingSpinner";
+import { FilePickerProvider } from "@/contexts/FilePickerContext";
 
 interface AppProviderProps {
   children: React.ReactNode;
@@ -16,7 +17,6 @@ const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const { isSetupRequired } = useSettings();
 
   if (isSetupRequired === undefined) {
-    // Optional: Show loading while `SettingsProvider` initializes
     return <LoadingSpinner />;
   }
 
@@ -26,9 +26,9 @@ const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   return (
     <UserProvider>
-      <ImagePickerProvider>
+      <FilePickerProvider>
         <LayoutRouter>{children}</LayoutRouter>
-      </ImagePickerProvider>
+      </FilePickerProvider>
     </UserProvider>
   );
 };

@@ -1,34 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
+import { Layout, Menu, Drawer, Button, Typography, Divider, List } from "antd";
 import {
-  Layout,
-  Typography,
-  List,
-  Button,
-  Divider,
-  Menu,
-  Alert,
-  Space,
-  Card,
-  Row,
-  Col,
-} from "antd";
-import {
-  LeftOutlined,
-  RightOutlined,
   PlayCircleOutlined,
-  VideoCameraOutlined,
-  DownloadOutlined,
   MenuOutlined,
   CloseOutlined,
+  LeftOutlined,
+  RightOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
-import { Course, CourseType, VideoType } from "@/models/CourseModel";
 import ReactPlayer from "react-player";
-import useBreakpoint from "antd/lib/grid/hooks/useBreakpoint";
+import { useMediaQuery } from "react-responsive";
+import { Course, VideoType } from "@/models/CourseModel";
 
 const { Sider, Content } = Layout;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 interface CourseContentProps {
   course: Course;
@@ -37,10 +24,11 @@ interface CourseContentProps {
 const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
   const [selectedChapterIndex, setSelectedChapterIndex] = useState<number>(0);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number>(0);
-  const [isMobileSidebarVisible, setIsMobileSidebarVisible] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
-  const screens = useBreakpoint();
+  const isMobile = useMediaQuery({ maxWidth: 767 });
+
   const currentChapter = course.chapters?.[selectedChapterIndex];
   const currentVideo = currentChapter?.videos[selectedVideoIndex];
 
@@ -53,112 +41,9 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
       }
       controls
       width="100%"
-      height="500px"
+      height={isMobile ? "250px" : "500px"}
     />
   );
-
-  const renderLiveCourse = () => {
-    const currentTime = Date.now(); // Get the current time
-
-    return (
-      <Layout
-        style={{
-          minHeight: "100vh",
-          padding: "20px",
-          backgroundColor: "#f5f5f5",
-        }}
-      >
-        <Content
-          style={{
-            background: "#fff",
-            padding: "20px",
-            borderRadius: "8px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          }}
-        >
-          <Title level={2} style={{ marginBottom: "10px" }}>
-            {course.title}
-          </Title>
-          <Text style={{ fontSize: "16px", color: "#555" }}>
-            {course.description}
-          </Text>
-          <Divider style={{ margin: "20px 0" }} />
-
-          <Row gutter={[16, 16]} style={{ display: "flex" }}>
-            {course.liveCourse?.sessions.map((session) => (
-              <Col key={session.dayOfWeek} span={8}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    height: "100%", // Ensure the card takes full height
-                    padding: "10px",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: "8px",
-                    background: "#f9f9f9",
-                  }}
-                >
-                  <Title
-                    level={4}
-                    style={{ marginBottom: "10px", textAlign: "center" }}
-                  >
-                    {session.dayOfWeek}
-                  </Title>
-                  <div>
-                    {session.slots.map((slot, index) => {
-                      const slotStartTime = new Date(
-                        slot.startTimeUTC
-                      ).getTime(); // Convert start time to timestamp
-
-                      return (
-                        <Space
-                          key={index}
-                          style={{
-                            marginBottom: 8,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontWeight: "500",
-                              color: "#333",
-                              flex: 1,
-                            }}
-                          >
-                            {`${slot.startTimeUTC} - ${slot.endTimeUTC}`}
-                          </Text>
-                          {currentTime >= slotStartTime ? ( // Check if current time is past the slot start time
-                            <Button
-                              type="primary"
-                              href={slot.zoomLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              icon={<VideoCameraOutlined />}
-                              style={{ marginLeft: "10px" }}
-                              ghost
-                            >
-                              Join Session
-                            </Button>
-                          ) : (
-                            <Text style={{ color: "#999" }}>
-                              Session Not Started
-                            </Text>
-                          )}
-                        </Space>
-                      );
-                    })}
-                  </div>
-                </div>
-              </Col>
-            ))}
-          </Row>
-        </Content>
-      </Layout>
-    );
-  };
 
   const handleNextVideo = () => {
     if (selectedVideoIndex < (currentChapter?.videos.length || 0) - 1) {
@@ -175,14 +60,14 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
     } else if (selectedChapterIndex > 0) {
       const previousChapter = course.chapters?.[selectedChapterIndex - 1];
       setSelectedChapterIndex(selectedChapterIndex - 1);
-      setSelectedVideoIndex(previousChapter.videos.length - 1);
+      setSelectedVideoIndex(previousChapter?.videos.length - 1 || 0);
     }
   };
 
   const handleChapterChange = (index: number) => {
     setSelectedChapterIndex(index);
     setSelectedVideoIndex(0);
-    setIsMobileSidebarVisible(false); // Close sidebar on chapter selection
+    setDrawerVisible(false);
   };
 
   const menuItems = course.chapters?.map((chapter, index) => ({
@@ -192,105 +77,98 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
     onClick: () => handleChapterChange(index),
   }));
 
-  if (course.courseType === CourseType.LIVE) {
-    return renderLiveCourse();
-  }
-
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      {!screens.lg && (
-        <Button
-          icon={<MenuOutlined />}
-          type="primary"
-          onClick={() => setIsMobileSidebarVisible(true)}
-          style={{ margin: "20px" }}
-        >
-          Chapters
-        </Button>
-      )}
-
-      {isMobileSidebarVisible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100vh",
-            backgroundColor: "#fff",
-            overflowY: "auto",
-            zIndex: 80,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+    <Layout style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      {isMobile ? (
+        <>
           <Button
-            type="text"
-            icon={<CloseOutlined />}
-            onClick={() => setIsMobileSidebarVisible(false)}
-            style={{
-              position: "absolute",
-              top: "10px",
-              right: "10px",
-              zIndex: 1,
-              color: "black",
-              background: "transparent",
-            }}
-          />
-
-          <Sider
-            width="90%"
-            style={{
-              background: "#fff",
-              padding: "10px 20px",
-              overflowY: "auto",
-              flexGrow: 1,
-              display: "flex",
-              flexDirection: "column",
-            }}
+            icon={<MenuOutlined />}
+            type="primary"
+            onClick={() => setDrawerVisible(true)}
+            style={{ margin: "20px" }}
           >
+            Chapters
+          </Button>
+
+          <Drawer
+            placement="left"
+            closable={false}
+            onClose={() => setDrawerVisible(false)}
+            open={drawerVisible}
+            width={220}
+          >
+            <Button
+              type="text"
+              icon={<CloseOutlined />}
+              onClick={() => setDrawerVisible(false)}
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                zIndex: 1,
+                color: "black",
+              }}
+            />
             <Menu
               mode="inline"
               selectedKeys={[`${selectedChapterIndex}`]}
               items={menuItems}
-              style={{
-                background: "transparent",
-                border: "none",
-                flexGrow: 1,
-              }}
             />
-          </Sider>
-        </div>
-      )}
-
-      {screens.lg && (
+          </Drawer>
+        </>
+      ) : (
         <Sider
-          width={250}
           collapsible
           collapsed={collapsed}
+          onCollapse={setCollapsed}
+          width={350}
           trigger={null}
           style={{
-            background: "#fff",
-            padding: "20px",
-            borderRight: "1px solid #f0f0f0",
+            overflow: "auto",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          <Button
-            type="primary"
-            icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ marginBottom: 16 }}
-          />
+          <div
+            style={{
+              padding: "24px",
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            {!collapsed && (
+              <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+                Chapters
+              </span>
+            )}
+
+            <Button
+              type="primary"
+              icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+            />
+          </div>
+
           <Menu
             mode="inline"
+            style={{ flex: 1, width: "100%" }}
             selectedKeys={[`${selectedChapterIndex}`]}
             items={menuItems}
           />
         </Sider>
       )}
 
-      <Layout style={{ padding: "20px" }}>
-        <Content style={{ background: "#fff", padding: "20px" }}>
+      <Layout
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+        }}
+      >
+        <Content style={{ flex: 1, padding: "20px" }}>
           <Title level={3}>{currentChapter?.title}</Title>
           <Divider />
 

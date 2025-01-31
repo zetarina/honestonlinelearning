@@ -14,7 +14,6 @@ import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 import SubLoader from "@/components/loaders/SubLoader";
 
-// Extend Day.js with the UTC plugin
 dayjs.extend(utc);
 
 const { Meta } = Card;
@@ -25,7 +24,6 @@ const CoursesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const { settings } = useSettings();
 
-  // Retrieve currency from settings and default to USD if undefined
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   useEffect(() => {
@@ -55,13 +53,16 @@ const CoursesPage: React.FC = () => {
     return (
       <div
         style={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
           textAlign: "center",
-          marginTop: "50px",
           fontSize: "18px",
-          color: "#999",
         }}
       >
-        No courses available.
+        <Text>No courses available.</Text>
       </div>
     );
   }
@@ -73,7 +74,6 @@ const CoursesPage: React.FC = () => {
         display: "flex",
         flexDirection: "column",
         padding: "24px",
-        backgroundColor: "#f9f9f9",
       }}
     >
       <Title level={2} style={{ textAlign: "center", marginBottom: "40px" }}>
@@ -176,7 +176,7 @@ const CoursesPage: React.FC = () => {
                       alignItems: "center",
                     }}
                   >
-                    <Text strong style={{ fontSize: "16px", color: "#1890ff" }}>
+                    <Text strong style={{ fontSize: "16px" }}>
                       {course.price === 0
                         ? "Free"
                         : course.price

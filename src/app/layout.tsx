@@ -1,49 +1,43 @@
 import React from "react";
 import AppProvider from "@/providers/AppProvider";
 import SettingService from "@/services/SettingService";
-import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import { SettingsProvider } from "@/contexts/SettingsContext";
-import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
+import { SettingsInterface } from "@/config/settingKeys";
 
+import {
+  ColorSchema,
+  DESIGN_SCHEMA_SETTINGS_KEYS,
+} from "@/config/settings/DESIGN_SCHEMA_KEYS";
+import CustomConfigProvider from "@/providers/CustomConfigProvider";
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const settingService = new SettingService();
+  let settings: Partial<SettingsInterface> = {};
+  let loading = true;
 
-  let settings;
   try {
-    settings = await settingService.getPublicSettings();
+    const fetchedSettings = await settingService.getPublicSettings();
+    settings = fetchedSettings || {};
+    loading = false;
   } catch (error) {
     console.error("Failed to fetch settings:", error);
-    settings = null;
+    loading = false;
   }
 
-  if (!settings) {
+  if (loading) {
     return (
       <html lang="en">
         <head>
           <title>Loading...</title>
         </head>
-        <body
-          style={{
-            margin: 0,
-            padding: 0,
-            width: "100%",
-            minHeight: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <LoadingSpinner message="Loading application settings..." />
-        </body>
       </html>
     );
   }
 
-  // Fallback values
   const defaultProductName = "WisdomWave";
   const defaultProductDescription =
     "An innovative learning platform designed to empower learners and educators.";
@@ -52,17 +46,22 @@ export default async function AppLayout({
   const defaultKeywords =
     "learning, education, e-learning, online courses, knowledge, training";
 
-  // Extract settings
   const siteName =
-    settings?.[SITE_SETTINGS_KEYS.SITE_NAME]?.toString() || defaultProductName;
-  const seoSettings = settings?.[SITE_SETTINGS_KEYS.SEO_SETTINGS];
-  const metaTitle = seoSettings?.metaTitle || siteName; // Use SITE_NAME as fallback
+    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]?.siteName ||
+    defaultProductName;
+  const seoSettings =
+    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SEO_SETTINGS] || {};
+  const metaTitle = seoSettings.metaTitle || siteName;
   const metaDescription =
-    seoSettings?.metaDescription || defaultProductDescription;
-  const ogImage = seoSettings?.ogImage || defaultProductLogo;
-  const keywords = seoSettings?.keywords || defaultKeywords;
+    seoSettings.metaDescription || defaultProductDescription;
+  const ogImage = seoSettings.ogImage || defaultProductLogo;
+  const keywords = seoSettings.keywords || defaultKeywords;
   const favicon =
-    settings?.[SITE_SETTINGS_KEYS.SITE_LOGO]?.toString() || defaultFavicon;
+    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]?.siteLogo ||
+    defaultFavicon;
+  const colorSchema = (settings as any)?.[
+    DESIGN_SCHEMA_SETTINGS_KEYS.COLOR_SCHEMA
+  ] as ColorSchema;
 
   return (
     <html lang="en">
@@ -102,7 +101,9 @@ export default async function AppLayout({
         }}
       >
         <SettingsProvider settings={settings}>
-          <AppProvider>{children}</AppProvider>
+          <CustomConfigProvider>
+            <AppProvider>{children}</AppProvider>
+          </CustomConfigProvider>
         </SettingsProvider>
       </body>
     </html>

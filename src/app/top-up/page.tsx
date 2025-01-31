@@ -203,11 +203,8 @@ const TopUpPage: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 800, margin: "auto", padding: "40px 20px" }}>
-      <Title level={2} style={{ textAlign: "center", marginBottom: "20px" }}>
-        Top-Up Your Account
-      </Title>
-
       <Card
+        title={"Top-Up Your Account"}
         style={{
           padding: "30px",
           borderRadius: "10px",
@@ -258,10 +255,8 @@ const TopUpPage: React.FC = () => {
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
-                <p className="ant-upload-text">
-                  Click or drag an image to this area to upload
-                </p>
-                <p className="ant-upload-hint">
+                <p>Click or drag an image to this area to upload</p>
+                <p>
                   Ensure the screenshot is clear and includes the transaction
                   details.
                 </p>

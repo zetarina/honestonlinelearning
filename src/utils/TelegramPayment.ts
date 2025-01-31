@@ -22,7 +22,7 @@ export async function TelegramPayment(
 
   const botToken = telegramSettings.botToken;
   const chatId = telegramSettings.chatId;
-  const baseUrl = settings.siteUrl; // Directly use `siteUrl` from settings
+  const baseUrl = settings[SETTINGS_KEYS.SITE_SETTINGS].siteUrl; // Directly use `siteUrl` from settings
 
   if (!botToken || !chatId || !baseUrl) {
     console.error("Telegram configuration or base URL is incomplete.");

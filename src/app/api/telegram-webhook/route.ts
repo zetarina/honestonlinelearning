@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
 import TelegramService from "@/services/TelegramService";
-import { MESSAGING_SERVICE_KEYS } from "@/config/settings/MESSAGING_SERVICE_KEYS";
+import { MESSAGING_SERVICE_SETTINGS_KEYS } from "@/config/settings/MESSAGING_SERVICE_KEYS";
 
 const settingService = new SettingService();
 
 const BOT_NAME_SUFFIX = "@honest_online_learning_bot";
 
 export const GET = async () => {
-  console.log("Received GET request - webhook is active.");
   return NextResponse.json({
     status: "Webhook is active and ready to receive updates.",
   });
@@ -16,23 +15,16 @@ export const GET = async () => {
 
 export const POST = async (req: Request) => {
   try {
-    const body = await req.json();
-    console.log("Received request body:", body);
-
+    const body = await req.json();;
     const { message } = body;
     if (!message || !message.text) {
-      console.log("No valid message or text found in body");
       return NextResponse.json({ status: "No message received" });
     }
 
     const chatId = message.chat.id;
     const text = message.text.trim().toLowerCase();
 
-    console.log("Received message from chat ID:", chatId);
-    console.log("Message text:", text);
-
     if (!text.startsWith("/")) {
-      console.log("Message does not start with '/' - ignoring.");
       return NextResponse.json({ status: "Non-command message ignored" });
     }
 
@@ -40,7 +32,7 @@ export const POST = async (req: Request) => {
     const settings = await settingService.getAllSettings();
 
     // Access Telegram settings
-    const telegramSettings = settings[MESSAGING_SERVICE_KEYS.TELEGRAM];
+    const telegramSettings = settings[MESSAGING_SERVICE_SETTINGS_KEYS.TELEGRAM];
     if (!telegramSettings?.botToken || !telegramSettings?.chatId) {
       return NextResponse.json(
         { error: "Telegram settings are not configured." },
@@ -68,7 +60,6 @@ export const POST = async (req: Request) => {
           availableCommands[text],
           chatId
         );
-        console.log("Telegram response:", response);
         return NextResponse.json({ status: "Command processed successfully" });
       } catch (error) {
         console.error("Error sending message:", error);

@@ -1,14 +1,14 @@
 import { FormType, GeneralConfig, NestedFieldType } from ".";
 
-export const MESSAGING_SERVICE_KEYS = {
+export const MESSAGING_SERVICE_SETTINGS_KEYS = {
   TELEGRAM: "telegram",
   VIBER: "viber",
 } as const;
 
 export const MESSAGING_SERVICE_SETTINGS: GeneralConfig<
-  typeof MESSAGING_SERVICE_KEYS
+  typeof MESSAGING_SERVICE_SETTINGS_KEYS
 > = {
-  [MESSAGING_SERVICE_KEYS.TELEGRAM]: {
+  [MESSAGING_SERVICE_SETTINGS_KEYS.TELEGRAM]: {
     label: "Telegram Settings",
     type: NestedFieldType.JSON,
     visibility: "public",
@@ -25,7 +25,7 @@ export const MESSAGING_SERVICE_SETTINGS: GeneralConfig<
       },
     },
   },
-  [MESSAGING_SERVICE_KEYS.VIBER]: {
+  [MESSAGING_SERVICE_SETTINGS_KEYS.VIBER]: {
     label: "Viber Settings",
     type: NestedFieldType.JSON,
     visibility: "public",
@@ -40,11 +40,11 @@ export const MESSAGING_SERVICE_SETTINGS: GeneralConfig<
 };
 
 export type MESSAGING_SERVICE_TYPES = {
-  [MESSAGING_SERVICE_KEYS.TELEGRAM]: {
+  [MESSAGING_SERVICE_SETTINGS_KEYS.TELEGRAM]: {
     botToken: string;
     chatId: string;
   };
-  [MESSAGING_SERVICE_KEYS.VIBER]: {
+  [MESSAGING_SERVICE_SETTINGS_KEYS.VIBER]: {
     botToken: string;
   };
 };

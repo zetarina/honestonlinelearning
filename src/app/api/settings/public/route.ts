@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/db";
 import SettingService from "@/services/SettingService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const settingService = new SettingService();
 
@@ -21,6 +21,8 @@ async function handleGetAllPublicSettingsRequest(request: Request) {
 }
 
 export const GET = async (request: Request) =>
-  withAuthMiddleware((req, userId) => handleGetAllPublicSettingsRequest(req), true, [
-    UserRole.ADMIN,
-  ])(request);
+  withAuthMiddleware(
+    (req, userId) => handleGetAllPublicSettingsRequest(req),
+    true,
+    [APP_PERMISSIONS.EDIT_SETTINGS]
+  )(request);

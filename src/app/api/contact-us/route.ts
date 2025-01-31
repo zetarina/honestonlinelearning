@@ -28,7 +28,6 @@ export const POST = async (req: Request): Promise<NextResponse> => {
     // Send the email
     try {
       const response = await mailService.sendMail(mailSubject, mailText);
-      console.log("Contact Us email sent successfully:", response);
       return NextResponse.json(
         { message: "Your message has been sent successfully!" },
         { status: 200 }

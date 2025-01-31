@@ -4,7 +4,7 @@ import React from "react";
 import { Typography, Spin, Alert } from "antd";
 import ImageComponent from "@/components/ImageComponent";
 import { useSettings } from "@/contexts/SettingsContext";
-import { SITE_SETTINGS_KEYS } from "@/config/settings/SITE_SETTINGS_KEYS";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import apiClient from "@/utils/api/apiClient";
 import CustomCarousel from "@/components/CustomCarousel";
 
@@ -20,7 +20,8 @@ interface Instructor {
 const InstructorsSection: React.FC = () => {
   const { settings } = useSettings();
   const maxInstructorsCount =
-    settings[SITE_SETTINGS_KEYS.MAX_INSTRUCTORS_COUNT] || 5;
+    settings[GLOBAL_SETTINGS_KEYS.HOMEPAGE]?.instructorsSection
+      .maxInstructorsCount || 5;
 
   const [instructors, setInstructors] = React.useState<Instructor[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -46,6 +47,11 @@ const InstructorsSection: React.FC = () => {
     fetchInstructors();
   }, [maxInstructorsCount]);
 
+  // If loading is complete, there's no error, and no instructors, hide the section.
+  if (!loading && !error && instructors.length === 0) {
+    return null;
+  }
+
   return (
     <div style={{ padding: "60px 0", backgroundColor: "rgb(0, 21, 41)" }}>
       <Title
@@ -65,15 +71,13 @@ const InstructorsSection: React.FC = () => {
         </div>
       )}
 
-      {error ? (
+      {error && (
         <div style={{ padding: "60px 20px" }}>
           <Alert message="Error" description={error} type="error" showIcon />
         </div>
-      ) : instructors.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "20px", color: "white" }}>
-          <Text>No instructors available at the moment.</Text>
-        </div>
-      ) : (
+      )}
+
+      {instructors.length > 0 && (
         <div style={{ margin: "0 auto" }}>
           <CustomCarousel autoplay slidesToShow={3} dots infinite>
             {instructors.map((instructor) => (

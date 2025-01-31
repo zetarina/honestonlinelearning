@@ -11,7 +11,6 @@ import {
   Spin,
   Modal,
 } from "antd";
-
 import { useRouter } from "next/navigation";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
@@ -19,7 +18,6 @@ import apiClient from "@/utils/api/apiClient";
 const { Title } = Typography;
 
 const SetupForm: React.FC = () => {
-  
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -35,7 +33,9 @@ const SetupForm: React.FC = () => {
   useEffect(() => {
     const inputToFocus = document.querySelector(
       `input[name="${
-        currentStep === 1 ? "username" : SETTINGS_KEYS.SITE_NAME
+        currentStep === 1
+          ? "username"
+          : `${SETTINGS_KEYS.SITE_SETTINGS}.siteName`
       }"]`
     ) as HTMLInputElement;
     inputToFocus?.focus();
@@ -51,10 +51,12 @@ const SetupForm: React.FC = () => {
     setError(null);
 
     const payload = {
-      user: userData,
+      user: userData, // User creation is handled by the backend now
       settings: {
-        [SETTINGS_KEYS.SITE_NAME]: values[SETTINGS_KEYS.SITE_NAME],
-        [SETTINGS_KEYS.SITE_URL]: values[SETTINGS_KEYS.SITE_URL],
+        [SETTINGS_KEYS.SITE_SETTINGS]: {
+          siteName: values[`${SETTINGS_KEYS.SITE_SETTINGS}.siteName`],
+          siteUrl: values[`${SETTINGS_KEYS.SITE_SETTINGS}.siteUrl`],
+        },
         [SETTINGS_KEYS.CURRENCY]: values[SETTINGS_KEYS.CURRENCY],
       },
     };
@@ -159,7 +161,7 @@ const SetupForm: React.FC = () => {
           <>
             <Form.Item
               label="Site Name"
-              name={SETTINGS_KEYS.SITE_NAME}
+              name={`${SETTINGS_KEYS.SITE_SETTINGS}.siteName`}
               rules={[
                 { required: true, message: "Please input your site name!" },
               ]}
@@ -169,7 +171,7 @@ const SetupForm: React.FC = () => {
 
             <Form.Item
               label="Site URL"
-              name={SETTINGS_KEYS.SITE_URL}
+              name={`${SETTINGS_KEYS.SITE_SETTINGS}.siteUrl`}
               rules={[
                 { required: true, message: "Please input your site URL!" },
               ]}
@@ -202,7 +204,7 @@ const SetupForm: React.FC = () => {
 
       {setupCompleted && (
         <div className="text-center mt-4">
-          <p>You have completed the setup!</p>
+          <p>Setup completed!</p>
           <Button type="link" onClick={() => router.push("/login")}>
             Go to Dashboard
           </Button>

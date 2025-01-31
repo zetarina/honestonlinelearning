@@ -1,7 +1,11 @@
 import dbConnect from "@/db";
 import SettingModel from "../models/SettingModel";
 import { Model } from "mongoose";
-import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
+import {
+  SETTINGS_GUIDE,
+  SETTINGS_KEYS,
+  SettingsInterface,
+} from "@/config/settingKeys";
 
 class SettingRepository {
   private settingModel: Model<any>;
@@ -9,12 +13,13 @@ class SettingRepository {
   constructor() {
     this.settingModel = SettingModel;
   }
+
   async findAllStructured(environment: string): Promise<SettingsInterface> {
     await dbConnect();
-  
+
     const pipeline = [
-      { $match: { environment } }, // Filter by environment
-      { $project: { _id: 0, key: 1, value: 1 } }, // Include only key and value
+      { $match: { environment } },
+      { $project: { _id: 0, key: 1, value: 1, isPublic: 1 } },
       {
         $group: {
           _id: null,
@@ -24,34 +29,21 @@ class SettingRepository {
         },
       },
       {
-        $project: {
-          structuredSettings: {
-            $arrayToObject: {
-              $map: {
-                input: "$structuredSettings",
-                as: "item",
-                in: ["$$item.k", "$$item.v"],
-              },
-            },
+        $replaceRoot: {
+          newRoot: {
+            $arrayToObject: "$structuredSettings",
           },
         },
       },
-      {
-        $replaceRoot: { newRoot: "$structuredSettings" },
-      },
     ];
-  
+
     const results = await this.settingModel.aggregate(pipeline).exec();
-  
     return (results[0] || {}) as SettingsInterface;
   }
-  
-
-  // Retrieve a single setting by key
-  async findByKey(
-    key: keyof SettingsInterface,
+  async findByKey<K extends keyof SettingsInterface>(
+    key: K,
     environment: string
-  ): Promise<SettingsInterface[keyof SettingsInterface] | null> {
+  ): Promise<SettingsInterface[K] | null> {
     await dbConnect();
 
     const pipeline = [
@@ -60,14 +52,13 @@ class SettingRepository {
     ];
 
     const result = await this.settingModel.aggregate(pipeline).exec();
-    return result.length > 0 ? result[0].value : null;
+    return result.length > 0 ? (result[0].value as SettingsInterface[K]) : null;
   }
 
-  // Retrieve multiple settings by keys
-  async findByKeys(
-    keys: (keyof SettingsInterface)[],
+  async findByKeys<K extends keyof SettingsInterface>(
+    keys: K[],
     environment: string
-  ): Promise<Partial<SettingsInterface>> {
+  ): Promise<Pick<SettingsInterface, K>> {
     await dbConnect();
 
     const pipeline = [
@@ -91,10 +82,9 @@ class SettingRepository {
     ];
 
     const results = await this.settingModel.aggregate(pipeline).exec();
-    return results[0] || {};
+    return (results[0] || {}) as Pick<SettingsInterface, K>;
   }
 
-  // Retrieve all public settings
   async findPublicSettings(
     environment: string
   ): Promise<Partial<SettingsInterface>> {
@@ -124,20 +114,25 @@ class SettingRepository {
     return results[0] || {};
   }
 
-  // Upsert settings in a structured format
   async upsertSettingsStructured(
     updates: Partial<SettingsInterface>,
     environment: string
   ): Promise<SettingsInterface> {
     await dbConnect();
 
-    const bulkOperations = Object.entries(updates).map(([key, value]) => ({
-      updateOne: {
-        filter: { key, environment },
-        update: { $set: { value, environment } },
-        upsert: true,
-      },
-    }));
+    const bulkOperations = Object.entries(updates).map(([key, value]) => {
+      const isPublic =
+        SETTINGS_GUIDE[key as keyof typeof SETTINGS_GUIDE]?.visibility ===
+        "public";
+
+      return {
+        updateOne: {
+          filter: { key, environment },
+          update: { $set: { value, environment, isPublic } },
+          upsert: true,
+        },
+      };
+    });
 
     await this.settingModel.bulkWrite(bulkOperations);
 

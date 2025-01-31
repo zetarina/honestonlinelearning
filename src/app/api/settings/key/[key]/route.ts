@@ -1,23 +1,10 @@
 import { NextResponse } from "next/server";
 import SettingService from "@/services/SettingService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
-import { PAYMENT_SETTINGS_TYPES } from "@/config/settings/PAYMENT_SETTINGS_KEYS";
-import { Mail_SETTINGS_TYPES } from "@/config/settings/MAIL_SERVICE_KEYS";
-import { MESSAGING_SERVICE_TYPES } from "@/config/settings/MESSAGING_SERVICE_KEYS";
-import { SITE_SETTINGS_TYPES } from "@/config/settings/SITE_SETTINGS_KEYS";
-import { SOCIAL_MEDIA_SETTINGS_TYPES } from "@/config/settings/SOCIAL_MEDIA_KEYS";
-import { STORAGE_SETTINGS_TYPES } from "@/config/settings/STORAGE_SETTINGS_KEYS";
+import { APP_PERMISSIONS } from "@/config/permissions";
+import { ValidSettingKey } from "@/config/settingKeys";
 
 const settingService = new SettingService();
-
-type ValidSettingKey =
-  | keyof SITE_SETTINGS_TYPES
-  | keyof Mail_SETTINGS_TYPES
-  | keyof STORAGE_SETTINGS_TYPES
-  | keyof PAYMENT_SETTINGS_TYPES
-  | keyof SOCIAL_MEDIA_SETTINGS_TYPES
-  | keyof MESSAGING_SERVICE_TYPES;
 
 async function handleGetSettingByKey(
   request: Request,
@@ -47,5 +34,5 @@ export const GET = async (
   withAuthMiddleware(
     (req, userId) => handleGetSettingByKey(req, context.params),
     true,
-    [UserRole.ADMIN]
+    [APP_PERMISSIONS.EDIT_SETTINGS]
   )(request);

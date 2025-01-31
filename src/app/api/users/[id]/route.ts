@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
-import { UserRole } from "@/models/UserModel";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const userService = new UserService();
 
@@ -76,7 +76,7 @@ export const GET = async (
   withAuthMiddleware(
     (req, userId) => handleGetUserRequest(req, userId, context.params),
     true,
-    [UserRole.ADMIN]
+    [APP_PERMISSIONS.MANAGE_USERS]
   )(request);
 
 export const PUT = async (
@@ -86,7 +86,7 @@ export const PUT = async (
   withAuthMiddleware(
     (req, userId) => handleUpdateUserRequest(req, userId, context.params),
     true,
-    [UserRole.ADMIN]
+    [APP_PERMISSIONS.MANAGE_USERS]
   )(request);
 
 export const DELETE = async (
@@ -96,5 +96,5 @@ export const DELETE = async (
   withAuthMiddleware(
     (req, userId) => handleDeleteUserRequest(req, userId, context.params),
     true,
-    [UserRole.ADMIN]
+    [APP_PERMISSIONS.MANAGE_USERS]
   )(request);

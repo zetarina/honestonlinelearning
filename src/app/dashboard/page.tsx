@@ -21,7 +21,9 @@ export default function DashboardPage() {
         <div style={{ padding: "12px 0" }}>
           <Text strong>Role:</Text>
           <Text style={{ marginLeft: "8px", textTransform: "capitalize" }}>
-            {user?.role || "N/A"}
+            {user?.roles?.length
+              ? user.roles.map((role) => role.name).join(", ")
+              : "N/A"}
           </Text>
         </div>
         <Divider />

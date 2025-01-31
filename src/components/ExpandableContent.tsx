@@ -1,19 +1,25 @@
+"use client";
+
 import React, { useState } from "react";
 import { Button } from "antd";
-import "./ExpandableContent.css";
+import { useSettings } from "@/contexts/SettingsContext";
+import { lighten } from "polished";
 
 interface ExpandableContentProps {
-  content?: string; // Make content optional to avoid errors
+  content?: string;
   linesToShow?: number;
   color?: string;
 }
 
 const ExpandableContent: React.FC<ExpandableContentProps> = ({
-  content = "", // Default to an empty string if content is undefined
+  content = "",
   linesToShow = 2,
-  color = "#555",
+  color,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { colors } = useSettings(); // Fetch theme colors
+
+  const textColor = color || colors.text.default; // Allow override or default
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -24,7 +30,7 @@ const ExpandableContent: React.FC<ExpandableContentProps> = ({
       <div
         className="expandable-content"
         style={{
-          color: color,
+          color: textColor,
           marginBottom: "0",
           marginTop: "10px",
           maxHeight: isExpanded ? "none" : `${linesToShow * 1.5}em`,
@@ -34,11 +40,18 @@ const ExpandableContent: React.FC<ExpandableContentProps> = ({
         dangerouslySetInnerHTML={{ __html: content }}
       ></div>
 
-      {content && content.length > linesToShow * 100 && (
+      {content.length > linesToShow * 100 && (
         <Button
           type="link"
           onClick={toggleExpand}
-          style={{ paddingLeft: 0, marginTop: "8px" }}
+          style={{
+            paddingLeft: 0,
+            marginTop: "8px",
+            fontWeight: "bold",
+            background: `linear-gradient(90deg, ${colors.primary.default}, ${colors.secondary.default})`,
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
         >
           {isExpanded ? "Show Less" : "Show More"}
         </Button>

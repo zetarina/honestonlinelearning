@@ -6,8 +6,8 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import MainLayout from "../layouts/MainLayout";
 import LoadingSpinner from "../components/loaders/LoadingSpinner";
 import UserContext from "@/contexts/UserContext";
-import { UserRole } from "@/models/UserModel";
-
+import "@/styles/globals.css";
+import { APP_PERMISSIONS } from "@/config/permissions";
 interface LayoutRouterProps {
   children: React.ReactNode;
 }
@@ -26,16 +26,18 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
     };
     handleRouteChange();
   }, [pathname]);
-
+  console.log()
   useEffect(() => {
     if (!initialLoading) {
-      console.log(user);
+      console.log(user)
       if (isDashboardRoute && !user) {
         router.push("/login");
       } else if (
         isDashboardRoute &&
         user &&
-        ![UserRole.ADMIN, UserRole.INSTRUCTOR].includes(user.role)
+        !user.roles.some((role) =>
+          role.permissions.includes(APP_PERMISSIONS.VIEW_DASHBOARD)
+        )
       ) {
         router.push("/profile");
       }

@@ -1,7 +1,10 @@
-import { PointTransactionType, User, UserRole } from "../models/UserModel";
+import { PointTransactionType, User } from "../models/UserModel";
+import { userRepository, roleRepository } from "@/repositories";
+import { Role, RoleType } from "@/models/RoleModel";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { userRepository } from "@/repositories/";
+import { Types } from "mongoose";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 class UserService {
   async getAllSafeUsers(): Promise<Partial<User>[]> {
@@ -16,11 +19,8 @@ class UserService {
     return userRepository.findSafeByEmail(email);
   }
 
-  async getUsersByRole(
-    role: UserRole,
-    safe: boolean = false
-  ): Promise<Partial<User>[] | User[]> {
-    return userRepository.findByRole(role);
+  async getUsersByRole(roleId: string): Promise<User[]> {
+    return userRepository.findByRole(roleId);
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -34,17 +34,101 @@ class UserService {
   async getUserByEmail(email: string): Promise<User | null> {
     return userRepository.findByEmail(email);
   }
+  async setupDefaultRolesAndSystemUser(userData: Partial<User>): Promise<void> {
+    // Find System Role
+    let systemRole = await roleRepository.findByRoleType(RoleType.SYSTEM);
 
-  async createUser(
-    userData: Partial<User>,
-    role: UserRole = UserRole.STUDENT
-  ): Promise<User> {
+    // Create System Role if it doesn't exist
+    if (!systemRole) {
+      systemRole = await roleRepository.create({
+        name: "System Admin",
+        type: RoleType.SYSTEM,
+        permissions: Object.values(APP_PERMISSIONS),
+        color: "red",
+        nonPermissionsEditable: true,
+        level: 100,
+      });
+    }
+
+    // Find Guest Role
+    let guestRole = await roleRepository.findByRoleType(RoleType.GUEST);
+
+    // Create Guest Role if it doesn't exist
+    if (!guestRole) {
+      guestRole = await roleRepository.create({
+        name: "Guest",
+        type: RoleType.GUEST,
+        permissions: [],
+        color: "gray",
+        nonPermissionsEditable: true,
+        level: 1,
+      });
+    }
+
+    // Ensure only one system user exists
+    const existingSystemUser = await userRepository.findByRoleTypeOrEmail(
+      RoleType.SYSTEM,
+      userData.email!
+    );
+
+    if (!existingSystemUser) {
+      const { hashedPassword, salt } = this.hashPassword(userData.password!);
+      userData.hashedPassword = hashedPassword;
+      userData.salt = salt;
+      delete userData.password;
+
+      userData.role_ids = [systemRole._id as Types.ObjectId];
+
+      await userRepository.create(userData);
+    }
+  }
+
+  async createUser(userData: Partial<User>): Promise<User> {
     const { hashedPassword, salt } = this.hashPassword(userData.password!);
     userData.hashedPassword = hashedPassword;
     userData.salt = salt;
-    userData.role = role;
+    delete userData.password;
 
     return userRepository.create(userData);
+  }
+
+  async signup(userData: Partial<User>): Promise<User> {
+    const { hashedPassword, salt } = this.hashPassword(userData.password!);
+    userData.hashedPassword = hashedPassword;
+    userData.salt = salt;
+    delete userData.password;
+
+    const guestRole = await roleRepository
+      .findAll()
+      .then((roles) => roles.find((role) => role.type === RoleType.GUEST));
+
+    if (!guestRole) {
+      throw new Error("Guest role is missing. Please set up default roles.");
+    }
+
+    userData.role_ids = [guestRole._id as Types.ObjectId];
+
+    return userRepository.create(userData);
+  }
+  async syncRolePermissions(): Promise<void> {
+    const systemRole = await roleRepository.findByRoleType(RoleType.SYSTEM);
+    const guestRole = await roleRepository.findByRoleType(RoleType.GUEST);
+
+    const updates: Promise<Role>[] = [];
+
+    if (systemRole) {
+      updates.push(
+        roleRepository.updatePermissions(
+          systemRole._id,
+          Object.values(APP_PERMISSIONS)
+        )
+      );
+    }
+
+    if (guestRole) {
+      updates.push(roleRepository.updatePermissions(guestRole._id, []));
+    }
+    await Promise.all(updates);
   }
 
   async updateUser(
@@ -75,7 +159,6 @@ class UserService {
     return userRepository.manipulatePoints(userId, type, points, details);
   }
 
-  // Save refresh token with device name
   async saveDeviceToken(
     userId: string,
     deviceName: string,
@@ -84,7 +167,6 @@ class UserService {
     return userRepository.saveDeviceToken(userId, deviceName, refreshToken);
   }
 
-  // Check if a device token exists for the user
   async findDeviceToken(
     userId: string,
     refreshToken: string
@@ -92,12 +174,10 @@ class UserService {
     return userRepository.findDeviceToken(userId, refreshToken);
   }
 
-  // Delete a specific device token
   async deleteDeviceToken(userId: string, refreshToken: string): Promise<void> {
     return userRepository.deleteDeviceToken(userId, refreshToken);
   }
 
-  // Get all devices associated with a user
   async getAllUserDevices(userId: string): Promise<User["devices"]> {
     return userRepository.getAllDevices(userId);
   }

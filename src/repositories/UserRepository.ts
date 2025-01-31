@@ -1,10 +1,8 @@
 import dbConnect from "@/db";
-import UserModel, {
-  User,
-  PointTransactionType,
-  UserRole,
-} from "../models/UserModel";
+import UserModel, { User, PointTransactionType } from "../models/UserModel";
 import { Types, Model } from "mongoose";
+import { roleRepository } from ".";
+import { RoleType } from "@/models/RoleModel";
 
 class UserRepository {
   private userModel: Model<User>;
@@ -25,6 +23,7 @@ class UserRepository {
     return this.userModel
       .findById(id)
       .select("-hashedPassword -salt -tokens")
+      .populate("roles")
       .exec();
   }
 
@@ -33,17 +32,19 @@ class UserRepository {
     return this.userModel
       .findOne({ email })
       .select("-hashedPassword -salt -tokens")
+      .populate("roles")
       .exec();
   }
-  async findByRole(role: UserRole): Promise<Partial<User>[] | User[]> {
+  async findByRole(roleId: string | Types.ObjectId): Promise<User[]> {
     await dbConnect();
 
-    const query = this.userModel
-      .find({ role })
-      .select("-hashedPassword -salt -tokens");
-
-    return query.exec();
+    return this.userModel
+      .find({ role_ids: { $in: [roleId] } })
+      .select("-hashedPassword -salt -tokens")
+      .populate("roles")
+      .exec();
   }
+
   async findAll(): Promise<User[]> {
     await dbConnect();
     return this.userModel.find().exec();
@@ -51,7 +52,11 @@ class UserRepository {
 
   async findById(id: string | Types.ObjectId): Promise<User | null> {
     await dbConnect();
-    return this.userModel.findById(id).exec();
+    return this.userModel
+      .findById(id)
+      .select("-hashedPassword -salt -tokens")
+      .populate("roles")
+      .exec();
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -73,6 +78,7 @@ class UserRepository {
 
     return this.userModel
       .findByIdAndUpdate(id, updateData, { new: true })
+      .populate("roles")
       .exec();
   }
 
@@ -115,7 +121,6 @@ class UserRepository {
 
     if (!user) throw new Error("User not found");
 
-    // Ensure devices array is initialized
     if (!user.devices) {
       user.devices = [];
     }
@@ -158,6 +163,26 @@ class UserRepository {
     await dbConnect();
 
     return this.userModel.findOne({ "devices.token": refreshToken }).exec();
+  }
+  async findByRoleTypeOrEmail(
+    roleType: RoleType,
+    email: string
+  ): Promise<User | null> {
+    await dbConnect();
+
+    const role = await roleRepository.findByRoleType(roleType);
+    if (!role) return null;
+
+    return this.userModel
+      .findOne({
+        $or: [
+          { role_ids: { $in: [role._id] } }, // Check if user has the system role
+          { email }, // Check if email already exists
+        ],
+      })
+      .select("-hashedPassword -salt -tokens")
+      .populate("roles")
+      .exec();
   }
 }
 
