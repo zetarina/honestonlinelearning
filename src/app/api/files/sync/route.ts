@@ -14,7 +14,6 @@ async function syncFilesHandler(
 
   if (service === "local" || service === "all") {
     localFiles = await fileService.listLocalFiles();
-    console.log("localFiles", localFiles);
   }
 
   if (service === "firebase" || service === "all") {

@@ -50,7 +50,7 @@ async function authMiddleware(
       const userPermissions = new Set(
         user.roles.flatMap((role) => role.permissions)
       );
-      console.log(userPermissions);
+   
       const hasPermission = requiredPermissions.some((perm) =>
         userPermissions.has(perm)
       );

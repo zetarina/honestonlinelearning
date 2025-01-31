@@ -26,10 +26,9 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
     };
     handleRouteChange();
   }, [pathname]);
-  console.log()
+
   useEffect(() => {
     if (!initialLoading) {
-      console.log(user)
       if (isDashboardRoute && !user) {
         router.push("/login");
       } else if (

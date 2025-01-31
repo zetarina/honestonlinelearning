@@ -13,7 +13,11 @@ class UserRepository {
 
   async findAllSafe(): Promise<Partial<User>[]> {
     await dbConnect();
-    return this.userModel.find().select("-hashedPassword -salt -tokens").exec();
+    return this.userModel
+      .find()
+      .select("-hashedPassword -salt -tokens")
+      .populate("roles")
+      .exec();
   }
 
   async findSafeById(
@@ -47,7 +51,11 @@ class UserRepository {
 
   async findAll(): Promise<User[]> {
     await dbConnect();
-    return this.userModel.find().exec();
+    return this.userModel
+      .find()
+      .select("-hashedPassword -salt -tokens")
+      .populate("roles")
+      .exec();
   }
 
   async findById(id: string | Types.ObjectId): Promise<User | null> {
@@ -61,7 +69,7 @@ class UserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     await dbConnect();
-    return this.userModel.findOne({ email }).exec();
+    return this.userModel.findOne({ email }).populate("roles").exec();
   }
 
   async create(userData: Partial<User>): Promise<User> {
@@ -78,6 +86,7 @@ class UserRepository {
 
     return this.userModel
       .findByIdAndUpdate(id, updateData, { new: true })
+      .select("-hashedPassword -salt -tokens")
       .populate("roles")
       .exec();
   }

@@ -4,7 +4,13 @@ import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 
 const userService = new UserService();
 
-const ALLOWED_STUDENT_FIELDS = ["name", "username", "email", "password"];
+const ALLOWED_STUDENT_FIELDS = [
+  "name",
+  "username",
+  "email",
+  "password",
+  "bio",
+];
 
 async function handleGetUserProfileRequest(
   request: Request,
@@ -14,15 +20,14 @@ async function handleGetUserProfileRequest(
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.log(userId)
-    const user = await userService.getUserById(userId);
+
+    const user = await userService.getSafeUserById(userId);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const { hashedPassword, salt, tokens, ...safeUser } = user.toObject();
-    return NextResponse.json(safeUser);
+    return NextResponse.json(user);
   } catch (error) {
     console.error("Error fetching user profile:", error);
     return NextResponse.json(
@@ -67,10 +72,7 @@ async function handleUpdateUserProfileRequest(
       );
     }
 
-    const { hashedPassword, salt, tokens, ...safeUser } =
-      updatedUser.toObject();
-
-    return NextResponse.json(safeUser);
+    return NextResponse.json(updatedUser);
   } catch (error) {
     console.error("Error updating user profile:", error);
     return NextResponse.json(

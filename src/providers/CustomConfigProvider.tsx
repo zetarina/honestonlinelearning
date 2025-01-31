@@ -117,6 +117,7 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
           },
 
           Table: {
+            
             bodySortBg: xcolor.table.section.active,
             borderColor: xcolor.table.section.split,
             expandIconBg: xcolor.table.text.default,

@@ -282,11 +282,11 @@ export const SettingsProvider: React.FC<{
       },
       table: {
         row: {
-          default: colors.text.default,
-          selected: colors.text.selected,
-          hovered: colors.text.hovered,
-          expanded: colors.text.selected,
-          selectedHover: colors.text.hovered,
+          default: colors.card.active,
+          selected: colors.card.selected,
+          hovered: colors.card.hovered,
+          expanded: colors.card.active,
+          selectedHover:colors.card.active,
         },
         text: {
           default: colors.text.default,

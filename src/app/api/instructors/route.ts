@@ -26,7 +26,7 @@ async function handleGetAllInstructorsRequest(
     if (homepageSettings && homepageSettings.instructorsSection) {
       const instructorRole =
         homepageSettings.instructorsSection?.instructorRole;
-      console.log(instructorRole);
+
       if (instructorRole) {
         return NextResponse.json(
           await userService.getUsersByRole(instructorRole),

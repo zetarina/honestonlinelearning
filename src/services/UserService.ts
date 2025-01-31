@@ -1,5 +1,9 @@
 import { PointTransactionType, User } from "../models/UserModel";
-import { userRepository, roleRepository, cacheRepository } from "@/repositories";
+import {
+  userRepository,
+  roleRepository,
+  cacheRepository,
+} from "@/repositories";
 import { Role, RoleType } from "@/models/RoleModel";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";

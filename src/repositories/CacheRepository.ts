@@ -1,15 +1,4 @@
-import mongoose from "mongoose";
-
-const cacheSchema = new mongoose.Schema(
-  {
-    key: { type: String, required: true, unique: true },
-    value: { type: mongoose.Schema.Types.Mixed, required: true },
-    expiresAt: { type: Date, required: true, index: { expires: 0 } },
-  },
-  { timestamps: true }
-);
-
-const CacheModel = mongoose.model("Cache", cacheSchema);
+import { CacheModel } from "@/models/CacheModel";
 
 class CacheRepository {
   private defaultTTL: number = 3600 * 1000;
