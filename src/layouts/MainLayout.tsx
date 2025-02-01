@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useState, useContext } from "react";
-import { Layout, Menu, Drawer, Space, Typography, Button } from "antd";
+import React, { useState } from "react";
+import { Layout, Menu, Drawer, Space, Typography } from "antd";
 import { useMediaQuery } from "react-responsive";
-import UserContext from "@/contexts/UserContext";
-import Image from "next/image";
 import Link from "next/link";
-import { useSettings } from "@/contexts/SettingsContext";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { useSettings } from "@/hooks/useSettings";
+import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import UserAvatar from "../components/UserAvatar";
 import SocialLinks from "../components/SocialLinks";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
@@ -17,6 +15,7 @@ import {
   getMainMobileMenu,
   getSelectedKey,
 } from "@/config/navigations";
+import { useUser } from "@/hooks/useUser";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -26,14 +25,31 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user, logout } = useContext(UserContext);
+  const { user, logout } = useUser();
   const { settings } = useSettings();
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
   const pathname = usePathname();
   const selectedKey = getSelectedKey(user, pathname, false);
+  const siteSettings: SettingsInterface[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] =
+    settings?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] ||
+    ({
+      siteName: "",
+      siteUrl: "",
+      siteBanner: "",
+      siteLogo: "",
+      logoBackground: "",
+      useBackground: false,
+    } as SettingsInterface[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]);
 
-  const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
+  const siteLogo = siteSettings.siteLogo?.trim() || "/images/logo.png";
+  const siteName = siteSettings.siteName?.trim() || "Site Logo";
+  const logoBackground =
+    siteSettings.useBackground && siteSettings.logoBackground?.trim()
+      ? siteSettings.logoBackground
+      : "transparent";
+  const currency = settings?.[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
+
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
   const handleLogout = async () => {
     await logout();
@@ -56,27 +72,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           style={{
             display: "flex",
             alignItems: "center",
-            background:
-              settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].useBackground &&
-              settings[
-                GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
-              ].logoBackground?.trim()
-                ? settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].logoBackground
-                : "transparent",
+            background: logoBackground,
           }}
         >
           <img
-            src={
-              settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteLogo
-                ? encodeURI(
-                    settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteLogo.trim()
-                  )
-                : "/images/logo.png"
-            }
-            alt={
-              settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteName?.trim() ||
-              "Site Logo"
-            }
+            src={siteLogo}
+            alt={siteName}
             style={{
               maxHeight: "80px",
               width: "auto",
@@ -95,10 +96,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             />
           )}
           <UserAvatar
-            user={user}
             currency={currency}
             isMobile={isMobile}
-            handleLogout={handleLogout}
             toggleDrawer={toggleDrawer}
           />
         </Space>
@@ -136,8 +135,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           <SocialLinks settings={settings} />
         </Space>
         <Text>
-          {settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteName?.trim()} ©{" "}
-          {new Date().getFullYear()} All rights reserved.
+          {siteName} © {new Date().getFullYear()} All rights reserved.
         </Text>
       </Footer>
     </Layout>

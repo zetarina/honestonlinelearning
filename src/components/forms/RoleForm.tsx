@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Select, Card, message, Tooltip } from "antd";
 import { useRouter } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
-import { Role } from "@/models/RoleModel";
+import { RoleAPI } from "@/models/RoleModel";
 import { APP_PERMISSIONS } from "@/config/permissions";
 
 const { Option } = Select;
 
 interface RoleFormProps {
-  role?: Role;
+  role?: RoleAPI;
 }
 
 const RoleForm: React.FC<RoleFormProps> = ({ role }) => {

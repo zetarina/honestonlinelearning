@@ -1,29 +1,34 @@
 import React from "react";
-import { Avatar, Tooltip, Typography, Dropdown, Menu, MenuProps } from "antd";
-import { User } from "@/models/UserModel";
+import {
+  Avatar,
+  Tooltip,
+  Typography,
+  Dropdown,
+  MenuProps,
+  Spin,
+} from "antd";
 import Link from "next/link";
 import { APP_PERMISSIONS } from "@/config/permissions";
+import { useUser } from "@/hooks/useUser";
 
 const { Title, Text } = Typography;
 
 interface UserAvatarProps {
-  user: User | null; // Allow user to be null when not logged in
   currency: string;
   isMobile: boolean;
-  handleLogout: () => void;
-  toggleDrawer: () => void; // New prop for toggling drawer
+  toggleDrawer: () => void;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({
-  user,
   currency,
   isMobile,
-  handleLogout,
   toggleDrawer,
 }) => {
+  const { user, loading, logout } = useUser();
+
+  // Make sure to handle undefined or null values gracefully
   const menuItems: MenuProps["items"] = [
-    ...(user &&
-    user.roles?.some((role) =>
+    ...(user && user.roles?.some((role) =>
       role.permissions.includes(APP_PERMISSIONS.VIEW_DASHBOARD)
     )
       ? [
@@ -40,13 +45,33 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     user
       ? {
           key: "logout",
-          label: <div onClick={handleLogout}>Logout</div>,
+          label: <div onClick={logout}>Logout</div>,
         }
       : {
           key: "login",
           label: <Link href="/login">Login</Link>,
         },
   ];
+
+  if (loading) {
+    // Show loading state (spinner or placeholder)
+    return (
+      <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+        <Spin size="small" />
+        <div
+          style={{
+            marginLeft: "12px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Title level={4} style={{ margin: 0, fontSize: "14px" }}>
+            Loading...
+          </Title>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -58,6 +83,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
           <Tooltip title={user ? user.username : "Guest"}>
             <Avatar src={user?.avatar || "/images/default-avatar.webp"} />
           </Tooltip>
+
           <div
             style={{
               marginLeft: "12px",
@@ -87,6 +113,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
             <Tooltip title={user ? user.username : "Guest"}>
               <Avatar src={user?.avatar || "/images/default-avatar.webp"} />
             </Tooltip>
+
             <div
               style={{
                 marginLeft: "12px",

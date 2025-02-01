@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Row, Col, Card, Typography, Avatar, Rate } from "antd";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import CustomCarousel from "@/components/CustomCarousel";
 
@@ -16,11 +16,9 @@ interface Review {
 const ReviewsSection: React.FC = () => {
   const { settings } = useSettings();
 
-  // Safely fetch reviews from settings
   const studentReviews: Review[] =
     settings[GLOBAL_SETTINGS_KEYS.HOMEPAGE]?.studentReviews || [];
 
-  // Render nothing if there are no reviews
   if (!studentReviews.length) {
     return null;
   }
@@ -51,7 +49,7 @@ const ReviewsSection: React.FC = () => {
               align="middle"
               style={{
                 marginBottom: "20px",
-                minHeight: "250px", // Set a fixed height for better alignment
+                minHeight: "250px",
               }}
             >
               <Col xs={24} md={16} lg={10}>

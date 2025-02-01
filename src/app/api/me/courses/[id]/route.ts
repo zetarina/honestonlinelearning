@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import UserCourseRepository from "@/repositories/UserCourseRepository";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
+import { User } from "@/models/UserModel";
+import UserCourseService from "@/services/UserCourseService";
 
-const userCourseRepo = new UserCourseRepository();
-
+const userCourseService = new UserCourseService();
 async function handleUserCourseByIdRequest(
   request: Request,
-  userId: string | null,
+  user: User | null,
   params: { id: string }
 ) {
   try {
@@ -17,9 +17,10 @@ async function handleUserCourseByIdRequest(
         { status: 400 }
       );
     }
-
-    const course = await userCourseRepo.getUserCourseById(courseId, userId);
-
+    const course = await userCourseService.getUserCourseById(
+      courseId,
+      user?._id
+    );
     if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
@@ -39,6 +40,6 @@ export const GET = async (
   context: { params: { id: string } }
 ) =>
   withAuthMiddleware(
-    (req, userId) => handleUserCourseByIdRequest(req, userId, context.params),
+    (req, user) => handleUserCourseByIdRequest(req, user, context.params),
     false
   )(request);

@@ -1,7 +1,6 @@
 import React from "react";
 import AppProvider from "@/providers/AppProvider";
 import SettingService from "@/services/SettingService";
-import { SettingsProvider } from "@/contexts/SettingsContext";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { SettingsInterface } from "@/config/settingKeys";
 
@@ -11,6 +10,7 @@ import {
 } from "@/config/settings/DESIGN_SCHEMA_KEYS";
 import CustomConfigProvider from "@/providers/CustomConfigProvider";
 import UserService from "@/services/UserService";
+import { SettingsProvider } from "@/providers/SettingsProvider";
 export default async function AppLayout({
   children,
 }: {

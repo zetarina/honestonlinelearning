@@ -1,5 +1,3 @@
-// components/SocialLinks.tsx
-
 import SocialLink from "./SocialLink";
 import {
   FacebookOutlined,
@@ -23,7 +21,6 @@ interface SocialLinksProps {
   settings: Partial<SettingsInterface>;
 }
 
-// Mapping of social media keys to Ant Design icons
 const ICON_MAP: Record<string, React.ReactNode> = {
   [SOCIAL_MEDIA_SETTINGS_KEYS.FACEBOOK]: <FacebookOutlined />,
   [SOCIAL_MEDIA_SETTINGS_KEYS.TWITTER]: <TwitterOutlined />,

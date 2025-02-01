@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { ConfigProvider, Spin } from "antd";
 import { lighten, transparentize } from "polished";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 
 interface CustomConfigProviderProps {
   children: React.ReactNode;
@@ -117,7 +117,6 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
           },
 
           Table: {
-            
             bodySortBg: xcolor.table.section.active,
             borderColor: xcolor.table.section.split,
             expandIconBg: xcolor.table.text.default,
@@ -377,6 +376,15 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
             colorSplit: xcolor.interface.colorSplit,
             colorText: xcolor.input.text.default,
             colorTextHeading: xcolor.input.text.default,
+          },
+          Result: {
+            colorError: xcolor.input.error.base,
+            colorFillAlter: xcolor.container.background.default,
+            colorInfo: xcolor.input.info.text,
+            colorSuccess: xcolor.input.success.text,
+            colorTextDescription: xcolor.input.text.default,
+            colorTextHeading: xcolor.input.text.default,
+            colorWarning: xcolor.input.warning.text,
           },
         },
       }}

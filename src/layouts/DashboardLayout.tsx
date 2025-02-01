@@ -1,44 +1,59 @@
 "use client";
 
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Layout, Menu, Drawer, Typography } from "antd";
-import { DashboardOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
-import UserContext from "@/contexts/UserContext";
 import { usePathname } from "next/navigation";
 import {
   getDashboardDesktopMenu,
   getDashboardMobileMenu,
   getSelectedKey,
 } from "@/config/navigations";
-import { useSettings } from "@/contexts/SettingsContext";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { useSettings } from "@/hooks/useSettings";
+import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import UserAvatar from "../components/UserAvatar";
-import {
-  GLOBAL_SETTINGS,
-  GLOBAL_SETTINGS_KEYS,
-} from "@/config/settings/GLOBAL_SETTINGS_KEYS";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
+import { useUser } from "@/hooks/useUser";
 
 const { Sider, Content, Header, Footer } = Layout;
 const { Text } = Typography;
 const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user, logout } = useContext(UserContext);
+  const { user, logout } = useUser();
+
   const { settings } = useSettings();
 
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
+
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const pathname = usePathname();
   const selectedKey = getSelectedKey(user, pathname, true);
 
   const handleDrawerToggle = () => setDrawerVisible(!drawerVisible);
   const handleLogout = async () => {
-    await logout();
+     logout();
   };
+  const siteSettings: SettingsInterface[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] =
+    settings?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] ||
+    ({
+      siteName: "",
+      siteUrl: "",
+      siteBanner: "",
+      siteLogo: "",
+      logoBackground: "",
+      useBackground: false,
+    } as SettingsInterface[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]);
+
+  const siteLogo = siteSettings.siteLogo?.trim() || "/images/logo.png";
+  const siteName = siteSettings.siteName?.trim() || "Site Logo";
+  const logoBackground =
+    siteSettings.useBackground && siteSettings.logoBackground?.trim()
+      ? siteSettings.logoBackground
+      : "transparent";
+  const currency = settings?.[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -61,13 +76,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               alignItems: "center",
               justifyContent: "center",
               width: "100%",
-              background:
-                settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].useBackground &&
-                settings[
-                  GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
-                ].logoBackground?.trim()
-                  ? settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].logoBackground
-                  : "transparent",
+              background: logoBackground,
             }}
           >
             <Link href="/" passHref>
@@ -82,20 +91,8 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
                   }}
                 >
                   <img
-                    src={
-                      settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteLogo
-                        ? encodeURI(
-                            settings[
-                              GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
-                            ].siteLogo.trim()
-                          )
-                        : "/images/logo.png"
-                    }
-                    alt={
-                      settings[
-                        GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
-                      ].siteName?.trim() || "Site Logo"
-                    }
+                    src={siteLogo}
+                    alt={siteName}
                     style={{
                       width: "100%",
                       height: "auto",
@@ -145,30 +142,16 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               justifyContent: "center",
               width: "100%",
               paddingBlock: "1px",
-              background:
-                settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].useBackground &&
-                settings[
-                  GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
-                ].logoBackground?.trim()
-                  ? settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].logoBackground
-                  : "transparent",
+              background: logoBackground,
             }}
           >
             <Link href="/" passHref>
               <img
-                src={
-                  settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteLogo
-                    ? encodeURI(
-                        settings[
-                          GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
-                        ].siteLogo.trim()
-                      )
-                    : "/images/logo.png"
-                }
+                src={siteLogo}
                 alt={
-                  settings[
+                  settings?.[
                     GLOBAL_SETTINGS_KEYS.SITE_SETTINGS
-                  ].siteName?.trim() || "Site Logo"
+                  ]?.siteName?.trim() ?? "Site Logo"
                 }
                 style={{
                   objectFit: "contain",
@@ -202,14 +185,12 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
           }}
         >
           <Text style={{ fontSize: "18px", fontWeight: "bold" }}>
-            {settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteName?.trim()}
+            {siteName}
           </Text>
 
           <UserAvatar
-            user={user}
             currency={currency}
             isMobile={isMobile}
-            handleLogout={handleLogout}
             toggleDrawer={handleDrawerToggle}
           />
         </Header>
@@ -232,8 +213,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
           }}
         >
           <Text>
-            {settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS].siteName?.trim()} ©{" "}
-            {new Date().getFullYear()} All rights reserved.
+            {siteName} © {new Date().getFullYear()} All rights reserved.
           </Text>
         </Footer>
       </Layout>

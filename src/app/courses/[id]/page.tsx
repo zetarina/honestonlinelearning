@@ -1,21 +1,16 @@
 "use client";
 
-import React, {
-  useEffect,
-  useCallback,
-  useMemo,
-  useContext,
-  useState,
-} from "react";
+import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { message, Card, Typography, Button } from "antd";
 import CourseContent from "@/components/CourseContent";
 import CoursePurchase from "@/components/CoursePurchase";
-import UserContext from "@/contexts/UserContext";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import apiClient from "@/utils/api/apiClient";
 import SubLoader from "@/components/loaders/SubLoader";
+import { useUser } from "@/hooks/useUser";
+import { ApplicationLevelCourseAPI } from "@/models/CourseModel";
 
 dayjs.extend(utc);
 
@@ -23,9 +18,9 @@ const { Title, Text } = Typography;
 
 const CoursePage: React.FC = () => {
   const { id: courseId } = useParams();
-  const { refreshUser, user } = useContext(UserContext);
+  const { refreshUser, user } = useUser();
 
-  const [course, setCourse] = useState(null);
+  const [course, setCourse] = useState<ApplicationLevelCourseAPI | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

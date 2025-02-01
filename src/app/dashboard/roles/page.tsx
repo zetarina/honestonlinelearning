@@ -18,10 +18,10 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
-import { Role, RoleType } from "@/models/RoleModel";
+import { RoleAPI, RoleType } from "@/models/RoleModel";
 
 const RolesPage: React.FC = () => {
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<RoleAPI[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
   const router = useRouter();
@@ -61,13 +61,17 @@ const RolesPage: React.FC = () => {
     }
   };
 
+  const filteredRoles = roles.filter((role) =>
+    role.name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   const columns = [
     {
       title: "Role Name",
       dataIndex: "name",
       key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-      render: (text, record) => (
+      sorter: (a: RoleAPI, b: RoleAPI) => a.name.localeCompare(b.name),
+      render: (text: string, record: RoleAPI) => (
         <a onClick={() => router.push(`/dashboard/roles/${record._id}`)}>
           {text}
         </a>
@@ -94,7 +98,7 @@ const RolesPage: React.FC = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (text, record) => (
+      render: (text: string, record: RoleAPI) => (
         <Space size="middle">
           <Button
             type="primary"
@@ -142,9 +146,9 @@ const RolesPage: React.FC = () => {
         onChange={(e) => setSearchText(e.target.value)}
         style={{ marginBottom: 16, maxWidth: 300 }}
       />
-      <Table<Role>
+      <Table<RoleAPI>
         columns={columns}
-        dataSource={roles}
+        dataSource={filteredRoles}
         rowKey="_id"
         loading={loading}
         pagination={{ pageSize: 10 }}

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "antd";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { lighten } from "polished";
 
 interface ExpandableContentProps {
@@ -17,9 +17,9 @@ const ExpandableContent: React.FC<ExpandableContentProps> = ({
   color,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { colors } = useSettings(); // Fetch theme colors
+  const { colors } = useSettings();
 
-  const textColor = color || colors.text.default; // Allow override or default
+  const textColor = color || colors.text.default;
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);

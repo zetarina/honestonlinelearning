@@ -10,8 +10,6 @@ const settingService = new SettingService();
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-
-    // Validate required fields
     if (!data.user?.email || !data.user?.password || !data.user?.username) {
       return NextResponse.json(
         { error: "Username, email, and password are required" },

@@ -18,11 +18,13 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import type { ColumnsType } from "antd/es/table";
-import { User } from "@/models/UserModel";
+
 import apiClient from "@/utils/api/apiClient";
+import { UserAPI } from "@/models/UserModel";
+import { RoleAPI } from "@/models/RoleModel";
 
 const UsersPage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserAPI[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
   const router = useRouter();
@@ -63,13 +65,13 @@ const UsersPage: React.FC = () => {
   };
 
   // Define table columns
-  const columns: ColumnsType<User> = [
+  const columns: ColumnsType<UserAPI> = [
     {
       title: "Username",
       dataIndex: "username",
       key: "username",
       sorter: (a, b) => a.username.localeCompare(b.username),
-      render: (text: string, record: User) => (
+      render: (text: string, record: UserAPI) => (
         <a onClick={() => router.push(`/dashboard/users/${record._id}`)}>
           {text}
         </a>
@@ -85,7 +87,7 @@ const UsersPage: React.FC = () => {
       title: "Roles",
       dataIndex: "roles",
       key: "roles",
-      render: (roles) => (
+      render: (roles: RoleAPI[]) => (
         <>
           {roles?.map((role) => (
             <Tag key={role._id} color={role.color || "red"}>
@@ -159,7 +161,7 @@ const UsersPage: React.FC = () => {
         onChange={(e) => setSearchText(e.target.value)}
         style={{ marginBottom: 16, maxWidth: 300 }}
       />
-      <Table<User>
+      <Table<UserAPI>
         columns={columns}
         dataSource={users.filter(
           (user) =>

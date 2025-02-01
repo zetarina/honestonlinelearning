@@ -2,33 +2,29 @@
 
 import React from "react";
 import { Form, Input, Button, Typography, Row, Col, message, Card } from "antd";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
-import apiClient from "@/utils/api/apiClient"; // Import apiClient for API requests
+import apiClient from "@/utils/api/apiClient";
 
 const { Title, Text } = Typography;
 
 const ContactUsSection: React.FC = () => {
   const { settings } = useSettings();
 
-  // Define default contact information
   const defaultContactInfo = {
     address: "123 Main Street, City, Country",
     phone: "+1 (123) 456-7890",
     email: "contact@example.com",
-    mapLink: "https://www.google.com/maps", // Default fallback map link
+    mapLink: "https://www.google.com/maps",
   };
 
-  // Merge custom settings (if available) with defaults.
-  // If settings[SITE_SETTINGS_KEYS.CONTACT_US_INFO] is undefined, the default value will be used.
   const contactInfo = {
-    ...defaultContactInfo,
-    ...(settings[GLOBAL_SETTINGS_KEYS.HOMEPAGE]?.contactUsInfo || {}),
+    ...(settings[GLOBAL_SETTINGS_KEYS.HOMEPAGE]?.contactUsInfo ||
+      defaultContactInfo),
   };
 
   const handleSubmit = async (values: any) => {
     try {
-      // Use apiClient to send the form data to the API
       const response = await apiClient.post("/contact-us", values);
 
       if (response.status === 200) {
@@ -141,7 +137,7 @@ const ContactUsSection: React.FC = () => {
             {/* Google Maps Embed */}
             <div style={{ marginTop: "20px" }}>
               <iframe
-                src={contactInfo.mapLink} // Dynamic map link
+                src={contactInfo.mapLink}
                 width="100%"
                 height="400"
                 style={{

@@ -3,13 +3,9 @@ import EnrollmentService from "@/services/EnrollmentService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { APP_PERMISSIONS } from "@/config/permissions";
 
-
 const enrollmentService = new EnrollmentService();
 
-async function handleGetAllEnrollmentsRequest(
-  request: Request,
-  userId: string | null
-) {
+async function handleGetAllEnrollmentsRequest(request: Request) {
   try {
     const enrollments = await enrollmentService.getAllEnrollments();
     return NextResponse.json(enrollments);
@@ -22,15 +18,12 @@ async function handleGetAllEnrollmentsRequest(
   }
 }
 
-async function handleCreateEnrollmentRequest(
-  request: Request,
-  userId: string | null
-) {
+async function handleCreateEnrollmentRequest(request: Request) {
   try {
     const body = await request.json();
-    const { userId: frontendUserId, courseId, isPermanent, expiresAt } = body;
+    const { userId: targetUserId, courseId, isPermanent, expiresAt } = body;
 
-    if (!frontendUserId || !courseId) {
+    if (!targetUserId || !courseId) {
       return NextResponse.json(
         { error: "User ID and Course ID are required" },
         { status: 400 }
@@ -38,7 +31,7 @@ async function handleCreateEnrollmentRequest(
     }
 
     const existingEnrollment = await enrollmentService.isUserEnrolled(
-      frontendUserId,
+      targetUserId,
       courseId
     );
 
@@ -50,7 +43,7 @@ async function handleCreateEnrollmentRequest(
     }
 
     const newEnrollment = await enrollmentService.createEnrollment(
-      frontendUserId,
+      targetUserId,
       courseId,
       isPermanent,
       expiresAt ? new Date(expiresAt) : undefined
@@ -67,15 +60,11 @@ async function handleCreateEnrollmentRequest(
 }
 
 export const GET = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleGetAllEnrollmentsRequest(req, userId),
-    true,
-    [APP_PERMISSIONS.MANAGE_ENROLLMENTS]
-  )(request);
+  withAuthMiddleware((req) => handleGetAllEnrollmentsRequest(req), true, [
+    APP_PERMISSIONS.MANAGE_ENROLLMENTS,
+  ])(request);
 
 export const POST = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleCreateEnrollmentRequest(req, userId),
-    true,
-    [APP_PERMISSIONS.MANAGE_ENROLLMENTS]
-  )(request);
+  withAuthMiddleware((req) => handleCreateEnrollmentRequest(req), true, [
+    APP_PERMISSIONS.MANAGE_ENROLLMENTS,
+  ])(request);

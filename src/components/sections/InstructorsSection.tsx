@@ -3,7 +3,7 @@
 import React from "react";
 import { Typography, Spin, Alert } from "antd";
 import ImageComponent from "@/components/ImageComponent";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import apiClient from "@/utils/api/apiClient";
 import CustomCarousel from "@/components/CustomCarousel";

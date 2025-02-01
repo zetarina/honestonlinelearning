@@ -1,32 +1,18 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
-import { Role,  } from "./RoleModel";
-import { coursesModelName, paymentsModelName, roleModelName, usersModelName } from ".";
+import { Role, RoleAPI } from "./RoleModel";
+import { roleModelName, usersModelName } from ".";
+import {
+  PointTransaction,
+  PointTransactionAPI,
+  pointTransactionSchema,
+} from "./Users/PointTransaction";
+import {
+  DeviceToken,
+  DeviceTokenAPI,
+  deviceTokenSchema,
+} from "./Users/DeviceToken";
 
-
-export enum PointTransactionType {
-  ADDED_BY_SYSTEM = "Added by System",
-  DEDUCTED_BY_SYSTEM = "Deducted by System",
-  COURSE_PURCHASE = "Course Purchase",
-  COURSE_REFUND = "Course Refund",
-  BONUS_REWARD = "Bonus Reward",
-  PURCHASED_POINTS = "Purchased Points",
-}
-
-export interface DeviceToken {
-  deviceName: string;
-  token: string;
-  createdAt: Date;
-}
-
-export interface PointTransaction {
-  type: PointTransactionType;
-  points: number;
-  paymentId?: Types.ObjectId | string;
-  date: Date;
-  courseId?: Types.ObjectId | string;
-}
-export interface User extends Document {
-  _id: Types.ObjectId | string;
+interface BaseUser {
   name?: string;
   bio?: string;
   username: string;
@@ -34,37 +20,26 @@ export interface User extends Document {
   password?: string;
   hashedPassword: string;
   salt: string;
-  pointTransactions: PointTransaction[];
   pointsBalance: number;
-  role_ids: Types.ObjectId[];
-  roles: Role[];
-  devices: DeviceToken[];
   created_at: Date;
   updated_at: Date;
   avatar: string;
 }
+export interface User extends BaseUser, Document {
+  _id: Types.ObjectId;
+  pointTransactions: PointTransaction[];
+  role_ids: Types.ObjectId[];
+  roles: Role[];
+  devices: DeviceToken[];
+}
+export interface UserAPI extends BaseUser {
+  _id: string;
+  pointTransactions: PointTransactionAPI[];
+  role_ids: string[];
+  roles: RoleAPI[];
+  devices: DeviceTokenAPI[];
+}
 
-const pointTransactionSchema = new Schema({
-  type: {
-    type: String,
-    enum: Object.values(PointTransactionType),
-    required: true,
-  },
-  points: { type: Number, required: true },
-  paymentId: {
-    type: Schema.Types.ObjectId,
-    ref: paymentsModelName,
-    sparse: true,
-  },
-  date: { type: Date, default: Date.now },
-  courseId: { type: Schema.Types.ObjectId, ref: coursesModelName },
-});
-
-const deviceTokenSchema = new Schema({
-  deviceName: { type: String, required: true },
-  token: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-});
 const userSchema = new Schema(
   {
     name: { type: String, trim: true },

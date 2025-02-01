@@ -5,8 +5,8 @@ import React from "react";
 interface ImageComponentProps {
   src: string;
   alt: string;
-  width?: number | string; // Optional and flexible
-  height?: number | string; // Optional and flexible
+  width?: number | string;
+  height?: number | string;
   objectFit?: "cover" | "contain";
   style?: React.CSSProperties;
   priority?: boolean;
@@ -15,15 +15,15 @@ interface ImageComponentProps {
 const ImageComponent: React.FC<ImageComponentProps> = ({
   src,
   alt,
-  width = "100%", // Default to full width
-  height = "auto", // Default to auto height
+  width = "100%",
+  height = "auto",
   objectFit = "cover",
   style,
   priority = false,
 }) => {
   if (!src) {
     console.error("Image source is invalid:", src);
-    return <div>Invalid image source</div>; // Placeholder for invalid source
+    return <div>Invalid image source</div>;
   }
 
   return (
@@ -31,8 +31,8 @@ const ImageComponent: React.FC<ImageComponentProps> = ({
       src={src}
       alt={alt}
       style={{
-        width, // Flexible width
-        height, // Flexible height
+        width,
+        height,
         objectFit,
         ...style,
       }}

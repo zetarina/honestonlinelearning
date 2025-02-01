@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Modal, Button, Card, Input, Form } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { Chapter } from "@/models/CourseModel";
 import VideoModal from "./VideoModal";
 import ResourceModal from "../inputs/ResourceModal";
+import { ChapterAPI } from "@/models/Courses/Chapeter";
 
 interface ChaptersModalProps {
   isOpen: boolean;
   onClose: () => void;
-  chapters: Chapter[];
-  setChapters: React.Dispatch<React.SetStateAction<Chapter[]>>;
+  chapters: ChapterAPI[];
+  setChapters: React.Dispatch<React.SetStateAction<ChapterAPI[]>>;
 }
 
 const ChaptersModal: React.FC<ChaptersModalProps> = ({
@@ -66,7 +66,9 @@ const ChaptersModal: React.FC<ChaptersModalProps> = ({
         {chapters.map((chapter, chapterIndex) => (
           <Card
             key={chapterIndex}
-            title={`Chapter ${chapterIndex + 1} (Videos: ${chapter.videos?.length || 0} , Resources: ${chapter.resources?.length || 0})`}
+            title={`Chapter ${chapterIndex + 1} (Videos: ${
+              chapter.videos?.length || 0
+            } , Resources: ${chapter.resources?.length || 0})`}
             extra={
               <Button
                 type="link"

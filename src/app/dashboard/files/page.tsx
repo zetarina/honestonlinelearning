@@ -10,6 +10,7 @@ import {
   Popconfirm,
   Input,
   Tooltip,
+  Typography,
 } from "antd";
 import {
   EyeOutlined,
@@ -21,11 +22,11 @@ import {
   FileTextOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
-import { FileData } from "@/models/FileModel";
+import { FileDataAPI } from "@/models/FileModel";
 import apiClient from "@/utils/api/apiClient";
 
 const FileListPage: React.FC = () => {
-  const [files, setFiles] = useState<FileData[]>([]);
+  const [files, setFiles] = useState<FileDataAPI[]>([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +36,6 @@ const FileListPage: React.FC = () => {
 
   const observerRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch files from the server with pagination
   const fetchFiles = async (search = "", page = 1) => {
     try {
       setLoading(true);
@@ -53,7 +53,6 @@ const FileListPage: React.FC = () => {
     }
   };
 
-  // Sync files with the backend
   const syncFiles = async () => {
     setSyncing(true);
     try {
@@ -91,7 +90,6 @@ const FileListPage: React.FC = () => {
     fetchFiles(searchTerm, 1);
   }, [searchTerm]);
 
-  // Infinite scroll handler with Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -113,8 +111,7 @@ const FileListPage: React.FC = () => {
     if (page > 1) fetchFiles(searchTerm, page);
   }, [page]);
 
-  // 🔥 Dynamic Thumbnail Handling 🔥
-  const getFileThumbnail = (file: FileData) => {
+  const getFileThumbnail = (file: FileDataAPI) => {
     if (file.type === "image") {
       return (
         <img
@@ -160,9 +157,9 @@ const FileListPage: React.FC = () => {
             borderRadius: "8px",
           }}
         >
-          {file.contentType.includes("pdf") ? (
+          {file.contentType && file.contentType.includes("pdf") ? (
             <FilePdfOutlined style={{ color: "red", fontSize: "48px" }} />
-          ) : file.contentType.includes("word") ? (
+          ) : file.contentType && file.contentType.includes("word") ? (
             <FileWordOutlined style={{ color: "blue", fontSize: "48px" }} />
           ) : (
             <FileTextOutlined style={{ fontSize: "48px" }} />
@@ -173,7 +170,7 @@ const FileListPage: React.FC = () => {
     return null;
   };
 
-  const renderFileCard = (file: FileData) => (
+  const renderFileCard = (file: FileDataAPI) => (
     <List.Item key={file._id.toString()} style={{ marginBottom: 16 }}>
       <Card
         hoverable
@@ -200,6 +197,7 @@ const FileListPage: React.FC = () => {
         ]}
       >
         <Card.Meta title={file.name} description={file.service} />
+        {/* <Typography.Text>{file.uploadedBy}</Typography.Text> */}
       </Card>
     </List.Item>
   );

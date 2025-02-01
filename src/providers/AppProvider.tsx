@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { UserProvider } from "@/contexts/UserContext";
+
 import LayoutRouter from "@/router/LayoutRouter";
 import SetupForm from "@/components/forms/SetupForm";
-import { useSettings } from "@/contexts/SettingsContext";
 
 import LoadingSpinner from "@/components/loaders/LoadingSpinner";
-import { FilePickerProvider } from "@/contexts/FilePickerContext";
+import { UserProvider } from "./UserProvider";
+import { FilePickerProvider } from "./FilePickerProvider";
+import { useSettings } from "@/hooks/useSettings";
 
 interface AppProviderProps {
   children: React.ReactNode;

@@ -15,18 +15,22 @@ import {
   Alert,
   message,
 } from "antd";
-import { Course, CourseType } from "@/models/CourseModel";
+import {
+  ApplicationLevelCourseAPI,
+  Course,
+  CourseType,
+} from "@/models/CourseModel";
 import apiClient from "@/utils/api/apiClient";
 import { useRouter } from "next/navigation";
 import ExpandableContent from "./ExpandableContent";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
-import UserContext from "@/contexts/UserContext";
+import { useUser } from "@/hooks/useUser";
 
 const { Title, Text } = Typography;
 
 interface CoursePurchaseProps {
-  course: Course;
+  course: ApplicationLevelCourseAPI;
   onPurchaseSuccess: () => void;
 }
 
@@ -34,11 +38,10 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
   course,
   onPurchaseSuccess,
 }) => {
-  const { user } = useContext(UserContext);
   const router = useRouter();
+  const { user } = useUser();
   const { settings } = useSettings();
 
-  // Retrieve the currency from settings, defaulting to USD if not set
   const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   const handlePurchase = async () => {
@@ -161,8 +164,8 @@ const CoursePurchase: React.FC<CoursePurchaseProps> = ({
                           <Timeline.Item key={index} color="blue">
                             <Title level={5}>{chapter.title}</Title>
                             <Text type="secondary">
-                              {chapter.videos.length} Videos,{" "}
-                              {chapter.resources.length} Resources
+                              {chapter.videos?.length ?? 0} Videos
+                              {chapter.resources?.length ?? 0} Resources
                             </Text>
                           </Timeline.Item>
                         ))}

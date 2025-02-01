@@ -12,11 +12,10 @@ class UserCourseRepository {
   }
 
   async getAllUserCourses(
-    userId?: string | null
+    userId?: Types.ObjectId
   ): Promise<ApplicationLevelCourse[]> {
     await dbConnect();
-    const userIdObj = userId ? new Types.ObjectId(userId) : null;
-
+    const userIdObj = userId ? userId : null;
     const result = await this.courseModel.aggregate([
       ...(userIdObj
         ? [
@@ -81,7 +80,7 @@ class UserCourseRepository {
                     as: "video",
                     in: {
                       title: "$$video.title",
-                      key: "$$video.key", // No transformation, using `key` directly.
+                      key: "$$video.key",
                       type: "$$video.type",
                     },
                   },
@@ -98,17 +97,14 @@ class UserCourseRepository {
   }
 
   async getUserCourseById(
-    courseId: string,
-    userId?: string | null
+    courseId: Types.ObjectId,
+    userId?: Types.ObjectId
   ): Promise<ApplicationLevelCourse | null> {
     await dbConnect();
 
-    const courseIdObj = new Types.ObjectId(courseId);
-    const userIdObj = userId ? new Types.ObjectId(userId) : null;
-
     const result = await this.courseModel.aggregate([
-      { $match: { _id: courseIdObj } },
-      ...(userIdObj
+      { $match: { _id: courseId } },
+      ...(userId
         ? [
             {
               $lookup: {
@@ -120,7 +116,7 @@ class UserCourseRepository {
                       $expr: {
                         $and: [
                           { $eq: ["$course_id", "$$courseId"] },
-                          { $eq: ["$user_id", userIdObj] },
+                          { $eq: ["$user_id", userId] },
                         ],
                       },
                     },
@@ -171,7 +167,7 @@ class UserCourseRepository {
                     as: "video",
                     in: {
                       title: "$$video.title",
-                      key: "$$video.key", // Keeping `key` intact.
+                      key: "$$video.key",
                       type: "$$video.type",
                     },
                   },

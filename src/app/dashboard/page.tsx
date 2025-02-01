@@ -1,14 +1,12 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useContext } from "react";
-import UserContext from "@/contexts/UserContext";
+import { useMemo } from "react";
 import { Card, Typography, Row, Col, Divider } from "antd";
+import { useUser } from "@/hooks/useUser";
 
 const { Title, Text } = Typography;
 
 export default function DashboardPage() {
-  const { user } = useContext(UserContext);
-
+  const { user } = useUser();
   const userDetails = useMemo(() => {
     return (
       <>

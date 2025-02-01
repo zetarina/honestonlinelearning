@@ -1,11 +1,7 @@
 import dbConnect from "@/db";
 import SettingModel from "../models/SettingModel";
 import { Model } from "mongoose";
-import {
-  SETTINGS_GUIDE,
-  SETTINGS_KEYS,
-  SettingsInterface,
-} from "@/config/settingKeys";
+import { SETTINGS_GUIDE, SettingsInterface } from "@/config/settingKeys";
 
 class SettingRepository {
   private settingModel: Model<any>;

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Card, message } from "antd";
-import { User } from "@/models/UserModel";
+import { UserAPI } from "@/models/UserModel";
 import { useRouter } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
 import ImageSelection from "../inputs/ImageSelection";
@@ -11,7 +11,7 @@ import DynamicMultiSelect from "../inputs/DynamicMultiSelect";
 const { TextArea } = Input;
 
 interface UserFormProps {
-  user?: User;
+  user?: UserAPI;
 }
 
 const UserForm: React.FC<UserFormProps> = ({ user }) => {
@@ -34,7 +34,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
 
     const userData = {
       ...otherValues,
-      role_ids, // Multiple roles
+      role_ids,
       ...(password ? { password } : {}),
     };
 
@@ -128,7 +128,7 @@ const UserForm: React.FC<UserFormProps> = ({ user }) => {
             valueKey="_id"
             labelKey="name"
             placeholder="Select roles"
-            disabled={user?.roles?.some(role => role.type === "system")}
+            disabled={user?.roles?.some((role) => role.type === "system")}
           />
         </Form.Item>
 

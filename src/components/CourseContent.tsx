@@ -12,13 +12,14 @@ import {
 } from "@ant-design/icons";
 import ReactPlayer from "react-player";
 import { useMediaQuery } from "react-responsive";
-import { Course, VideoType } from "@/models/CourseModel";
+import { CourseAPI } from "@/models/CourseModel";
+import { VideoType } from "@/models/Courses/Video";
 
 const { Sider, Content } = Layout;
 const { Title } = Typography;
 
 interface CourseContentProps {
-  course: Course;
+  course: CourseAPI;
 }
 
 const CourseContent: React.FC<CourseContentProps> = ({ course }) => {

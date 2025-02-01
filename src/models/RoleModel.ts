@@ -2,15 +2,13 @@ import { APP_PERMISSIONS } from "@/config/permissions";
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { roleModelName } from ".";
 
-
 export enum RoleType {
   SYSTEM = "system",
   GUEST = "guest",
   CUSTOM = "custom",
 }
 
-export interface Role extends Document {
-  _id: Types.ObjectId | string;
+interface BaseRole {
   name: string;
   type: RoleType;
   permissions: string[];
@@ -18,6 +16,14 @@ export interface Role extends Document {
   nonDeletable: boolean;
   nonPermissionsEditable: boolean;
   level: number;
+}
+
+export interface Role extends BaseRole, Document {
+  _id: Types.ObjectId;
+}
+
+export interface RoleAPI extends BaseRole {
+  _id: string;
 }
 
 const roleSchema = new Schema<Role>({
@@ -38,8 +44,8 @@ const roleSchema = new Schema<Role>({
   level: { type: Number, required: true, default: 1, min: 1, max: 100 },
 });
 
-
 const RoleModel =
-  mongoose.models?.[roleModelName] || mongoose.model(roleModelName, roleSchema);
+  mongoose.models?.[roleModelName] ||
+  mongoose.model<Role>(roleModelName, roleSchema);
 
 export default RoleModel;

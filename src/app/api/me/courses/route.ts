@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
-import UserCourseRepository from "@/repositories/UserCourseRepository";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
+import { User } from "@/models/UserModel";
+import UserCourseService from "@/services/UserCourseService";
 
-const userCourseRepo = new UserCourseRepository();
+const userCourseService = new UserCourseService();
 
-async function handleUserCoursesRequest(
-  request: Request,
-  userId: string | null
-) {
+async function handleUserCoursesRequest(request: Request, user: User | null) {
   try {
-    const courses = await userCourseRepo.getAllUserCourses(userId);
+    const courses = await userCourseService.getAllUserCourses(user?._id);
     return NextResponse.json(courses);
   } catch (error) {
     console.error("Error fetching courses:", error);
@@ -20,4 +18,8 @@ async function handleUserCoursesRequest(
   }
 }
 
-export const GET = withAuthMiddleware(handleUserCoursesRequest, false);
+export const GET = async (request: Request) =>
+  withAuthMiddleware(
+    (req, user) => handleUserCoursesRequest(req, user),
+    false
+  )(request);

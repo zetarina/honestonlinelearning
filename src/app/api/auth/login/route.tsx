@@ -1,15 +1,12 @@
-// src/app/api/auth/login/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 
 const userService = new UserService();
 
-// Named export for the POST method
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
-    const deviceName = "Mobile";
+    const { email, password, deviceName } = await req.json();
+
     if (!email || !password || !deviceName) {
       return NextResponse.json(
         { message: "Email, password, and device name are required." },
@@ -18,6 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await userService.getUserByEmail(email);
+
     if (!user || !(await userService.verifyPassword(password, user))) {
       return NextResponse.json(
         { message: "Invalid email or password." },
@@ -25,17 +23,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const accessToken = userService.generateAccessToken(user._id as string);
-    const refreshToken = userService.generateRefreshToken(user._id as string);
+    const { token: accessToken, expirationTime: accessTokenExpiry } =
+      userService.generateAccessToken(user.id);
+    const { token: refreshToken, expirationTime: refreshTokenExpiry } =
+      userService.generateRefreshToken(user.id);
 
-    // Save the refresh token along with the device name
-    await userService.saveDeviceToken(
-      user._id as string,
-      deviceName,
-      refreshToken
+    await userService.saveDeviceToken(user.id, deviceName, refreshToken);
+
+    return NextResponse.json(
+      {
+        accessToken,
+        accessTokenExpiry,
+        refreshToken,
+        refreshTokenExpiry,
+      },
+      { status: 200 }
     );
-
-    return NextResponse.json({ accessToken, refreshToken }, { status: 200 });
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

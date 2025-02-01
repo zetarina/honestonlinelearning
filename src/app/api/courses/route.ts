@@ -6,10 +6,7 @@ import { APP_PERMISSIONS } from "@/config/permissions";
 
 const courseService = new CourseService();
 
-async function handleGetAllCoursesRequest(
-  request: Request,
-  userId: string | null
-) {
+async function handleGetAllCoursesRequest(request: Request) {
   try {
     const courses = await courseService.getAllCourses();
     return NextResponse.json(courses);
@@ -22,10 +19,7 @@ async function handleGetAllCoursesRequest(
   }
 }
 
-async function handleCreateCourseRequest(
-  request: Request,
-  userId: string | null
-) {
+async function handleCreateCourseRequest(request: Request) {
   try {
     const body = await request.json();
     const newCourse = await courseService.createCourse(body);
@@ -40,15 +34,11 @@ async function handleCreateCourseRequest(
 }
 
 export const GET = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleGetAllCoursesRequest(req, userId),
-    true,
-    [APP_PERMISSIONS.ADMIN]
-  )(request);
+  withAuthMiddleware((req) => handleGetAllCoursesRequest(req), true, [
+    APP_PERMISSIONS.ADMIN,
+  ])(request);
 
 export const POST = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleCreateCourseRequest(req, userId),
-    true,
-    [APP_PERMISSIONS.MANAGE_COURSES]
-  )(request);
+  withAuthMiddleware((req) => handleCreateCourseRequest(req), true, [
+    APP_PERMISSIONS.MANAGE_COURSES,
+  ])(request);

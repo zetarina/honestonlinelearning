@@ -7,7 +7,6 @@ const enrollmentService = new EnrollmentService();
 
 async function handleGetEnrollmentRequest(
   request: Request,
-  userId: string | null,
   params: { id: string }
 ) {
   try {
@@ -30,7 +29,6 @@ async function handleGetEnrollmentRequest(
 
 async function handleDeleteEnrollmentRequest(
   request: Request,
-  userId: string | null,
   params: { id: string }
 ) {
   try {
@@ -60,7 +58,7 @@ export const GET = async (
   context: { params: { id: string } }
 ) =>
   withAuthMiddleware(
-    (req, userId) => handleGetEnrollmentRequest(req, userId, context.params),
+    (req) => handleGetEnrollmentRequest(req, context.params),
     true,
     [APP_PERMISSIONS.ADMIN]
   )(request);
@@ -70,7 +68,7 @@ export const DELETE = async (
   context: { params: { id: string } }
 ) =>
   withAuthMiddleware(
-    (req, userId) => handleDeleteEnrollmentRequest(req, userId, context.params),
+    (req) => handleDeleteEnrollmentRequest(req, context.params),
     true,
     [APP_PERMISSIONS.MANAGE_ENROLLMENTS]
   )(request);

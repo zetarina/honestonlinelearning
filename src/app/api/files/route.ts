@@ -3,6 +3,7 @@ import FileService from "@/services/FileService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { StorageServiceType } from "@/models/FileModel";
 import { APP_PERMISSIONS } from "@/config/permissions";
+import { User } from "@/models/UserModel";
 
 const fileService = new FileService();
 const getFileType = (contentType: string): "image" | "video" | "document" => {
@@ -35,7 +36,7 @@ async function handleGetFiles(request: Request) {
   }
 }
 
-async function handleSaveMetadata(request: Request, userId: string) {
+async function handleSaveMetadata(request: Request, user: User) {
   try {
     const { files } = await request.json();
 
@@ -71,7 +72,7 @@ async function handleSaveMetadata(request: Request, userId: string) {
           type: getFileType(file.contentType),
           size: file.size,
           service: file.service as StorageServiceType,
-          uploadedBy: userId,
+          uploadedBy: user._id,
           isPublic: file.isPublic ?? true,
           publicUrl: file.publicUrl,
           description: file.description,
@@ -110,6 +111,6 @@ export const GET = async (request: Request) =>
   withAuthMiddleware(handleGetFiles, true, [APP_PERMISSIONS.ADMIN])(request);
 
 export const POST = async (request: Request) =>
-  withAuthMiddleware((req, userId) => handleSaveMetadata(req, userId!), true, [
+  withAuthMiddleware((req, user) => handleSaveMetadata(req, user), true, [
     APP_PERMISSIONS.MANAGE_FILES,
   ])(request);

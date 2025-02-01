@@ -1,26 +1,17 @@
-"use client";
-
-import { Button, Input, Form, Alert, Typography, Spin, Card } from "antd";
+'use client'
+import { Button, Input, Form, Alert, Typography, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useContext } from "react";
-import UserContext from "@/contexts/UserContext";
+import { useState, useEffect } from "react";
 import SubLoader from "@/components/loaders/SubLoader";
 import { APP_PERMISSIONS } from "@/config/permissions";
-
-const { Title } = Typography;
+import { useUser } from "@/hooks/useUser";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
 
-  const {
-    user,
-    signIn,
-    loading: sessionLoading,
-    initialLoading,
-  } = useContext(UserContext);
-
+  const { user, signIn, loading: sessionLoading, initialLoading } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,7 +46,6 @@ export default function LoginPage() {
     }
   };
 
-  // Show a loader while the user session is being initialized
   if (initialLoading || sessionLoading || (user && !initialLoading)) {
     return <SubLoader tip="Logging in..." />;
   }

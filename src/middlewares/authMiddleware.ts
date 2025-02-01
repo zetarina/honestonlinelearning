@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import UserService from "@/services/UserService";
-import { APP_PERMISSIONS, AppPermissionType } from "@/config/permissions";
+import { AppPermissionType } from "@/config/permissions";
+import { User } from "@/models/UserModel";
 
 const userService = new UserService();
 
@@ -9,7 +10,7 @@ async function authMiddleware(
   request: Request,
   showError: boolean = false,
   requiredPermissions?: AppPermissionType[]
-): Promise<{ userId: string | null } | NextResponse> {
+): Promise<{ user: any; highestRoleLevel: number } | NextResponse> {
   let userId: string | null = null;
   const authorizationHeader = request.headers.get("authorization");
 
@@ -20,7 +21,7 @@ async function authMiddleware(
       if (typeof decoded === "object" && decoded.userId) {
         userId = decoded.userId;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Invalid token:", error.message);
       if (showError) {
         return NextResponse.json(
@@ -37,20 +38,27 @@ async function authMiddleware(
     );
   }
 
-  if (userId && requiredPermissions?.length) {
-    try {
-      const user = await userService.getUserById(userId);
-      if (!user || !user.roles) {
-        return NextResponse.json(
-          { error: "Forbidden: User roles not found" },
-          { status: 403 }
-        );
-      }
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized: User not found" },
+      { status: 401 }
+    );
+  }
 
+  try {
+    const user = await userService.getSafeUserById(userId);
+    if (!user || !user.roles) {
+      return NextResponse.json(
+        { error: "Forbidden: User roles not found" },
+        { status: 403 }
+      );
+    }
+    const highestRoleLevel = Math.min(...user.roles.map((role) => role.level));
+    if (requiredPermissions?.length) {
       const userPermissions = new Set(
         user.roles.flatMap((role) => role.permissions)
       );
-   
+
       const hasPermission = requiredPermissions.some((perm) =>
         userPermissions.has(perm)
       );
@@ -61,26 +69,26 @@ async function authMiddleware(
           { status: 403 }
         );
       }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      return NextResponse.json(
-        { error: "Internal Server Error" },
-        { status: 500 }
-      );
     }
+
+    return { user, highestRoleLevel };
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
-
-  return { userId };
 }
-
-export function withAuthMiddleware(
+export function withAuthMiddleware<Protected extends boolean>(
   routeHandler: (
     request: Request,
-    userId: string | null
+    user: Protected extends true ? User : User | null,
+    highestRoleLevel: number
   ) => Promise<NextResponse>,
-  isProtected: boolean = false,
+  isProtected: Protected,
   requiredPermissions?: AppPermissionType[]
-) {
+): (request: Request) => Promise<NextResponse> {
   return async (request: Request): Promise<NextResponse> => {
     const authResult = await authMiddleware(
       request,
@@ -92,7 +100,19 @@ export function withAuthMiddleware(
       return authResult;
     }
 
-    const { userId } = authResult;
-    return routeHandler(request, userId);
+    const { user, highestRoleLevel } = authResult;
+
+    if (isProtected && !user) {
+      return NextResponse.json(
+        { error: "Unauthorized: User is required for this action" },
+        { status: 401 }
+      );
+    }
+
+    return routeHandler(
+      request,
+      isProtected ? user! : (user as User | null),
+      highestRoleLevel
+    );
   };
 }

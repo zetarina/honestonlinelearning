@@ -1,14 +1,15 @@
 import React from "react";
 import { Modal, Button, Card, Input, Form } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { Chapter, Resource } from "@/models/CourseModel";
+import { ChapterAPI } from "@/models/Courses/Chapeter";
+import { ResourceAPI } from "@/models/Courses/Resource";
 
 interface ResourceModalProps {
   isOpen: boolean;
   onClose: () => void;
   chapterIndex: number;
-  chapters: Chapter[];
-  setChapters: React.Dispatch<React.SetStateAction<Chapter[]>>;
+  chapters: ChapterAPI[];
+  setChapters: React.Dispatch<React.SetStateAction<ChapterAPI[]>>;
 }
 
 const ResourceModal: React.FC<ResourceModalProps> = ({
@@ -19,32 +20,65 @@ const ResourceModal: React.FC<ResourceModalProps> = ({
   setChapters,
 }) => {
   const chapter = chapters[chapterIndex];
-  if (!chapter) return null; // Guard clause
+  if (!chapter) return null;
 
   const addResource = () => {
     const updatedChapters = [...chapters];
+
+    if (!updatedChapters[chapterIndex]) {
+      updatedChapters[chapterIndex] = { title: "", videos: [], resources: [] };
+    }
+
+    if (!updatedChapters[chapterIndex].resources) {
+      updatedChapters[chapterIndex].resources = [];
+    }
+
     updatedChapters[chapterIndex].resources.push({
       _id: "",
       name: "",
       downloadUrl: "",
     });
+
     setChapters(updatedChapters);
   };
 
   const removeResource = (resourceIndex: number) => {
     const updatedChapters = [...chapters];
+
+    if (!updatedChapters[chapterIndex]) {
+      return;
+    }
+
+    if (!updatedChapters[chapterIndex].resources) {
+      updatedChapters[chapterIndex].resources = [];
+    }
+
     updatedChapters[chapterIndex].resources = updatedChapters[
       chapterIndex
     ].resources.filter((_, index) => index !== resourceIndex);
+
     setChapters(updatedChapters);
   };
 
   const updateResourceField = (
     resourceIndex: number,
-    field: keyof Resource,
+    field: keyof ResourceAPI,
     value: any
   ) => {
     const updatedChapters = [...chapters];
+
+    if (!updatedChapters[chapterIndex]) {
+      return;
+    }
+
+    if (!updatedChapters[chapterIndex].resources) {
+      updatedChapters[chapterIndex].resources = [];
+    }
+
+    if (!updatedChapters[chapterIndex].resources[resourceIndex]) {
+      return;
+    }
+
     updatedChapters[chapterIndex].resources[resourceIndex][field] = value;
     setChapters(updatedChapters);
   };
@@ -57,7 +91,7 @@ const ResourceModal: React.FC<ResourceModalProps> = ({
       footer={null}
       width={600}
     >
-      {chapter.resources.map((resource, resourceIndex) => (
+      {chapter.resources?.map((resource, resourceIndex) => (
         <Card
           key={resourceIndex}
           title={`Resource ${resourceIndex + 1}`}

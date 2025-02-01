@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Button, message, Modal } from "antd";
 
-import { User } from "@/models/UserModel";
+import { UserAPI } from "@/models/UserModel";
 import apiClient from "@/utils/api/apiClient";
 
 interface ProfileUpdateFormProps {
-  user: User;
+  user: UserAPI;
   visible: boolean;
   onCancel: () => void;
   onSuccess?: () => void;
@@ -58,7 +58,7 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
         onSuccess();
       }
       handleCancel();
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Failed to update the profile";
       message.error(errorMessage);
@@ -69,7 +69,7 @@ const ProfileUpdateForm: React.FC<ProfileUpdateFormProps> = ({
 
   return (
     <Modal
-      key={user?.id || "profile-modal"}
+      key={user?._id || "profile-modal"}
       open={visible}
       onCancel={handleCancel}
       footer={null}

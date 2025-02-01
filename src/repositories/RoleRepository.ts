@@ -14,7 +14,7 @@ class RoleRepository {
     return this.roleModel.find().exec();
   }
 
-  async findById(roleId: string | Types.ObjectId): Promise<Role | null> {
+  async findById(roleId: Types.ObjectId): Promise<Role | null> {
     await dbConnect();
     return this.roleModel.findById(roleId).exec();
   }
@@ -36,7 +36,7 @@ class RoleRepository {
   }
 
   async update(
-    roleId: string | Types.ObjectId,
+    roleId: Types.ObjectId,
     updateData: Partial<Role>
   ): Promise<Role | null> {
     await dbConnect();
@@ -45,13 +45,13 @@ class RoleRepository {
       .exec();
   }
 
-  async delete(roleId: string | Types.ObjectId): Promise<Role | null> {
+  async delete(roleId: Types.ObjectId): Promise<Role | null> {
     await dbConnect();
     return this.roleModel.findByIdAndDelete(roleId).exec();
   }
 
-  async updatePermissions(
-    roleId: string | Types.ObjectId,
+  async updatePermissionsSystem(
+    roleId: Types.ObjectId,
     permissions: string[]
   ): Promise<Role | null> {
     await dbConnect();

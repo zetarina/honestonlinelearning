@@ -1,8 +1,10 @@
 import dbConnect from "@/db";
-import UserModel, { User, PointTransactionType } from "../models/UserModel";
+import UserModel, { User } from "../models/UserModel";
 import { Types, Model } from "mongoose";
 import { roleRepository } from ".";
 import { RoleType } from "@/models/RoleModel";
+import { PointTransactionType } from "@/models/Users/PointTransaction";
+import { DeviceToken } from "@/models/Users/DeviceToken";
 
 class UserRepository {
   private userModel: Model<User>;
@@ -20,9 +22,7 @@ class UserRepository {
       .exec();
   }
 
-  async findSafeById(
-    id: string | Types.ObjectId
-  ): Promise<Partial<User> | null> {
+  async findSafeById(id: Types.ObjectId): Promise<Partial<User> | null> {
     await dbConnect();
     return this.userModel
       .findById(id)
@@ -39,7 +39,7 @@ class UserRepository {
       .populate("roles")
       .exec();
   }
-  async findByRole(roleId: string | Types.ObjectId): Promise<User[]> {
+  async findByRole(roleId: Types.ObjectId): Promise<User[]> {
     await dbConnect();
 
     return this.userModel
@@ -58,7 +58,7 @@ class UserRepository {
       .exec();
   }
 
-  async findById(id: string | Types.ObjectId): Promise<User | null> {
+  async findById(id: Types.ObjectId): Promise<User | null> {
     await dbConnect();
     return this.userModel
       .findById(id)
@@ -79,7 +79,7 @@ class UserRepository {
   }
 
   async update(
-    id: string | Types.ObjectId,
+    id: Types.ObjectId,
     updateData: Partial<User>
   ): Promise<User | null> {
     await dbConnect();
@@ -91,17 +91,17 @@ class UserRepository {
       .exec();
   }
 
-  async delete(id: string | Types.ObjectId): Promise<User | null> {
+  async delete(id: Types.ObjectId): Promise<User | null> {
     await dbConnect();
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
   async manipulatePoints(
-    userId: string | Types.ObjectId,
+    userId: Types.ObjectId,
     type: PointTransactionType,
     points: number,
     details?: {
-      courseId?: string;
+      courseId?: Types.ObjectId;
       reason?: string;
     }
   ): Promise<User | null> {
@@ -113,15 +113,13 @@ class UserRepository {
       type,
       points,
       date: new Date(),
-      courseId: details?.courseId
-        ? Types.ObjectId.createFromHexString(details.courseId)
-        : undefined,
+      courseId: details?.courseId,
     });
 
     return user.save();
   }
   async saveDeviceToken(
-    userId: string | Types.ObjectId,
+    userId: Types.ObjectId,
     deviceName: string,
     token: string
   ): Promise<void> {
@@ -139,7 +137,7 @@ class UserRepository {
   }
 
   async findDeviceToken(
-    userId: string | Types.ObjectId,
+    userId: Types.ObjectId,
     token: string
   ): Promise<boolean> {
     await dbConnect();
@@ -150,7 +148,7 @@ class UserRepository {
   }
 
   async deleteDeviceToken(
-    userId: string | Types.ObjectId,
+    userId: Types.ObjectId,
     token: string
   ): Promise<void> {
     await dbConnect();
@@ -159,9 +157,7 @@ class UserRepository {
       .exec();
   }
 
-  async getAllDevices(
-    userId: string | Types.ObjectId
-  ): Promise<User["devices"]> {
+  async getAllDevices(userId: Types.ObjectId): Promise<DeviceToken[]> {
     await dbConnect();
     const user = await this.userModel.findById(userId).select("devices").exec();
     if (!user) throw new Error("User not found");
@@ -184,15 +180,29 @@ class UserRepository {
 
     return this.userModel
       .findOne({
-        $or: [
-          { role_ids: { $in: [role._id] } }, // Check if user has the system role
-          { email }, // Check if email already exists
-        ],
+        $or: [{ role_ids: { $in: [role._id] } }, { email }],
       })
       .select("-hashedPassword -salt -tokens")
       .populate("roles")
       .exec();
   }
+  async purgeDeviceTokensByUserId(userId: Types.ObjectId): Promise<void> {
+    await dbConnect();
+    const user = await this.userModel.findById(userId);
+
+    if (!user) throw new Error("User not found");
+
+    user.devices = [];
+
+    await user.save();
+  }
+  async purgeAllDeviceTokens(): Promise<void> {
+    await dbConnect();
+    await this.userModel
+      .updateMany({}, { $set: { devices: [] }, $unset: { tokens: "" } })
+      .exec();
+  }
+  
 }
 
 export default UserRepository;

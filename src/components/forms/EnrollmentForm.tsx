@@ -13,7 +13,7 @@ import {
 } from "antd";
 
 import { useRouter } from "next/navigation";
-import { Enrollment } from "@/models/EnrollmentModel";
+import { EnrollmentAPI } from "@/models/EnrollmentModel";
 import dayjs from "dayjs";
 import apiClient from "@/utils/api/apiClient";
 import CourseSelector from "../inputs/CourseSelector";
@@ -22,7 +22,7 @@ import UserSelector from "../inputs/UserSelector";
 const { Option } = Select;
 
 interface EnrollmentFormProps {
-  enrollment?: Enrollment;
+  enrollment?: EnrollmentAPI;
 }
 
 const EnrollmentForm: React.FC<EnrollmentFormProps> = ({ enrollment }) => {

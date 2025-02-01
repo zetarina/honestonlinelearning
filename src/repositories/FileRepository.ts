@@ -23,7 +23,7 @@ class FileRepository {
     }
 
     if (fileType && ["image", "video", "document"].includes(fileType)) {
-      query.type = fileType; // ✅ Filter by type
+      query.type = fileType;
     }
 
     const files = await this.fileModel
@@ -37,20 +37,23 @@ class FileRepository {
     return { files, hasMore: page * limit < totalFiles };
   }
 
-  async findById(fileId: string): Promise<FileData | null> {
+  async findById(fileId: Types.ObjectId): Promise<FileData | null> {
     await dbConnect();
-    return this.fileModel.findById(new Types.ObjectId(fileId)).exec();
+    return this.fileModel.findById(fileId).exec();
   }
 
   async findByPath(filePath: string): Promise<FileData | null> {
     await dbConnect();
     return this.fileModel.findOne({ filePath }).exec();
   }
-  async findByPathAndService(filePath: string, service: string): Promise<FileData | null> {
+  async findByPathAndService(
+    filePath: string,
+    service: string
+  ): Promise<FileData | null> {
     await dbConnect();
     return this.fileModel.findOne({ filePath, service }).exec();
   }
-  
+
   async create(fileData: Partial<FileData>): Promise<FileData> {
     await dbConnect();
 
@@ -64,12 +67,10 @@ class FileRepository {
     return new this.fileModel(fileData).save();
   }
 
-  async deleteById(fileId: string): Promise<FileData | null> {
+  async deleteById(fileId: Types.ObjectId): Promise<FileData | null> {
     await dbConnect();
 
-    const file = await this.fileModel
-      .findById(new Types.ObjectId(fileId))
-      .exec();
+    const file = await this.fileModel.findById(fileId).exec();
     if (!file) return null;
 
     return this.fileModel.findByIdAndDelete(fileId).exec();

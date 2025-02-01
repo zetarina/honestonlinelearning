@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import dynamic from "next/dynamic";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import "react-quill/dist/quill.snow.css";
 import "./RichTextEditor.css";
 

@@ -22,7 +22,7 @@ async function handleGetAllPublicSettingsRequest(request: Request) {
 
 export const GET = async (request: Request) =>
   withAuthMiddleware(
-    (req, userId) => handleGetAllPublicSettingsRequest(req),
+    (req, user) => handleGetAllPublicSettingsRequest(req),
     true,
     [APP_PERMISSIONS.EDIT_SETTINGS]
   )(request);

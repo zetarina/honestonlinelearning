@@ -75,15 +75,17 @@ const SettingsPage: React.FC = () => {
 
           setSettings((prev) => {
             if (!prev) return null;
-            const updatedSettings = { ...prev };
-            const keys = key.split(".");
-            let target = updatedSettings;
+
+            const updatedSettings: SettingsInterface = { ...prev };
+
+            const keys = key.split(".") as (keyof SettingsInterface)[];
+            let target: any = updatedSettings;
 
             keys.forEach((k, idx) => {
               if (idx === keys.length - 1) {
                 target[k] = value;
               } else {
-                target[k] = target[k] || {};
+                if (!target[k]) target[k] = {};
                 target = target[k];
               }
             });
@@ -116,7 +118,7 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const renderTabContent = (keys: string[]) => {
+  const renderTabContent = (keys: (keyof SettingsInterface)[]) => {
     if (!settings) {
       return <p>No data available for these settings.</p>;
     }
@@ -124,7 +126,7 @@ const SettingsPage: React.FC = () => {
       const value = settings[key];
       const config = SETTINGS_GUIDE[key];
       if (!config) return null;
-
+ 
       return (
         <CombinedField
           key={key}

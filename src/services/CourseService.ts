@@ -1,9 +1,4 @@
-import {
-  Course,
-  Subscription,
-  SubscriptionDurationType,
-} from "../models/CourseModel";
-import { PointTransactionType } from "../models/UserModel";
+import { Course } from "../models/CourseModel";
 import { Types } from "mongoose";
 import { EnrollmentStatus } from "../models/EnrollmentModel";
 
@@ -11,15 +6,22 @@ import {
   courseRepository,
   userRepository,
   enrollmentRepository,
+  toObjectId,
 } from "@/repositories/";
+import {
+  SubscriptionDurationType,
+  SubscriptionType,
+} from "@/models/Courses/SubscriptionType";
+import { PointTransactionType } from "@/models/Users/PointTransaction";
 
 class CourseService {
   async getAllCourses(): Promise<Course[]> {
     return courseRepository.findAll();
   }
 
-  async getCourseById(id: string): Promise<Course | null> {
-    return courseRepository.findById(new Types.ObjectId(id));
+  async getCourseById(courseId: string): Promise<Course | null> {
+    const courseObjectId = toObjectId(courseId);
+    return courseRepository.findById(courseObjectId);
   }
 
   async createCourse(courseData: Partial<Course>): Promise<Course> {
@@ -27,43 +29,44 @@ class CourseService {
   }
 
   async updateCourse(
-    id: string,
+    courseId: string,
     updateData: Partial<Course>
   ): Promise<Course | null> {
-    return courseRepository.update(new Types.ObjectId(id), updateData);
+    const courseObjectId = toObjectId(courseId);
+    return courseRepository.update(courseObjectId, updateData);
   }
 
-  async deleteCourse(id: string): Promise<Course | null> {
-    return courseRepository.delete(new Types.ObjectId(id));
+  async deleteCourse(courseId: string): Promise<Course | null> {
+    const courseObjectId = toObjectId(courseId);
+    return courseRepository.delete(courseObjectId);
   }
 
   async purchaseCourse(
-    userId: string,
+    userId: Types.ObjectId,
     courseId: string
   ): Promise<Course | null> {
-    const course = await courseRepository.findById(
-      new Types.ObjectId(courseId)
-    );
+    const courseObjectId = toObjectId(courseId);
+    const course = await courseRepository.findById(courseObjectId);
     if (!course) throw new Error("Course not found");
 
     const user = await userRepository.manipulatePoints(
       userId,
       PointTransactionType.COURSE_PURCHASE,
       -course.price,
-      { courseId }
+      { reason: "Buy Course", courseId: course._id }
     );
 
     if (!user) throw new Error("Failed to deduct points from the user");
 
-    const expires_at = this.calculateExpiry(course.subscription);
+    const expires_at = this.calculateExpiry(course.subscriptionType);
 
     const enrollment = await enrollmentRepository.create({
-      user_id: new Types.ObjectId(userId),
-      course_id: new Types.ObjectId(courseId),
+      user_id: userId,
+      course_id: course._id,
       pointsSpent: course.price,
       expires_at,
       isPermanent:
-        course.subscription.recurrenceType ===
+        course.subscriptionType.recurrenceType ===
         SubscriptionDurationType.PERMANENT,
       status: EnrollmentStatus.ACTIVE,
     });
@@ -74,19 +77,18 @@ class CourseService {
   }
 
   async refundCourse(enrollmentId: string): Promise<Course | null> {
-    const enrollment = await enrollmentRepository.findById(
-      new Types.ObjectId(enrollmentId)
-    );
+    const enrollmentObjectId = toObjectId(enrollmentId);
+    const enrollment = await enrollmentRepository.findById(enrollmentObjectId);
     if (!enrollment) throw new Error("Enrollment not found for refund");
 
     const course = await courseRepository.findById(enrollment.course_id);
     if (!course) throw new Error("Course not found");
 
     const user = await userRepository.manipulatePoints(
-      enrollment.user_id.toString(),
+      enrollment.user_id,
       PointTransactionType.COURSE_REFUND,
       course.price,
-      { courseId: enrollment.course_id.toString() }
+      { courseId: enrollment.course_id }
     );
 
     if (!user) throw new Error("Failed to refund points to the user");
@@ -95,19 +97,14 @@ class CourseService {
 
     return course;
   }
-
-  async getUserCourses(userId: string): Promise<Course[]> {
-    const enrollments = await enrollmentRepository.findByUserId(userId);
-    const courseIds = enrollments.map(
-      (enrollment) => new Types.ObjectId(enrollment.course_id)
-    );
-    return courseRepository.findCoursesByIds(courseIds);
-  }
-
-  async completeCourse(userId: string, courseId: string): Promise<boolean> {
+  async completeCourse(
+    userId: Types.ObjectId,
+    courseId: string
+  ): Promise<boolean> {
+    const courseObjectId = toObjectId(courseId);
     const enrollment = await enrollmentRepository.isUserCurrentlyEnrolled(
       userId,
-      courseId
+      courseObjectId
     );
     if (!enrollment) throw new Error("Enrollment not found");
 
@@ -115,16 +112,12 @@ class CourseService {
     await enrollmentRepository.update(enrollment._id, enrollment);
     return true;
   }
-
-  /**
-   * Calculate the expiry date for a subscription.
-   */
-  private calculateExpiry(subscription: Subscription): Date | null {
+  private calculateExpiry(subscription: SubscriptionType): Date | undefined {
     const { recurrenceType, startDate, endDate, recurrence } = subscription;
 
     switch (recurrenceType) {
       case SubscriptionDurationType.PERMANENT:
-        return null; // No expiration for permanent subscriptions
+        return undefined;
 
       case SubscriptionDurationType.FIXED:
         if (!startDate || !endDate) {
@@ -135,13 +128,12 @@ class CourseService {
         if (endDate <= startDate) {
           throw new Error("End date must be after the start date");
         }
-        return endDate; // Use the fixed end date for expiry
+        return endDate;
 
       case SubscriptionDurationType.SCHOOL_YEAR:
         return this.getSchoolYearEndDate(new Date());
 
       default:
-        // Handle recurring subscriptions
         const expires_at = new Date();
         const recurrenceCount = parseInt(recurrence || "1", 10);
 
@@ -167,7 +159,7 @@ class CourseService {
   }
 
   private getSchoolYearEndDate(currentDate: Date): Date {
-    const schoolYearEndMonth = 2; // March (0-indexed)
+    const schoolYearEndMonth = 2;
     const schoolYearEndDay = 10;
 
     const endDate = new Date(
@@ -176,7 +168,6 @@ class CourseService {
       schoolYearEndDay
     );
 
-    // If the current date is past January, extend to next year's March 10
     if (currentDate > new Date(currentDate.getFullYear(), 0, 1)) {
       endDate.setFullYear(currentDate.getFullYear() + 1);
     }

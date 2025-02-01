@@ -8,7 +8,6 @@ const courseService = new CourseService();
 
 async function handleGetCourseRequest(
   request: Request,
-  userId: string | null,
   params: { id: string }
 ) {
   try {
@@ -28,7 +27,6 @@ async function handleGetCourseRequest(
 
 async function handleUpdateCourseRequest(
   request: Request,
-  userId: string | null,
   params: { id: string }
 ) {
   try {
@@ -50,7 +48,6 @@ async function handleUpdateCourseRequest(
 
 async function handleDeleteCourseRequest(
   request: Request,
-  userId: string | null,
   params: { id: string }
 ) {
   try {
@@ -74,7 +71,7 @@ export const GET = async (
   context: { params: { id: string } }
 ) =>
   withAuthMiddleware(
-    (req, userId) => handleGetCourseRequest(req, userId, context.params),
+    (req) => handleGetCourseRequest(req, context.params),
     true,
     [APP_PERMISSIONS.MANAGE_COURSES]
   )(request);
@@ -84,7 +81,7 @@ export const PUT = async (
   context: { params: { id: string } }
 ) =>
   withAuthMiddleware(
-    (req, userId) => handleUpdateCourseRequest(req, userId, context.params),
+    (req) => handleUpdateCourseRequest(req, context.params),
     true,
     [APP_PERMISSIONS.MANAGE_COURSES]
   )(request);
@@ -94,7 +91,7 @@ export const DELETE = async (
   context: { params: { id: string } }
 ) =>
   withAuthMiddleware(
-    (req, userId) => handleDeleteCourseRequest(req, userId, context.params),
+    (req) => handleDeleteCourseRequest(req, context.params),
     true,
     [APP_PERMISSIONS.MANAGE_COURSES]
   )(request);

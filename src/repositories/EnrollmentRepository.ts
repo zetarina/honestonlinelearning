@@ -11,7 +11,7 @@ class EnrollmentRepository {
 
   async findAll(): Promise<Enrollment[]> {
     await dbConnect();
-    return this.enrollmentModel
+    const enrollments = await this.enrollmentModel
       .find()
       .populate({
         path: "user",
@@ -22,9 +22,11 @@ class EnrollmentRepository {
         select: "title category price instructorId level",
       })
       .exec();
+
+    return enrollments;
   }
 
-  async findById(id: string | Types.ObjectId): Promise<Enrollment | null> {
+  async findById(id: Types.ObjectId): Promise<Enrollment | null> {
     await dbConnect();
     return this.enrollmentModel
       .findById(id)
@@ -46,7 +48,7 @@ class EnrollmentRepository {
   }
 
   async update(
-    id: string | Types.ObjectId,
+    id: Types.ObjectId,
     updateData: Partial<Enrollment>
   ): Promise<Enrollment | null> {
     await dbConnect();
@@ -63,7 +65,7 @@ class EnrollmentRepository {
       .exec();
   }
 
-  async delete(id: string | Types.ObjectId): Promise<Enrollment | null> {
+  async delete(id: Types.ObjectId): Promise<Enrollment | null> {
     await dbConnect();
     return this.enrollmentModel.findByIdAndDelete(id).exec();
   }
@@ -80,8 +82,8 @@ class EnrollmentRepository {
   }
 
   async isUserCurrentlyEnrolled(
-    userId: string | Types.ObjectId,
-    courseId: string | Types.ObjectId
+    userId: Types.ObjectId,
+    courseId: Types.ObjectId
   ): Promise<Enrollment | null> {
     await dbConnect();
     return this.enrollmentModel
@@ -97,7 +99,7 @@ class EnrollmentRepository {
   }
 
   async extendEnrollment(
-    enrollmentId: Types.ObjectId | string,
+    enrollmentId: Types.ObjectId,
     newExpiresAt: Date,
     historyEntry: { action: string; timestamp: Date; expires_at: Date | null }
   ): Promise<Enrollment | null> {

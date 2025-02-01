@@ -1,7 +1,8 @@
 import React from "react";
 import { Modal, Button, Card, Input, Form, InputNumber, Select } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
-import { Chapter, Video, VideoType } from "@/models/CourseModel";
+import { ChapterAPI } from "@/models/Courses/Chapeter";
+import { VideoAPI, VideoType } from "@/models/Courses/Video";
 
 const { Option } = Select;
 
@@ -9,8 +10,8 @@ interface VideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   chapterIndex: number;
-  chapters: Chapter[];
-  setChapters: React.Dispatch<React.SetStateAction<Chapter[]>>;
+  chapters: ChapterAPI[];
+  setChapters: React.Dispatch<React.SetStateAction<ChapterAPI[]>>;
 }
 
 const VideoModal: React.FC<VideoModalProps> = ({
@@ -20,17 +21,26 @@ const VideoModal: React.FC<VideoModalProps> = ({
   chapters,
   setChapters,
 }) => {
-  // Ensure the chapter exists before rendering
   const chapter = chapters[chapterIndex];
   if (!chapter) return null;
 
   const addVideo = () => {
     const updatedChapters = [...chapters];
+
+    if (!updatedChapters[chapterIndex]) {
+      return;
+    }
+
+    if (!updatedChapters[chapterIndex].videos) {
+      updatedChapters[chapterIndex].videos = [];
+    }
+
     updatedChapters[chapterIndex].videos.push({
       title: "",
-      key: "", // Updated to align with your Video model (replacing `url`)
+      key: "",
       type: VideoType.YOUTUBE,
     });
+
     setChapters(updatedChapters);
   };
 
@@ -44,7 +54,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
 
   const updateVideoField = (
     videoIndex: number,
-    field: keyof Video,
+    field: keyof VideoAPI,
     value: any
   ) => {
     const updatedChapters = [...chapters];

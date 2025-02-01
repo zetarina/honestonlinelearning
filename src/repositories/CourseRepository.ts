@@ -15,7 +15,7 @@ class CourseRepository {
     return this.courseModel.find().populate("instructor").exec();
   }
 
-  async findById(id: string | Types.ObjectId): Promise<Course | null> {
+  async findById(id: Types.ObjectId): Promise<Course | null> {
     await dbConnect();
     return this.courseModel.findById(id).populate("instructor").exec();
   }
@@ -27,7 +27,7 @@ class CourseRepository {
   }
 
   async update(
-    id: string | Types.ObjectId,
+    id: Types.ObjectId,
     updateData: Partial<Course>
   ): Promise<Course | null> {
     await dbConnect();
@@ -36,7 +36,7 @@ class CourseRepository {
       .exec();
   }
 
-  async delete(id: string | Types.ObjectId): Promise<Course | null> {
+  async delete(id: Types.ObjectId): Promise<Course | null> {
     await dbConnect();
     return this.courseModel.findByIdAndDelete(id).exec();
   }

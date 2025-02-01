@@ -1,9 +1,7 @@
-// components/HeroSection.tsx
 "use client";
 import React from "react";
 import { Typography, Button } from "antd";
-import { useSettings } from "@/contexts/SettingsContext";
-import { SETTINGS_KEYS } from "@/config/settingKeys";
+import { useSettings } from "@/hooks/useSettings";
 
 const { Title, Text } = Typography;
 

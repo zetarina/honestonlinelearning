@@ -18,7 +18,7 @@ export enum NestedFieldType {
 }
 export type FieldInfo = {
   label: string;
-  guide?: string;
+  guide: string;
   formType: FormType;
   visibility: "public" | "private";
 };

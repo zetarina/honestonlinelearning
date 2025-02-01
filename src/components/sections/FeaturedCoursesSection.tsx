@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import { Card, Typography, Button, Tag, Tooltip, Spin } from "antd";
 import { UsergroupAddOutlined } from "@ant-design/icons";
 import ImageComponent from "@/components/ImageComponent";
-import { ApplicationLevelCourse } from "@/models/CourseModel";
+import { ApplicationLevelCourseAPI } from "@/models/CourseModel";
 import Link from "next/link";
 import ExpandableContent from "../ExpandableContent";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 import CustomCarousel from "@/components/CustomCarousel";
@@ -21,7 +21,7 @@ const { Title, Text } = Typography;
 const { Meta } = Card;
 
 const FeaturedCoursesSection: React.FC = () => {
-  const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
+  const [courses, setCourses] = useState<ApplicationLevelCourseAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { settings } = useSettings();
@@ -74,7 +74,7 @@ const FeaturedCoursesSection: React.FC = () => {
     return null;
   }
 
-  const CourseCard = (course: ApplicationLevelCourse) => {
+  const CourseCard = (course: ApplicationLevelCourseAPI) => {
     const imageUrl = course.thumbnailUrl || "/images/default-thumbnail.jpg";
     const isEnrollmentActive = !course.enrollmentExpired
       ? true

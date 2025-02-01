@@ -2,7 +2,7 @@ import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { initializeStripe } from "@/utils/stripe";
 
-export async function StripePayment(
+export async function stripePayment(
   amount: number,
   currency: string,
   settings: SettingsInterface // Use SettingsInterface for strong typing

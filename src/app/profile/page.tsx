@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Card, Descriptions, Alert } from "antd";
 
 import ProfileUpdateForm from "@/components/forms/ProfileUpdateForm";
-import UserContext from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
 import SubLoader from "@/components/loaders/SubLoader";
+import { useUser } from "@/hooks/useUser";
 
 const UserProfile: React.FC = () => {
-  const { user, refreshUser } = useContext(UserContext);
+  const { user, refreshUser } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");

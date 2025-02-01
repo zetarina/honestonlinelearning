@@ -1,14 +1,14 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { User } from "@/models/UserModel";
-import { message, Result, Button } from "antd";
+import { UserAPI } from "@/models/UserModel";
+import { Result, Button, Card } from "antd";
 import UserForm from "@/components/forms/UserForm";
 import apiClient from "@/utils/api/apiClient";
 import SubLoader from "@/components/loaders/SubLoader";
 
 const EditUserPage: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserAPI | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -19,7 +19,7 @@ const EditUserPage: React.FC = () => {
     if (userId) {
       const fetchUser = async () => {
         setLoading(true);
-        setError(null); // Reset error state
+        setError(null);
         try {
           const response = await apiClient.get(`/users/${userId}`);
           if (response.status === 200) {
@@ -57,19 +57,22 @@ const EditUserPage: React.FC = () => {
           minHeight: "100vh",
         }}
       >
-        <Result
-          status="error"
-          title="Error"
-          subTitle={error}
-          extra={
-            <Button
-              type="primary"
-              onClick={() => router.push("/dashboard/users")}
-            >
-              Back to Users
-            </Button>
-          }
-        />
+        {" "}
+        <Card>
+          <Result
+            status="error"
+            title="Error"
+            subTitle={error}
+            extra={
+              <Button
+                type="primary"
+                onClick={() => router.push("/dashboard/users")}
+              >
+                Back to Users
+              </Button>
+            }
+          />
+        </Card>
       </div>
     );
   }
@@ -85,19 +88,21 @@ const EditUserPage: React.FC = () => {
         minHeight: "100vh",
       }}
     >
-      <Result
-        status="warning"
-        title="No User Found"
-        subTitle="The user does not exist or has been removed."
-        extra={
-          <Button
-            type="primary"
-            onClick={() => router.push("/dashboard/users")}
-          >
-            Back to Users
-          </Button>
-        }
-      />
+      <Card>
+        <Result
+          status="warning"
+          title="No User Found"
+          subTitle="The user does not exist or has been removed."
+          extra={
+            <Button
+              type="primary"
+              onClick={() => router.push("/dashboard/users")}
+            >
+              Back to Users
+            </Button>
+          }
+        />
+      </Card>
     </div>
   );
 };

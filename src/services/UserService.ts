@@ -1,22 +1,26 @@
-import { PointTransactionType, User } from "../models/UserModel";
+import { User } from "../models/UserModel";
 import {
   userRepository,
   roleRepository,
   cacheRepository,
+  toObjectId,
 } from "@/repositories";
 import { Role, RoleType } from "@/models/RoleModel";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import { APP_PERMISSIONS, GUEST_APP_PERMISSIONS } from "@/config/permissions";
+import { PointTransactionType } from "@/models/Users/PointTransaction";
+import { DeviceToken } from "@/models/Users/DeviceToken";
 
 class UserService {
   async getAllSafeUsers(): Promise<Partial<User>[]> {
     return userRepository.findAllSafe();
   }
 
-  async getSafeUserById(id: string): Promise<Partial<User> | null> {
-    return userRepository.findSafeById(id);
+  async getSafeUserById(userId: string): Promise<Partial<User> | null> {
+    const userObjectId = toObjectId(userId);
+    return userRepository.findSafeById(userObjectId);
   }
 
   async getSafeUserByEmail(email: string): Promise<Partial<User> | null> {
@@ -24,25 +28,25 @@ class UserService {
   }
 
   async getUsersByRole(roleId: string): Promise<User[]> {
-    return userRepository.findByRole(roleId);
+    const roleObjectId = toObjectId(roleId);
+    return userRepository.findByRole(roleObjectId);
   }
 
   async getAllUsers(): Promise<User[]> {
     return userRepository.findAll();
   }
 
-  async getUserById(id: string): Promise<User | null> {
-    return userRepository.findById(id);
+  async getUserById(userId: string): Promise<User | null> {
+    const userObjectId = toObjectId(userId);
+    return userRepository.findById(userObjectId);
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
     return userRepository.findByEmail(email);
   }
   async setupDefaultRolesAndSystemUser(userData: Partial<User>): Promise<void> {
-    // Find System Role
     let systemRole = await roleRepository.findByRoleType(RoleType.SYSTEM);
 
-    // Create System Role if it doesn't exist
     if (!systemRole) {
       systemRole = await roleRepository.create({
         name: "System Admin",
@@ -54,10 +58,8 @@ class UserService {
       });
     }
 
-    // Find Guest Role
     let guestRole = await roleRepository.findByRoleType(RoleType.GUEST);
 
-    // Create Guest Role if it doesn't exist
     if (!guestRole) {
       guestRole = await roleRepository.create({
         name: "Guest",
@@ -69,7 +71,6 @@ class UserService {
       });
     }
 
-    // Ensure only one system user exists
     const existingSystemUser = await userRepository.findByRoleTypeOrEmail(
       RoleType.SYSTEM,
       userData.email!
@@ -81,7 +82,7 @@ class UserService {
       userData.salt = salt;
       delete userData.password;
 
-      userData.role_ids = [systemRole._id as Types.ObjectId];
+      userData.role_ids = [systemRole._id];
 
       await userRepository.create(userData);
     }
@@ -110,14 +111,14 @@ class UserService {
       throw new Error("Guest role is missing. Please set up default roles.");
     }
 
-    userData.role_ids = [guestRole._id as Types.ObjectId];
+    userData.role_ids = [guestRole._id];
 
     return userRepository.create(userData);
   }
   async syncRolePermissions(): Promise<void> {
     const lastSyncTime = await cacheRepository.get<number>("lastRoleSyncTime");
 
-    const ONE_HOUR = 60 * 60 * 1000; // 1 hour
+    const ONE_HOUR = 60 * 60 * 1000;
     if (lastSyncTime && Date.now() - lastSyncTime < ONE_HOUR) {
       console.log("Skipping role sync, recently updated.");
       return;
@@ -126,11 +127,11 @@ class UserService {
     const systemRole = await roleRepository.findByRoleType(RoleType.SYSTEM);
     const guestRole = await roleRepository.findByRoleType(RoleType.GUEST);
 
-    const updates: Promise<Role>[] = [];
+    const updates: Promise<Role | null>[] = [];
 
     if (systemRole) {
       updates.push(
-        roleRepository.updatePermissions(
+        roleRepository.updatePermissionsSystem(
           systemRole._id,
           Object.values(APP_PERMISSIONS)
         )
@@ -139,17 +140,26 @@ class UserService {
 
     if (guestRole) {
       updates.push(
-        roleRepository.updatePermissions(guestRole._id, GUEST_APP_PERMISSIONS)
+        roleRepository.updatePermissionsSystem(
+          guestRole._id,
+          GUEST_APP_PERMISSIONS
+        )
       );
     }
 
-    await Promise.all(updates);
+    await Promise.all(updates).then((results) => {
+      const validRoles = results.filter((role) => role !== null);
+      console.log("Synced roles:", validRoles);
+    });
+
     await cacheRepository.set("lastRoleSyncTime", Date.now(), ONE_HOUR);
   }
+
   async updateUser(
-    id: string,
+    userId: string,
     updateData: Partial<User>
   ): Promise<User | null> {
+    const userObjectId = toObjectId(userId);
     if (updateData.password) {
       const { hashedPassword, salt } = this.hashPassword(updateData.password);
       updateData.hashedPassword = hashedPassword;
@@ -158,11 +168,12 @@ class UserService {
       delete updateData.password;
     }
 
-    return userRepository.update(id, updateData);
+    return userRepository.update(userObjectId, updateData);
   }
 
-  async deleteUser(id: string): Promise<User | null> {
-    return userRepository.delete(id);
+  async deleteUser(userId: string): Promise<User | null> {
+    const userObjectId = toObjectId(userId);
+    return userRepository.delete(userObjectId);
   }
 
   async manipulateUserPoints(
@@ -171,7 +182,27 @@ class UserService {
     type: PointTransactionType,
     details?: { courseId?: string; reason?: string }
   ): Promise<User | null> {
-    return userRepository.manipulatePoints(userId, type, points, details);
+    const userObjectId = toObjectId(userId);
+
+    const transformedDetails: { courseId?: Types.ObjectId; reason?: string } =
+      {};
+
+    if (details) {
+      if (details.courseId) {
+        transformedDetails.courseId = toObjectId(details.courseId);
+      }
+
+      if (details.reason) {
+        transformedDetails.reason = details.reason;
+      }
+    }
+
+    return userRepository.manipulatePoints(
+      userObjectId,
+      type,
+      points,
+      transformedDetails
+    );
   }
 
   async saveDeviceToken(
@@ -179,22 +210,30 @@ class UserService {
     deviceName: string,
     refreshToken: string
   ): Promise<void> {
-    return userRepository.saveDeviceToken(userId, deviceName, refreshToken);
+    const userObjectId = toObjectId(userId);
+    return userRepository.saveDeviceToken(
+      userObjectId,
+      deviceName,
+      refreshToken
+    );
   }
 
   async findDeviceToken(
     userId: string,
     refreshToken: string
   ): Promise<boolean> {
-    return userRepository.findDeviceToken(userId, refreshToken);
+    const userObjectId = toObjectId(userId);
+    return userRepository.findDeviceToken(userObjectId, refreshToken);
   }
 
   async deleteDeviceToken(userId: string, refreshToken: string): Promise<void> {
-    return userRepository.deleteDeviceToken(userId, refreshToken);
+    const userObjectId = toObjectId(userId);
+    return userRepository.deleteDeviceToken(userObjectId, refreshToken);
   }
 
-  async getAllUserDevices(userId: string): Promise<User["devices"]> {
-    return userRepository.getAllDevices(userId);
+  async getAllUserDevices(userId: string): Promise<DeviceToken[]> {
+    const userObjectId = toObjectId(userId);
+    return userRepository.getAllDevices(userObjectId);
   }
   async findRefreshToken(refreshToken: string): Promise<User | null> {
     return userRepository.findRefreshToken(refreshToken);
@@ -218,13 +257,43 @@ class UserService {
   }
 
   generateAccessToken(userId: string) {
-    return jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn: "1h" });
+    const expiresIn = "1h";
+    const token = jwt.sign({ userId }, process.env.JWT_SECRET!, { expiresIn });
+
+    const expirationTime = Date.now() + 3600 * 1000;
+
+    return { token, expirationTime };
   }
 
   generateRefreshToken(userId: string) {
-    return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET!, {
-      expiresIn: "30d",
+    const expiresIn = "30d";
+    const token = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET!, {
+      expiresIn,
     });
+
+    const expirationTime = Date.now() + 30 * 24 * 3600 * 1000;
+
+    return { token, expirationTime };
+  }
+  async purgeAllDeviceTokens(userId: string): Promise<void> {
+    const userObjectId = toObjectId(userId);
+
+    try {
+      await userRepository.purgeDeviceTokensByUserId(userObjectId);
+      console.log(`All device tokens for user ${userId} have been purged.`);
+    } catch (error) {
+      console.error(`Failed to purge device tokens for user ${userId}:`, error);
+      throw new Error("Failed to purge device tokens.");
+    }
+  }
+  async purgeAllDevices(): Promise<void> {
+    try {
+      await userRepository.purgeAllDeviceTokens();
+      console.log("All device tokens for all users have been purged.");
+    } catch (error) {
+      console.error("Failed to purge device tokens for all users:", error);
+      throw new Error("Failed to purge device tokens for all users.");
+    }
   }
 }
 

@@ -2,12 +2,10 @@ import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { APP_PERMISSIONS } from "@/config/permissions";
+import { User } from "@/models/UserModel";
 const userService = new UserService();
 
-async function handleGetAllUsersRequest(
-  request: Request,
-  userId: string | null
-) {
+async function handleGetAllUsersRequest(request: Request, user: User) {
   try {
     const users = await userService.getAllUsers();
     return NextResponse.json(users);
@@ -20,10 +18,7 @@ async function handleGetAllUsersRequest(
   }
 }
 
-async function handleCreateUserRequest(
-  request: Request,
-  userId: string | null
-) {
+async function handleCreateUserRequest(request: Request, user: User) {
   try {
     const data = await request.json();
 
@@ -54,15 +49,11 @@ async function handleCreateUserRequest(
 }
 
 export const GET = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleGetAllUsersRequest(req, userId),
-    false,
-    [APP_PERMISSIONS.ADMIN]
-  )(request);
+  withAuthMiddleware((req, user) => handleGetAllUsersRequest(req, user), true, [
+    APP_PERMISSIONS.ADMIN,
+  ])(request);
 
 export const POST = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleCreateUserRequest(req, userId),
-    true,
-    [APP_PERMISSIONS.MANAGE_USERS]
-  )(request);
+  withAuthMiddleware((req, user) => handleCreateUserRequest(req, user), true, [
+    APP_PERMISSIONS.MANAGE_USERS,
+  ])(request);

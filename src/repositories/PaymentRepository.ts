@@ -14,12 +14,12 @@ class PaymentRepository {
     return this.paymentModel.find().populate("user_id").exec();
   }
 
-  async findById(id: string | Types.ObjectId): Promise<Payment | null> {
+  async findById(id: Types.ObjectId): Promise<Payment | null> {
     await dbConnect();
     return this.paymentModel.findById(id).populate("user_id").exec();
   }
   async findByTransactionId(
-    transactionId: string | Types.ObjectId
+    transactionId: Types.ObjectId
   ): Promise<Payment | null> {
     await dbConnect();
     return this.paymentModel.findById(transactionId).populate("user_id").exec();
@@ -31,7 +31,7 @@ class PaymentRepository {
   }
 
   async update(
-    id: string | Types.ObjectId,
+    id: Types.ObjectId,
     updateData: Partial<Payment>
   ): Promise<Payment | null> {
     await dbConnect();
@@ -41,7 +41,7 @@ class PaymentRepository {
   }
 
   async updateStatus(
-    id: string | Types.ObjectId,
+    id: Types.ObjectId,
     status: PaymentStatus
   ): Promise<Payment | null> {
     await dbConnect();
@@ -52,7 +52,7 @@ class PaymentRepository {
     return payment.save();
   }
 
-  async delete(id: string | Types.ObjectId): Promise<Payment | null> {
+  async delete(id: Types.ObjectId): Promise<Payment | null> {
     await dbConnect();
     return this.paymentModel.findByIdAndDelete(id).exec();
   }

@@ -1,5 +1,7 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
+
 export const FILE_MODEL_NAME = "Files";
+
 export const STORAGE_SERVICES = {
   FIREBASE: "firebase",
   LOCAL: "local",
@@ -8,10 +10,7 @@ export const STORAGE_SERVICES = {
 export type StorageServiceType =
   (typeof STORAGE_SERVICES)[keyof typeof STORAGE_SERVICES];
 
-
-
-export interface FileData extends Document {
-  _id: Types.ObjectId | string;
+interface BaseFileData {
   filePath: string;
   name: string;
   type: "image" | "video" | "document";
@@ -20,7 +19,6 @@ export interface FileData extends Document {
   publicUrl: string;
   description?: string;
   tags?: string[];
-  uploadedBy: Types.ObjectId | string;
   lastAccessed?: Date;
   isPublic: boolean;
   contentType?: string;
@@ -28,7 +26,17 @@ export interface FileData extends Document {
   createdAt: Date;
 }
 
-const FileSchema = new Schema<FileData>(
+export interface FileData extends BaseFileData, Document {
+  _id: Types.ObjectId;
+  uploadedBy: Types.ObjectId;
+}
+
+export interface FileDataAPI extends BaseFileData {
+  _id: string;
+  uploadedBy: string;
+}
+
+const fileSchema = new Schema<FileData>(
   {
     filePath: { type: String, required: true },
     name: { type: String, required: true },
@@ -55,9 +63,10 @@ const FileSchema = new Schema<FileData>(
   },
   { timestamps: true }
 );
-
+fileSchema.set("toObject", { virtuals: true });
+fileSchema.set("toJSON", { virtuals: true });
 const FileModel =
   mongoose.models?.[FILE_MODEL_NAME] ||
-  mongoose.model<FileData>(FILE_MODEL_NAME, FileSchema);
+  mongoose.model<FileData>(FILE_MODEL_NAME, fileSchema);
 
 export default FileModel;

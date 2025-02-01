@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { Modal, Button, Card, Space, TimePicker, Input, Select } from "antd";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { LiveSession, ZoomSlot } from "@/models/CourseModel";
+import { LiveSessionAPI } from "@/models/Courses/LiveSession";
+import { ZoomSlotAPI } from "@/models/Courses/ZoomSlot";
 
 interface LiveSessionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  sessions: LiveSession[];
-  setSessions: React.Dispatch<React.SetStateAction<LiveSession[]>>;
+  sessions: LiveSessionAPI[];
+  setSessions: React.Dispatch<React.SetStateAction<LiveSessionAPI[]>>;
 }
 
 const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
@@ -44,7 +45,7 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
     const updatedSessions = [...sessions];
     updatedSessions[dayIndex].slots.splice(slotIndex, 1);
     if (updatedSessions[dayIndex].slots.length === 0) {
-      updatedSessions.splice(dayIndex, 1); 
+      updatedSessions.splice(dayIndex, 1);
     }
     setSessions(updatedSessions);
   };
@@ -52,7 +53,7 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
   const updateSlot = (
     dayIndex: number,
     slotIndex: number,
-    field: keyof ZoomSlot,
+    field: keyof ZoomSlotAPI,
     value: string
   ) => {
     const updatedSessions = [...sessions];
@@ -97,7 +98,9 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
             <Button
               type="link"
               icon={<MinusCircleOutlined />}
-              onClick={() => setSessions(sessions.filter((_, i) => i !== dayIndex))}
+              onClick={() =>
+                setSessions(sessions.filter((_, i) => i !== dayIndex))
+              }
             />
           }
         >
@@ -141,12 +144,7 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
                 placeholder="Zoom Link"
                 value={slot.zoomLink}
                 onChange={(e) =>
-                  updateSlot(
-                    dayIndex,
-                    slotIndex,
-                    "zoomLink",
-                    e.target.value
-                  )
+                  updateSlot(dayIndex, slotIndex, "zoomLink", e.target.value)
                 }
                 style={{ flex: 2 }}
               />

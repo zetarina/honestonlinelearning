@@ -26,7 +26,6 @@ const AddPointsPage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Prefill data from URL
   useEffect(() => {
     const userId = searchParams.get("userId");
     const points = searchParams.get("points");

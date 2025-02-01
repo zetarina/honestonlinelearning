@@ -5,10 +5,8 @@ const mailService = new MailService();
 
 export const POST = async (req: Request): Promise<NextResponse> => {
   try {
-    // Parse form data from the request
     const { name, email, message } = await req.json();
 
-    // Validate the form data
     if (!name || !email || !message) {
       return NextResponse.json(
         { error: "All fields are required." },
@@ -16,7 +14,6 @@ export const POST = async (req: Request): Promise<NextResponse> => {
       );
     }
 
-    // Construct the email content
     const mailSubject = "New Contact Us Message";
     const mailText = `
       A new message has been received from the contact form:
@@ -25,7 +22,6 @@ export const POST = async (req: Request): Promise<NextResponse> => {
       - Message: ${message}
     `;
 
-    // Send the email
     try {
       const response = await mailService.sendMail(mailSubject, mailText);
       return NextResponse.json(

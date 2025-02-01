@@ -12,14 +12,23 @@ export enum PaymentStatus {
   FAILED = "failed",
 }
 
-export interface Payment extends Document {
-  _id: Types.ObjectId | string;
-  user_id: Types.ObjectId | string;
+interface BasePayment {
   amount: number;
   method: PaymentMethod;
   status: PaymentStatus;
   transaction_id?: string;
 }
+
+export interface Payment extends BasePayment, Document {
+  _id: Types.ObjectId;
+  user_id: Types.ObjectId;
+}
+
+export interface PaymentAPI extends BasePayment {
+  _id: string;
+  user_id: string;
+}
+
 const paymentSchema = new Schema(
   {
     user_id: {
@@ -42,6 +51,8 @@ const paymentSchema = new Schema(
   },
   { timestamps: true }
 );
+paymentSchema.set("toObject", { virtuals: true });
+paymentSchema.set("toJSON", { virtuals: true });
 
 const Payment =
   mongoose.models?.[paymentsModelName] ||

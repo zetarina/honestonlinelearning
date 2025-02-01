@@ -1,15 +1,17 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { message, Spin } from "antd";
-import { Course } from "@/models/CourseModel";
+import { Result, Button, Card } from "antd";
 import CourseForm from "@/components/forms/CourseForm";
 import apiClient from "@/utils/api/apiClient";
 import SubLoader from "@/components/loaders/SubLoader";
+import { CourseAPI } from "@/models/CourseModel";
 
 const CourseEditPage: React.FC = () => {
-  const [courseData, setCourseData] = useState<Course | null>(null);
+  const [courseData, setCourseData] = useState<CourseAPI | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
   const courseId = params?.id;
@@ -17,36 +19,91 @@ const CourseEditPage: React.FC = () => {
   useEffect(() => {
     if (courseId) {
       const fetchCourse = async () => {
+        setLoading(true);
+        setError(null);
         try {
           const response = await apiClient.get(`/courses/${courseId}`);
           if (response.status === 200) {
             const data = await response.data;
             setCourseData(data);
           } else {
-            message.error("Failed to fetch course data");
-            router.push("/dashboard/courses");
+            setError("Failed to fetch course data");
           }
         } catch (error) {
           console.error("Error fetching course:", error);
-          message.error("An error occurred while fetching the course data");
-          router.push("/dashboard/courses");
+          setError("An error occurred while fetching the course data");
         } finally {
           setLoading(false);
         }
       };
 
       fetchCourse();
+    } else {
+      setError("Invalid course ID.");
+      setLoading(false);
     }
-  }, [courseId, router]);
+  }, [courseId]);
 
   if (loading) {
     return <SubLoader tip="Loading course..." />;
   }
 
+  if (error) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <Card>
+          <Result
+            status="error"
+            title="Error"
+            subTitle={error}
+            extra={
+              <Button
+                type="primary"
+                onClick={() => router.push("/dashboard/courses")}
+              >
+                Back to Courses
+              </Button>
+            }
+          />
+        </Card>
+      </div>
+    );
+  }
+
   return courseData ? (
     <CourseForm course={courseData} />
   ) : (
-    <p>Course not found</p>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+      }}
+    >
+      <Card>
+        <Result
+          status="warning"
+          title="Course Not Found"
+          subTitle="The course does not exist or has been removed."
+          extra={
+            <Button
+              type="primary"
+              onClick={() => router.push("/dashboard/courses")}
+            >
+              Back to Courses
+            </Button>
+          }
+        />
+      </Card>
+    </div>
   );
 };
 

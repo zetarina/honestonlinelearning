@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MainLayout from "../layouts/MainLayout";
 import LoadingSpinner from "../components/loaders/LoadingSpinner";
-import UserContext from "@/contexts/UserContext";
 import "@/styles/globals.css";
 import { APP_PERMISSIONS } from "@/config/permissions";
+import { useUser } from "@/hooks/useUser";
 interface LayoutRouterProps {
   children: React.ReactNode;
 }
 const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
-  const { user, initialLoading } = useContext(UserContext);
+  const { user, initialLoading } = useUser();
   const pathname = usePathname();
   const router = useRouter();
   const isDashboardRoute = pathname?.startsWith("/dashboard");
@@ -22,7 +22,7 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
   useEffect(() => {
     const handleRouteChange = () => {
       setLoading(true);
-      setTimeout(() => setLoading(false), 300); // Short debounce
+      setTimeout(() => setLoading(false), 300);
     };
     handleRouteChange();
   }, [pathname]);

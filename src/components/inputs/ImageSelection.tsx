@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Modal, Button, List, Card, Spin, Input, Tooltip, Space } from "antd";
 import { PictureOutlined, EyeOutlined, SyncOutlined } from "@ant-design/icons";
-import { useImagePicker } from "@/contexts/FilePickerContext";
+import { useImagePicker } from "@/hooks/useFilePicker";
 
 interface ImageSelectionProps {
   value?: string;
@@ -148,7 +148,7 @@ const ImageSelection: React.FC<ImageSelectionProps> = ({
             grid={{ gutter: 16, column: 4 }}
             dataSource={images}
             renderItem={(image) => (
-              <List.Item key={image._id as string}>
+              <List.Item key={image._id}>
                 <Card
                   hoverable
                   cover={

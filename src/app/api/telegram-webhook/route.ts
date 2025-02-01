@@ -15,14 +15,15 @@ export const GET = async () => {
 
 export const POST = async (req: Request) => {
   try {
-    const body = await req.json();;
+    const body = await req.json();
     const { message } = body;
-    if (!message || !message.text) {
+
+    if (!message?.text) {
       return NextResponse.json({ status: "No message received" });
     }
 
-    const chatId = message.chat.id;
-    const text = message.text.trim().toLowerCase();
+    const chatId: string = message.chat.id;
+    const text: string = message.text.trim().toLowerCase();
 
     if (!text.startsWith("/")) {
       return NextResponse.json({ status: "Non-command message ignored" });
@@ -30,9 +31,8 @@ export const POST = async (req: Request) => {
 
     // Fetch all settings
     const settings = await settingService.getAllSettings();
-
-    // Access Telegram settings
     const telegramSettings = settings[MESSAGING_SERVICE_SETTINGS_KEYS.TELEGRAM];
+
     if (!telegramSettings?.botToken || !telegramSettings?.chatId) {
       return NextResponse.json(
         { error: "Telegram settings are not configured." },
@@ -52,12 +52,12 @@ export const POST = async (req: Request) => {
       [`/chatid${BOT_NAME_SUFFIX}`]: `The chat ID is: ${chatId}`,
       "/help": `Available commands:\n/groupid or /chatid - Get the chat ID\n/help - Show available commands`,
       [`/help${BOT_NAME_SUFFIX}`]: `Available commands:\n/groupid or /chatid - Get the chat ID\n/help - Show available commands`,
-    };
+    } as const;
 
-    if (availableCommands[text]) {
+    if (text in availableCommands) {
       try {
         const response = await telegramService.sendMessage(
-          availableCommands[text],
+          availableCommands[text as keyof typeof availableCommands], // ✅ Fixes TypeScript error
           chatId
         );
         return NextResponse.json({ status: "Command processed successfully" });

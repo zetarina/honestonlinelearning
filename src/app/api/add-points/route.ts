@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
-import { userRepository } from "@/repositories";
-import { PointTransactionType } from "@/models/UserModel";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { APP_PERMISSIONS } from "@/config/permissions";
+import { PointTransactionType } from "@/models/Users/PointTransaction";
+import { User } from "@/models/UserModel";
 
 const userService = new UserService();
 
-async function handleAddPointsRequest(request: Request, userId: string | null) {
+async function handleAddPointsRequest(request: Request, user: User | null) {
   try {
     const { userId: targetUserId, points, reason } = await request.json();
 
@@ -45,8 +45,6 @@ async function handleAddPointsRequest(request: Request, userId: string | null) {
 }
 
 export const POST = async (request: Request) =>
-  withAuthMiddleware(
-    (req, userId) => handleAddPointsRequest(req, userId),
-    true,
-    [APP_PERMISSIONS.ADD_POINTS]
-  )(request);
+  withAuthMiddleware((req, user) => handleAddPointsRequest(req, user), true, [
+    APP_PERMISSIONS.ADD_POINTS,
+  ])(request);

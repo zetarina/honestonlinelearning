@@ -1,6 +1,17 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { coursesModelName, usersModelName } from ".";
-
+import { Chapter, ChapterAPI, chapterSchema } from "./Courses/Chapeter";
+import { User, UserAPI } from "./UserModel";
+import {
+  LiveSession,
+  LiveSessionAPI,
+  liveSessionSchema,
+} from "./Courses/LiveSession";
+import {
+  subscriptionSchema,
+  SubscriptionType,
+  SubscriptionTypeAPI,
+} from "./Courses/SubscriptionType";
 
 export enum CourseLevel {
   BEGINNER = "beginner",
@@ -10,64 +21,12 @@ export enum CourseLevel {
 
 export type CourseLevelType = keyof typeof CourseLevel;
 
-export enum VideoType {
-  YOUTUBE = "youtube",
-  AWS = "aws",
-}
-
-export enum SubscriptionDurationType {
-  DAY = "day",
-  WEEK = "week",
-  MONTH = "month",
-  YEAR = "year",
-  SCHOOL_YEAR = "school_year",
-  PERMANENT = "permanent",
-  FIXED = "fixed",
-}
-
 export enum CourseType {
   SELF_PACED = "self-paced",
   LIVE = "live",
 }
 
-export interface Video {
-  title: string;
-  key: string;
-  type: VideoType;
-}
-
-export interface Resource {
-  _id: Types.ObjectId | string;
-  name: string;
-  downloadUrl: string;
-}
-
-export interface Chapter {
-  title: string;
-  videos: Video[];
-  resources?: Resource[];
-}
-
-export interface Subscription {
-  recurrenceType: SubscriptionDurationType;
-  startDate?: Date;
-  endDate?: Date;
-  recurrence?: string;
-}
-
-export interface ZoomSlot {
-  startTimeUTC: string;
-  endTimeUTC: string;
-  zoomLink: string;
-}
-
-export interface LiveSession {
-  dayOfWeek: string;
-  slots: ZoomSlot[];
-}
-
-export interface Course extends Document {
-  _id: Types.ObjectId | string;
+interface BaseCourse {
   title: string;
   description: string;
   highlights: string;
@@ -75,18 +34,34 @@ export interface Course extends Document {
   category: string;
   thumbnailUrl?: string;
   level: CourseLevelType;
-  chapters: Chapter[];
-  instructorId: Types.ObjectId | string;
-  instructor?: any;
   courseType: CourseType;
+  isActive: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Course extends BaseCourse, Document {
+  _id: Types.ObjectId;
+  chapters?: Chapter[];
+  instructorId: Types.ObjectId;
+  instructor?: User;
   liveCourse?: {
     isCurrentlyLive: boolean;
     sessions: LiveSession[];
   };
-  isActive: boolean;
-  subscription: Subscription;
-  created_at: Date;
-  updated_at: Date;
+  subscriptionType: SubscriptionType;
+}
+
+export interface CourseAPI extends BaseCourse {
+  _id: string;
+  chapters?: ChapterAPI[];
+  instructorId: string;
+  instructor?: UserAPI;
+  liveCourse?: {
+    isCurrentlyLive: boolean;
+    sessions: LiveSessionAPI[];
+  };
+  subscriptionType: SubscriptionTypeAPI;
 }
 
 export interface ApplicationLevelCourse extends Course {
@@ -94,80 +69,10 @@ export interface ApplicationLevelCourse extends Course {
   isEnrollmentPermanent?: boolean;
 }
 
-const zoomSlotSchema = new Schema<ZoomSlot>({
-  startTimeUTC: { type: String, required: true },
-  endTimeUTC: { type: String, required: true },
-  zoomLink: { type: String, required: true },
-});
-
-const liveSessionSchema = new Schema<LiveSession>({
-  dayOfWeek: {
-    type: String,
-    required: true,
-    enum: [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ],
-  },
-  slots: [zoomSlotSchema],
-});
-
-const videoSchema = new Schema<Video>({
-  title: { type: String, required: true },
-  key: {
-    type: String,
-    required: true,
-    validate: {
-      validator: (v: string) => /^[a-zA-Z0-9\-_/]+$/.test(v),
-      message: (props) => `${props.value} is not a valid key!`,
-    },
-  },
-  type: { type: String, enum: Object.values(VideoType), required: true },
-});
-
-const resourceSchema = new Schema<Resource>({
-  name: { type: String, required: true },
-  downloadUrl: {
-    type: String,
-    required: true,
-    validate: {
-      validator: (v: string) => /^(https?:\/\/)/.test(v),
-      message: (props) => `${props.value} is not a valid URL!`,
-    },
-  },
-});
-
-const chapterSchema = new Schema<Chapter>({
-  title: { type: String, required: true },
-  videos: [videoSchema],
-  resources: [resourceSchema],
-});
-
-const subscriptionSchema = new Schema<Subscription>({
-  recurrenceType: {
-    type: String,
-    enum: Object.values(SubscriptionDurationType),
-    required: true,
-  },
-  startDate: {
-    type: Date,
-    required: function () {
-      return this.recurrenceType === SubscriptionDurationType.FIXED;
-    },
-  },
-  endDate: {
-    type: Date,
-    required: function () {
-      return this.recurrenceType === SubscriptionDurationType.FIXED;
-    },
-  },
-  recurrence: { type: String, required: false },
-});
+export interface ApplicationLevelCourseAPI extends CourseAPI {
+  enrollmentExpired?: string;
+  isEnrollmentPermanent?: boolean;
+}
 
 const courseSchema = new Schema<Course>(
   {
@@ -198,7 +103,7 @@ const courseSchema = new Schema<Course>(
       sessions: [liveSessionSchema],
     },
     isActive: { type: Boolean, default: true },
-    subscription: subscriptionSchema,
+    subscriptionType: subscriptionSchema,
   },
   { timestamps: true, collection: coursesModelName }
 );

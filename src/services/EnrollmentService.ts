@@ -1,14 +1,15 @@
 import { Enrollment, EnrollmentStatus } from "../models/EnrollmentModel";
 import { Types } from "mongoose";
-import { enrollmentRepository } from "@/repositories/";
+import { enrollmentRepository, toObjectId } from "@/repositories/";
 
 class EnrollmentService {
   async getAllEnrollments(): Promise<Enrollment[]> {
     return enrollmentRepository.findAll();
   }
 
-  async getEnrollmentById(id: string): Promise<Enrollment | null> {
-    return enrollmentRepository.findById(new Types.ObjectId(id));
+  async getEnrollmentById(enrollmentId: string): Promise<Enrollment | null> {
+    const enrollmentObjectId = toObjectId(enrollmentId);
+    return enrollmentRepository.findById(enrollmentObjectId);
   }
   async createEnrollment(
     userId: string,
@@ -16,16 +17,19 @@ class EnrollmentService {
     isPermanent: boolean,
     expiresAt?: Date
   ): Promise<Enrollment> {
+    const userObjectId = toObjectId(userId);
+    const courseObjectId = toObjectId(courseId);
     const existingEnrollment =
-      await enrollmentRepository.isUserCurrentlyEnrolled(userId, courseId);
+      await enrollmentRepository.isUserCurrentlyEnrolled(
+        userObjectId,
+        courseObjectId
+      );
 
     if (existingEnrollment) {
-      // Check if the enrollment is permanent
       if (existingEnrollment.isPermanent) {
         throw new Error("User is already permanently enrolled in this course");
       }
 
-      // Check if the current enrollment expires in less than a month
       if (existingEnrollment.expires_at) {
         const now = new Date();
         const oneMonthLater = new Date();
@@ -41,9 +45,8 @@ class EnrollmentService {
         }
       }
 
-      // Extend the existing enrollment if it’s not permanent and not expiring soon
       const newExpiresAt = expiresAt || new Date();
-      return await enrollmentRepository.extendEnrollment(
+      const updatedEnrollment = await enrollmentRepository.extendEnrollment(
         existingEnrollment._id,
         newExpiresAt,
         {
@@ -52,21 +55,24 @@ class EnrollmentService {
           expires_at: newExpiresAt,
         }
       );
+
+      if (!updatedEnrollment) {
+        throw new Error("Failed to extend enrollment");
+      }
     }
 
-    // Create a new enrollment if no active enrollment exists
     const enrollment = await enrollmentRepository.create({
-      user_id: new Types.ObjectId(userId),
-      course_id: new Types.ObjectId(courseId),
-      pointsSpent: 0, // Default to zero for manual enrollments
-      expires_at: isPermanent ? null : expiresAt || null,
+      user_id: userObjectId,
+      course_id: courseObjectId,
+      pointsSpent: 0,
+      expires_at: isPermanent ? undefined : expiresAt || undefined,
       isPermanent,
       status: EnrollmentStatus.ACTIVE,
       enrollmentHistory: [
         {
           action: "ENROLL",
           timestamp: new Date(),
-          expires_at: isPermanent ? null : expiresAt || null,
+          expires_at: isPermanent ? undefined : expiresAt || undefined,
         },
       ],
     });
@@ -79,14 +85,16 @@ class EnrollmentService {
   }
 
   async updateEnrollment(
-    id: string,
+    enrollmentId: string,
     updateData: Partial<Enrollment>
   ): Promise<Enrollment | null> {
-    return enrollmentRepository.update(new Types.ObjectId(id), updateData);
+    const enrollmentObjectId = toObjectId(enrollmentId);
+    return enrollmentRepository.update(enrollmentObjectId, updateData);
   }
 
-  async deleteEnrollment(id: string): Promise<Enrollment | null> {
-    return enrollmentRepository.delete(new Types.ObjectId(id));
+  async deleteEnrollment(enrollmentId: string): Promise<Enrollment | null> {
+    const enrollmentObjectId = toObjectId(enrollmentId);
+    return enrollmentRepository.delete(enrollmentObjectId);
   }
 
   async getUserEnrollments(userId: string): Promise<Enrollment[]> {
@@ -94,9 +102,11 @@ class EnrollmentService {
   }
 
   async isUserEnrolled(userId: string, courseId: string): Promise<boolean> {
+    const userObjectId = toObjectId(userId);
+    const courseObjectId = toObjectId(courseId);
     const enrollment = await enrollmentRepository.isUserCurrentlyEnrolled(
-      userId,
-      courseId
+      userObjectId,
+      courseObjectId
     );
     return !!enrollment;
   }

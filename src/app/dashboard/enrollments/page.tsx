@@ -10,12 +10,12 @@ import {
 import { useRouter } from "next/navigation";
 
 import type { ColumnsType } from "antd/es/table";
-import { Enrollment } from "@/models/EnrollmentModel";
+import { EnrollmentAPI } from "@/models/EnrollmentModel";
 import apiClient from "@/utils/api/apiClient";
 
 const EnrollmentsPage: React.FC = () => {
   
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [enrollments, setEnrollments] = useState<EnrollmentAPI[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
   const router = useRouter();
@@ -25,6 +25,7 @@ const EnrollmentsPage: React.FC = () => {
     const fetchEnrollments = async () => {
       try {
         const response = await apiClient.get("/enrollments");
+        console.log(response)
         setEnrollments(response.data);
       } catch (error) {
         console.error("Error fetching enrollments:", error);
@@ -42,21 +43,21 @@ const EnrollmentsPage: React.FC = () => {
     try {
       const response = await apiClient.delete(`/enrollments/${enrollmentId}`);
       if (response.status === 200) {
-        message.success("Enrollment deleted successfully");
+        message.success("EnrollmentAPI deleted successfully");
         setEnrollments(
-          enrollments.filter((enrollment) => enrollment._id !== enrollmentId)
+          enrollments.filter((EnrollmentAPI) => EnrollmentAPI._id !== enrollmentId)
         );
       } else {
-        message.error("Failed to delete enrollment");
+        message.error("Failed to delete EnrollmentAPI");
       }
     } catch (error) {
-      console.error("Error deleting enrollment:", error);
-      message.error("An error occurred while deleting the enrollment");
+      console.error("Error deleting EnrollmentAPI:", error);
+      message.error("An error occurred while deleting the EnrollmentAPI");
     }
   };
 
   // Define table columns
-  const columns: ColumnsType<Enrollment> = [
+  const columns: ColumnsType<EnrollmentAPI> = [
     {
       title: "User",
       dataIndex: "user",
@@ -83,7 +84,7 @@ const EnrollmentsPage: React.FC = () => {
       render: (text, record) => (
         <Space size="middle">
           <Popconfirm
-            title="Are you sure to delete this enrollment?"
+            title="Are you sure to delete this EnrollmentAPI?"
             onConfirm={() => handleDelete(record._id.toString())}
             okText="Yes"
             cancelText="No"
@@ -106,7 +107,7 @@ const EnrollmentsPage: React.FC = () => {
           icon={<PlusOutlined />}
           onClick={() => router.push("/dashboard/enrollments/create")}
         >
-          Create Enrollment
+          Create EnrollmentAPI
         </Button>
       }
       style={{ maxWidth: "100%", margin: "0 auto" }}
@@ -118,11 +119,11 @@ const EnrollmentsPage: React.FC = () => {
         onChange={(e) => setSearchText(e.target.value)}
         style={{ marginBottom: 16, maxWidth: 300 }}
       />
-      <Table<Enrollment>
+      <Table<EnrollmentAPI>
         columns={columns}
-        dataSource={enrollments.filter((enrollment) => {
+        dataSource={enrollments.filter((EnrollmentAPI) => {
           const userName =
-            enrollment.user?.name || enrollment.user?.username || "";
+            EnrollmentAPI.user?.name || EnrollmentAPI.user?.username || "";
           return userName.toLowerCase().includes(searchText.toLowerCase());
         })}
         rowKey="_id"

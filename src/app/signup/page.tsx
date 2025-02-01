@@ -2,11 +2,11 @@
 
 import { Button, Input, Form, Alert, Typography, Spin, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-import UserContext from "@/contexts/UserContext";
 import apiClient from "@/utils/api/apiClient";
 import { APP_PERMISSIONS } from "@/config/permissions";
+import { useUser } from "@/hooks/useUser";
 
 const { Title } = Typography;
 
@@ -14,14 +14,11 @@ export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
-
-  const { refreshUser, user } = useContext(UserContext);
-
-  const [form] = Form.useForm(); // Ant Design form instance
+  const { user, refreshUser } = useUser();
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect user if already logged in
   useEffect(() => {
     if (user) {
       handleRoleBasedRedirect();
@@ -45,7 +42,7 @@ export default function SignupPage() {
       const { status, data } = await apiClient.post("/auth/signup", values);
 
       if (status === 201) {
-        refreshUser(); // Refresh user data after successful signup
+        refreshUser();
         handleRoleBasedRedirect();
       } else {
         setError(data?.error || "Signup failed. Please check your details.");

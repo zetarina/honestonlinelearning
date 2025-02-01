@@ -1,8 +1,6 @@
-import nodemailer from "nodemailer";
+import nodemailer, { SendMailOptions } from "nodemailer";
 import SettingService from "@/services/SettingService";
-import {
-  MAIL_SERVICE_SETTINGS_KEYS,
-} from "@/config/settings/MAIL_SERVICE_KEYS";
+import { MAIL_SERVICE_SETTINGS_KEYS } from "@/config/settings/MAIL_SERVICE_KEYS";
 import { SettingsInterface } from "@/config/settingKeys";
 
 const settingService = new SettingService();
@@ -28,7 +26,9 @@ export default class MailService {
         settings[MAIL_SERVICE_SETTINGS_KEYS.GMAIL]?.password
       ) {
         this.transporter = nodemailer.createTransport({
-          service: "gmail",
+          host: "smtp.gmail.com",
+          port: 465,
+          secure: true, // Use TLS
           auth: {
             user: settings[MAIL_SERVICE_SETTINGS_KEYS.GMAIL].user,
             pass: settings[MAIL_SERVICE_SETTINGS_KEYS.GMAIL].password,
@@ -39,7 +39,9 @@ export default class MailService {
         settings[MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK]?.password
       ) {
         this.transporter = nodemailer.createTransport({
-          service: "outlook",
+          host: "smtp.office365.com",
+          port: 587,
+          secure: false, // Use STARTTLS
           auth: {
             user: settings[MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK].user,
             pass: settings[MAIL_SERVICE_SETTINGS_KEYS.OUTLOOK].password,
@@ -47,30 +49,32 @@ export default class MailService {
         });
       } else if (settings[MAIL_SERVICE_SETTINGS_KEYS.SENDGRID]?.apiKey) {
         this.transporter = nodemailer.createTransport({
-          service: "SendGrid",
+          host: "smtp.sendgrid.net",
+          port: 587,
+          secure: false,
           auth: {
-            api_key: settings[MAIL_SERVICE_SETTINGS_KEYS.SENDGRID].apiKey,
+            user: "apikey",
+            pass: settings[MAIL_SERVICE_SETTINGS_KEYS.SENDGRID].apiKey,
           },
         });
       } else {
-        console.error("Email configuration is incomplete.");
+        console.error("❌ Email configuration is incomplete.");
       }
     } catch (error) {
-      console.error("Error initializing mail service:", error);
+      console.error("❌ Error initializing mail service:", error);
     }
   }
-
   public async sendMail(
     subject: string,
     text: string,
-    attachments?: nodemailer.Attachment[]
+    attachments?: SendMailOptions["attachments"]
   ) {
     if (!this.transporter || !this.adminEmail) {
-      throw new Error("Email configuration is incomplete.");
+      throw new Error("❌ Email configuration is incomplete.");
     }
 
-    const mailOptions = {
-      from: this.transporter.options.auth?.user,
+    const mailOptions: SendMailOptions = {
+      from: (this.transporter.options as any)?.auth?.user, // TypeScript fix
       to: this.adminEmail,
       subject,
       text,
@@ -79,9 +83,10 @@ export default class MailService {
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
+      console.log("✅ Email sent:", info.messageId);
       return info;
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error("❌ Error sending email:", error);
       throw error;
     }
   }

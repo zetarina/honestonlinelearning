@@ -1,32 +1,17 @@
 import { NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
+import { User } from "@/models/UserModel";
 
 const userService = new UserService();
 
-const ALLOWED_STUDENT_FIELDS = [
-  "name",
-  "username",
-  "email",
-  "password",
-  "bio",
-];
+const ALLOWED_STUDENT_FIELDS = ["name", "username", "email", "password", "bio"];
 
 async function handleGetUserProfileRequest(
   request: Request,
-  userId: string | null
+  user: User | null
 ) {
   try {
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await userService.getSafeUserById(userId);
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     return NextResponse.json(user);
   } catch (error) {
     console.error("Error fetching user profile:", error);
@@ -39,31 +24,31 @@ async function handleGetUserProfileRequest(
 
 async function handleUpdateUserProfileRequest(
   request: Request,
-  userId: string | null
+  user: User | null
 ) {
   try {
-    if (!userId) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await userService.getUserById(userId);
+    const existingUser = await userService.getUserById(user._id.toString());
 
-    if (!user) {
+    if (!existingUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     const body = await request.json();
 
-    let updateData = body;
+    const updateData: Partial<User> = Object.fromEntries(
+      Object.entries(body).filter(([key]) =>
+        ALLOWED_STUDENT_FIELDS.includes(key)
+      )
+    );
 
-    updateData = Object.keys(body)
-      .filter((key) => ALLOWED_STUDENT_FIELDS.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = body[key];
-        return obj;
-      }, {});
-
-    const updatedUser = await userService.updateUser(userId, updateData);
+    const updatedUser = await userService.updateUser(
+      user._id.toString(),
+      updateData
+    );
 
     if (!updatedUser) {
       return NextResponse.json(
@@ -84,12 +69,12 @@ async function handleUpdateUserProfileRequest(
 
 export const GET = async (request: Request) =>
   withAuthMiddleware(
-    (req, userId) => handleGetUserProfileRequest(req, userId),
+    (req, user) => handleGetUserProfileRequest(req, user),
     true
   )(request);
 
 export const PUT = async (request: Request) =>
   withAuthMiddleware(
-    (req, userId) => handleUpdateUserProfileRequest(req, userId),
+    (req, user) => handleUpdateUserProfileRequest(req, user),
     true
   )(request);

@@ -6,12 +6,12 @@ import InlineLoader from "@/components/loaders/InlineLoader";
 const { Option } = Select;
 
 interface DynamicDropdownProps {
-  endpoint: string; // API endpoint to fetch data
-  valueKey: string; // Key for the option's value
-  labelKey: string; // Key for the option's label
-  placeholder?: string; // Placeholder text
-  value?: string; // Selected value
-  onChange?: (value: string) => void; // Change handler
+  endpoint: string;
+  valueKey: string;
+  labelKey: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }
 
 const DynamicDropdown: React.FC<DynamicDropdownProps> = ({

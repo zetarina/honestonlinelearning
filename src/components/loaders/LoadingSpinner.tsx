@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FC } from "react";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { lighten } from "polished";
 
 interface LoadingSpinnerProps {
@@ -9,10 +9,10 @@ interface LoadingSpinnerProps {
 }
 
 const LoadingSpinner: FC<LoadingSpinnerProps> = ({ message = "" }) => {
-  const { colors } = useSettings(); // Fetch dynamic colors from settings
+  const { colors } = useSettings();
 
   const spinnerStyle: React.CSSProperties = {
-    background: colors.uiBackground.default, // Dynamically set background color
+    background: colors.uiBackground.default,
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
@@ -23,17 +23,17 @@ const LoadingSpinner: FC<LoadingSpinnerProps> = ({ message = "" }) => {
   };
 
   const messageStyle: React.CSSProperties = {
-    marginTop: "30px", // Increased margin for better spacing
-    fontSize: "24px", // Larger font for better visibility
-    fontWeight: 600, // Bold text
+    marginTop: "30px",
+    fontSize: "24px",
+    fontWeight: 600,
     textAlign: "center",
-    background: `linear-gradient(90deg, ${colors.primary.default}, ${colors.secondary.default})`, // Gradient text using dynamic colors
+    background: `linear-gradient(90deg, ${colors.primary.default}, ${colors.secondary.default})`,
     WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent", // Makes the gradient visible
+    WebkitTextFillColor: "transparent",
   };
 
   const spinnerWrapperStyle: React.CSSProperties = {
-    width: "80px", // Increased size for visibility
+    width: "80px",
     height: "80px",
     position: "relative",
     display: "inline-block",
@@ -45,7 +45,7 @@ const LoadingSpinner: FC<LoadingSpinnerProps> = ({ message = "" }) => {
   ): React.CSSProperties => ({
     width: "100%",
     height: "100%",
-    border: "6px solid transparent", // Thicker border for more prominent spinner
+    border: "6px solid transparent",
     borderTop: `6px solid ${lighten(delay / 2, color)}`,
     borderRadius: "50%",
     position: "absolute",

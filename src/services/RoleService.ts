@@ -1,5 +1,5 @@
 import { Role, RoleType } from "@/models/RoleModel";
-import { roleRepository } from "@/repositories";
+import { roleRepository, toObjectId } from "@/repositories";
 import { Types } from "mongoose";
 
 class RoleService {
@@ -7,8 +7,9 @@ class RoleService {
     return roleRepository.findAll();
   }
 
-  async getRoleById(roleId: string | Types.ObjectId): Promise<Role | null> {
-    return roleRepository.findById(roleId);
+  async getRoleById(roleId: string): Promise<Role | null> {
+    const roleObjectId = toObjectId(roleId);
+    return roleRepository.findById(roleObjectId);
   }
 
   async getRolesAboveLevel(level: number): Promise<Role[]> {
@@ -30,7 +31,8 @@ class RoleService {
     roleId: string,
     updateData: Partial<Role>
   ): Promise<Role | null> {
-    const role = await roleRepository.findById(roleId);
+    const roleObjectId = toObjectId(roleId);
+    const role = await roleRepository.findById(roleObjectId);
     if (!role) throw new Error("Role not found");
 
     if (role.type === RoleType.SYSTEM) {
@@ -41,33 +43,36 @@ class RoleService {
       throw new Error("Guest role permissions cannot be changed.");
     }
 
-    return roleRepository.update(roleId, updateData);
+    return roleRepository.update(roleObjectId, updateData);
   }
 
   async deleteRole(roleId: string): Promise<Role | null> {
-    const role = await roleRepository.findById(roleId);
+    const roleObjectId = toObjectId(roleId);
+    const role = await roleRepository.findById(roleObjectId);
     if (!role) throw new Error("Role not found");
 
     if (role.type == RoleType.SYSTEM || role.type == RoleType.GUEST) {
       throw new Error("This role cannot be deleted.");
     }
 
-    return roleRepository.delete(roleId);
+    return roleRepository.delete(roleObjectId);
   }
 
   async updatePermissions(
     roleId: string,
     permissions: string[]
   ): Promise<Role | null> {
-    const role = await roleRepository.findById(roleId);
+    const roleObjectId = toObjectId(roleId);
+    const role = await roleRepository.findById(roleObjectId);
     if (!role) throw new Error("Role not found");
 
     if (role.nonPermissionsEditable) {
       throw new Error("Permissions for this role cannot be modified.");
     }
 
-    return roleRepository.updatePermissions(roleId, permissions);
+    return roleRepository.updatePermissionsSystem(roleObjectId, permissions);
   }
 }
 
 export default RoleService;
+

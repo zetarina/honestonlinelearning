@@ -6,10 +6,10 @@ import Link from "next/link";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
-import { ApplicationLevelCourse } from "@/models/CourseModel";
+import { ApplicationLevelCourseAPI } from "@/models/CourseModel";
 import ImageComponent from "@/components/ImageComponent";
 import ExpandableContent from "@/components/ExpandableContent";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 import SubLoader from "@/components/loaders/SubLoader";
@@ -20,7 +20,7 @@ const { Meta } = Card;
 const { Title, Text } = Typography;
 
 const CoursesPage: React.FC = () => {
-  const [courses, setCourses] = useState<ApplicationLevelCourse[]>([]);
+  const [courses, setCourses] = useState<ApplicationLevelCourseAPI[]>([]);
   const [loading, setLoading] = useState(true);
   const { settings } = useSettings();
 

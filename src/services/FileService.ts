@@ -1,9 +1,14 @@
 import FileRepository from "@/repositories/FileRepository";
-import { FileData, STORAGE_SERVICES, StorageServiceType } from "@/models/FileModel";
+import {
+  FileData,
+  STORAGE_SERVICES,
+  StorageServiceType,
+} from "@/models/FileModel";
 import FirebaseService from "@/repositories/FirebaseService";
 import fs from "fs";
 import path from "path";
 import { FIREBASE_SETTINGS_KEYS } from "@/config/settings/STORAGE_SETTINGS_KEYS";
+import { toObjectId } from "@/repositories";
 
 class FileService {
   private fileRepository: FileRepository;
@@ -77,7 +82,9 @@ class FileService {
         name: file.metadata.name,
         service: "firebase",
         size: Number(file.metadata.size),
-        createdAt: new Date(file.metadata.timeCreated),
+        createdAt: file.metadata.timeCreated
+          ? new Date(file.metadata.timeCreated)
+          : new Date(),
         publicUrl: `https://firebasestorage.googleapis.com/v0/b/${
           bucket.name
         }/o/${encodeURIComponent(file.name)}?alt=media`,
@@ -143,7 +150,8 @@ class FileService {
   }
 
   async getFileById(fileId: string): Promise<FileData | null> {
-    return this.fileRepository.findById(fileId);
+    const fileObjectId = toObjectId(fileId);
+    return this.fileRepository.findById(fileObjectId);
   }
 
   async getFileByPath(filePath: string): Promise<FileData | null> {
@@ -157,10 +165,12 @@ class FileService {
     if (existingFile)
       throw new Error("File with the same path already exists.");
 
-    const cdnUrl = fileData.publicUrl.replace(
-      "https://firebasestorage.googleapis.com",
-      "https://cdn.example.com"
-    );
+    const cdnUrl = fileData.publicUrl
+      ? fileData.publicUrl.replace(
+          "https://firebasestorage.googleapis.com",
+          "https://cdn.example.com"
+        )
+      : "";
 
     return this.fileRepository.create({
       ...fileData,
@@ -169,15 +179,14 @@ class FileService {
   }
 
   async deleteFile(fileId: string) {
-    await this.firebaseService.initFirebase();
-
-    const file = await this.fileRepository.findById(fileId);
+    const fileObjectId = toObjectId(fileId);
+    const file = await this.fileRepository.findById(fileObjectId);
     if (!file) throw new Error("File not found.");
-
+    await this.firebaseService.initFirebase();
     const bucket = this.firebaseService.getBucket();
     await bucket.file(file.filePath).delete();
 
-    return this.fileRepository.deleteById(fileId);
+    return this.fileRepository.deleteById(fileObjectId);
   }
 }
 

@@ -1,6 +1,6 @@
-export const paymentsModelName: string = "Payments";
-export const usersModelName: string = "Users";
-export const enrollmentsModelName: string = "Enrollments";
+export const paymentsModelName: string = "payments";
+export const usersModelName: string = "users";
+export const enrollmentsModelName: string = "enrollments";
 export const coursesModelName: string = "courses";
-export const roleModelName = "Roles";
-export const cacheModelName = "Caches";
+export const roleModelName = "roles";
+export const cacheModelName = "caches";

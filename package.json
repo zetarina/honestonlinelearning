@@ -46,13 +46,15 @@
     "react-quill": "^2.0.0",
     "react-responsive": "^10.0.0",
     "stripe": "^17.3.1",
-    "swr": "^2.2.5"
+    "swr": "^2.2.5",
+    "ua-parser-js": "^2.0.0"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.7",
     "@types/lodash": "^4.17.14",
     "@types/node": "^20",
     "@types/node-telegram-bot-api": "^0.64.7",
+    "@types/nodemailer": "^6.4.17",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",

@@ -5,9 +5,10 @@ import UserService from "@/services/UserService";
 import { PaymentMethod, PaymentStatus } from "@/models/PaymentModel";
 import { withAuthMiddleware } from "@/middlewares/authMiddleware";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
-import { StripePayment } from "@/utils/StripePayment";
-import notifyViaTelegram from "@/utils/TelegramPayment";
-import notifyViaEmail from "@/utils/EmailPayment";
+import { stripePayment } from "@/utils/server/stripePayment";
+import { sendPaymentTelegram } from "@/utils/server/sendPaymentTelegram";
+import { sendPaymentEmail } from "@/utils/server/sendPaymentEmail";
+import { User } from "@/models/UserModel";
 
 const settingService = new SettingService();
 const paymentService = new PaymentService();
@@ -15,7 +16,7 @@ const userService = new UserService();
 
 async function handleTopUpRequest(
   req: Request,
-  userId: string | null
+  user: User
 ): Promise<NextResponse> {
   try {
     const formData = await req.formData();
@@ -23,9 +24,9 @@ async function handleTopUpRequest(
     const paymentMethod = formData.get("paymentMethod") as string | null;
     const file = formData.get("file") as File | null;
 
-    if (!amount || !userId || !paymentMethod) {
+    if (!amount || !paymentMethod) {
       return NextResponse.json(
-        { error: "Amount, user ID, and payment method are required." },
+        { error: "Amount, and payment method are required." },
         { status: 400 }
       );
     }
@@ -35,14 +36,14 @@ async function handleTopUpRequest(
     const currency = settings[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
     if (paymentMethod === "stripe") {
-      const session = await StripePayment(
+      const session = await stripePayment(
         parseInt(amount, 10),
         currency,
         settings
       );
 
       await paymentService.createPayment({
-        user_id: userId,
+        user_id: user.id,
         amount: parseFloat(amount),
         method: PaymentMethod.STRIPE,
         status: PaymentStatus.PENDING,
@@ -60,11 +61,10 @@ async function handleTopUpRequest(
 
       const arrayBuffer = await file.arrayBuffer();
       const screenshotBuffer = Buffer.from(arrayBuffer);
-      const user = await userService.getUserById(userId);
 
       if (user != null) {
         try {
-          const telegramSuccess = await notifyViaTelegram(
+          const telegramSuccess = await sendPaymentTelegram(
             user,
             parseFloat(amount),
             currency,
@@ -74,7 +74,7 @@ async function handleTopUpRequest(
 
           if (telegramSuccess) {
             await paymentService.createPayment({
-              user_id: userId,
+              user_id: user.id,
               amount: parseFloat(amount),
               method: PaymentMethod.OFFLINE,
               status: PaymentStatus.PENDING,
@@ -92,7 +92,7 @@ async function handleTopUpRequest(
             "Telegram notification failed. Attempting email fallback."
           );
 
-          const emailSuccess = await notifyViaEmail(
+          const emailSuccess = await sendPaymentEmail(
             user,
             parseFloat(amount),
             currency,
@@ -101,7 +101,7 @@ async function handleTopUpRequest(
 
           if (emailSuccess) {
             await paymentService.createPayment({
-              user_id: userId,
+              user_id: user.id,
               amount: parseFloat(amount),
               method: PaymentMethod.OFFLINE,
               status: PaymentStatus.PENDING,
@@ -118,7 +118,7 @@ async function handleTopUpRequest(
           throw new Error(
             "Notification configuration is incomplete. Please set up Telegram or Gmail."
           );
-        } catch (error) {
+        } catch (error: any) {
           console.error("Notification process failed:", error);
 
           return NextResponse.json(
@@ -153,6 +153,6 @@ async function handleTopUpRequest(
 
 export const POST = async (req: Request) =>
   withAuthMiddleware(
-    (request, userId) => handleTopUpRequest(request, userId),
+    (request, user) => handleTopUpRequest(request, user),
     true
   )(req);

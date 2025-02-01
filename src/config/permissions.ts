@@ -1,5 +1,5 @@
 import AddPointsPage from "@/app/dashboard/add-points/page";
-import { User } from "@/models/UserModel";
+import { User, UserAPI } from "@/models/UserModel";
 
 export const APP_PERMISSIONS = {
   VIEW_DASHBOARD: "view_dashboard",
@@ -44,7 +44,7 @@ export function getPermissionGuide(permission: AppPermissionType): string {
   return PERMISSION_GUIDE[permission] || "No description available.";
 }
 export const hasPermission = (
-  user: User | null,
+  user: UserAPI | null,
   requiredPermissions: (AppPermissionType | AppPermissionType[])[]
 ) => {
   if (!user || !user.roles) return false;

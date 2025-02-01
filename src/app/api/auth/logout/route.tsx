@@ -1,15 +1,12 @@
-// src/app/api/auth/logout/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import UserService from "@/services/UserService";
 
 const userService = new UserService();
 
-// Named export for the POST method
 export async function POST(req: NextRequest) {
   try {
     const { refreshToken, deviceName } = await req.json();
-
+    console.log(refreshToken,deviceName)
     if (!refreshToken || !deviceName) {
       return NextResponse.json(
         { message: "Refresh token and device name are required." },
@@ -17,7 +14,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Remove refresh token associated with the given device
     const user = await userService.findRefreshToken(refreshToken);
     if (!user) {
       return NextResponse.json(
@@ -26,9 +22,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await userService.deleteDeviceToken(user._id as string, refreshToken);
+    await userService.deleteDeviceToken(user.id, refreshToken);
 
-    // Clear the refresh token cookie
     const response = NextResponse.json(
       { message: "Logged out successfully" },
       { status: 200 }

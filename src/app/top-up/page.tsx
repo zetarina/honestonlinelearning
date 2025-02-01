@@ -15,19 +15,19 @@ import {
 } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 
-import UserContext from "@/contexts/UserContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
 import { loadStripe } from "@stripe/stripe-js";
 import SubLoader from "@/components/loaders/SubLoader";
+import { useUser } from "@/hooks/useUser";
 
 const { Dragger } = Upload;
 const { Title } = Typography;
 
 const TopUpPage: React.FC = () => {
-  const { user, refreshUser } = useContext(UserContext);
+  const { user, refreshUser } = useUser();
   const { settings } = useSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,9 +42,9 @@ const TopUpPage: React.FC = () => {
     settings[SETTINGS_KEYS.STRIPE]?.publicKey ? "stripe" : "offline"
   );
 
-  const stripePromise = settings[SETTINGS_KEYS.STRIPE]?.publicKey
-    ? loadStripe(settings[SETTINGS_KEYS.STRIPE].publicKey)
-    : null;
+  const stripePublicKey = settings?.[SETTINGS_KEYS.STRIPE]?.publicKey;
+
+  const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
   useEffect(() => {
     if (!user) {

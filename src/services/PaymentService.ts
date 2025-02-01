@@ -1,16 +1,16 @@
 import { Payment, PaymentMethod, PaymentStatus } from "../models/PaymentModel";
-import { PointTransactionType } from "../models/UserModel";
 import { Types } from "mongoose";
-
-import { paymentRepository, userRepository } from "@/repositories/";
+import { paymentRepository, toObjectId, userRepository } from "@/repositories/";
+import { PointTransactionType } from "@/models/Users/PointTransaction";
 
 class PaymentService {
   async getAllPayments(): Promise<Payment[]> {
     return paymentRepository.findAll();
   }
 
-  async getPaymentById(id: string): Promise<Payment | null> {
-    return paymentRepository.findById(id);
+  async getPaymentById(paymentId: string): Promise<Payment | null> {
+    const paymentObjectId = toObjectId(paymentId);
+    return paymentRepository.findById(paymentObjectId);
   }
 
   async createPayment(paymentData: Partial<Payment>): Promise<Payment> {
@@ -18,14 +18,16 @@ class PaymentService {
   }
 
   async updatePayment(
-    id: string,
+    paymentId: string,
     updateData: Partial<Payment>
   ): Promise<Payment | null> {
-    return paymentRepository.update(id, updateData);
+    const paymentObjectId = toObjectId(paymentId);
+    return paymentRepository.update(paymentObjectId, updateData);
   }
 
-  async deletePayment(id: string): Promise<Payment | null> {
-    return paymentRepository.delete(id);
+  async deletePayment(paymentId: string): Promise<Payment | null> {
+    const paymentObjectId = toObjectId(paymentId);
+    return paymentRepository.delete(paymentObjectId);
   }
 
   async processPayment(
@@ -33,8 +35,9 @@ class PaymentService {
     amount: number,
     method: PaymentMethod
   ): Promise<Payment> {
+    const userObjectId = toObjectId(userId);
     const payment = await paymentRepository.create({
-      user_id: new Types.ObjectId(userId),
+      user_id: userObjectId,
       amount,
       method,
       status: PaymentStatus.PENDING,
@@ -47,7 +50,7 @@ class PaymentService {
     if (!completedPayment) throw new Error("Failed to update payment status");
 
     await userRepository.manipulatePoints(
-      userId,
+      userObjectId,
       PointTransactionType.PURCHASED_POINTS,
       amount
     );
@@ -58,7 +61,10 @@ class PaymentService {
     transactionId: string,
     updateData: Partial<Payment>
   ): Promise<Payment | null> {
-    const payment = await paymentRepository.findByTransactionId(transactionId);
+    const transactionObjectId = toObjectId(transactionId);
+    const payment = await paymentRepository.findByTransactionId(
+      transactionObjectId
+    );
     if (!payment) {
       console.error(`Payment with transaction ID ${transactionId} not found.`);
       return null;
@@ -72,7 +78,7 @@ class PaymentService {
     // Award points if payment is marked as completed
     if (updateData.status === PaymentStatus.COMPLETED && updatedPayment) {
       await userRepository.manipulatePoints(
-        updatedPayment.user_id.toString(),
+        updatedPayment.user_id,
         PointTransactionType.PURCHASED_POINTS,
         updatedPayment.amount
       );

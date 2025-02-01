@@ -19,14 +19,14 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import type { ColumnsType } from "antd/es/table";
-import { Course } from "@/models/CourseModel";
+import { CourseAPI } from "@/models/CourseModel";
 import apiClient from "@/utils/api/apiClient";
 import { User } from "@/models/UserModel";
-import { useSettings } from "@/contexts/SettingsContext";
+import { useSettings } from "@/hooks/useSettings";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 
 const CoursesPage: React.FC = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseAPI[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
   const router = useRouter();
@@ -65,13 +65,13 @@ const CoursesPage: React.FC = () => {
   };
 
   // Define table columns
-  const columns: ColumnsType<Course> = [
+  const columns: ColumnsType<CourseAPI> = [
     {
       title: "Title",
       dataIndex: "title",
       key: "title",
       sorter: (a, b) => a.title.localeCompare(b.title),
-      render: (text: string, record: Course) => (
+      render: (text: string, record: CourseAPI) => (
         <a onClick={() => router.push(`/dashboard/courses/${record._id}`)}>
           {text}
         </a>
@@ -172,7 +172,7 @@ const CoursesPage: React.FC = () => {
         onChange={(e) => setSearchText(e.target.value)}
         style={{ marginBottom: 16, maxWidth: 300 }}
       />
-      <Table<Course>
+      <Table<CourseAPI>
         columns={columns}
         dataSource={courses.filter((course) =>
           course.title.toLowerCase().includes(searchText.toLowerCase())

@@ -32,7 +32,7 @@ export const GET = async (
   context: { params: { key: ValidSettingKey } }
 ) =>
   withAuthMiddleware(
-    (req, userId) => handleGetSettingByKey(req, context.params),
+    (req, user) => handleGetSettingByKey(req, context.params),
     true,
     [APP_PERMISSIONS.EDIT_SETTINGS]
   )(request);

@@ -12,27 +12,27 @@ import {
 import { PlusOutlined } from "@ant-design/icons";
 
 import dayjs, { Dayjs } from "dayjs";
-import {
-  ApplicationLevelCourse,
-  CourseLevel,
-  CourseType,
-  SubscriptionDurationType,
-  LiveSession,
-} from "@/models/CourseModel";
+
 import { useRouter } from "next/navigation";
 import apiClient from "@/utils/api/apiClient";
 import ImageSelection from "../inputs/ImageSelection";
-import InstructorSelection from "../inputs/InstructorSelection";
 import LiveSessionsModal from "../inputs/LiveSessionsModal";
 import RichTextEditor from "../inputs/RichTextEditor";
 import ChaptersModal from "../modals/ChaptersModal";
 import DynamicDropdown from "../inputs/DynamicDropdown";
+import {
+  ApplicationLevelCourseAPI,
+  CourseAPI,
+  CourseLevel,
+  CourseType,
+} from "@/models/CourseModel";
+import { SubscriptionDurationType } from "@/models/Courses/SubscriptionType";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 interface CourseFormProps {
-  course?: ApplicationLevelCourse;
+  course?: CourseAPI;
 }
 
 const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
@@ -47,7 +47,8 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
   );
   const [recurrenceType, setRecurrenceType] =
     useState<SubscriptionDurationType>(
-      course?.subscription?.recurrenceType || SubscriptionDurationType.PERMANENT
+      course?.subscriptionType?.recurrenceType ||
+        SubscriptionDurationType.PERMANENT
     );
 
   useEffect(() => {
@@ -55,25 +56,29 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
       form.setFieldsValue({
         ...course,
         subscription: {
-          dateRange: course.subscription?.startDate
+          dateRange: course.subscriptionType?.startDate
             ? [
-                dayjs(course.subscription.startDate),
-                dayjs(course.subscription.endDate),
+                dayjs(course.subscriptionType.startDate),
+                dayjs(course.subscriptionType.endDate),
               ]
             : [],
           recurrenceType:
-            course.subscription?.recurrenceType ||
+            course.subscriptionType?.recurrenceType ||
             SubscriptionDurationType.PERMANENT,
-          recurrence: course.subscription?.recurrence || "1",
+          recurrence: course.subscriptionType?.recurrence || "1",
         },
       });
     }
   }, [course, form]);
 
-  const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
+  const handleDateRangeChange = (
+    dates: [Dayjs | null, Dayjs | null] | null,
+    dateStrings: [string, string]
+  ) => {
     form.setFieldsValue({
-      "subscription.startDate": dates ? dates[0].toISOString() : null,
-      "subscription.endDate": dates ? dates[1].toISOString() : null,
+      "subscription.startDate":
+        dates && dates[0] ? dates[0].toISOString() : null,
+      "subscription.endDate": dates && dates[1] ? dates[1].toISOString() : null,
     });
   };
 
@@ -88,10 +93,10 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
     const startDate = dateRange ? dateRange[0]?.toISOString() : undefined;
     const endDate = dateRange ? dateRange[1]?.toISOString() : undefined;
 
-    const courseData: ApplicationLevelCourse = {
+    const courseData: ApplicationLevelCourseAPI = {
       ...values,
       chapters,
-      subscription: {
+      subscriptionType: {
         ...otherSubscription,
         recurrenceType,
         startDate,
