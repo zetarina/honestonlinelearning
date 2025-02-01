@@ -61,7 +61,10 @@ const CourseContent: React.FC<CourseContentProps> = ({ course }) => {
     } else if (selectedChapterIndex > 0) {
       const previousChapter = course.chapters?.[selectedChapterIndex - 1];
       setSelectedChapterIndex(selectedChapterIndex - 1);
-      setSelectedVideoIndex(previousChapter?.videos.length - 1 || 0);
+      const previousChapterVideos = previousChapter?.videos;
+      setSelectedVideoIndex(
+        previousChapterVideos?.length ? previousChapterVideos.length - 1 : 0
+      );
     }
   };
 
