@@ -24,6 +24,7 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
     );
 
     if (existingSession) {
+      existingSession.slots = existingSession.slots || []; // Ensure slots exists
       existingSession.slots.push({
         startTimeUTC: "",
         endTimeUTC: "",
@@ -43,9 +44,12 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
 
   const removeSlot = (dayIndex: number, slotIndex: number) => {
     const updatedSessions = [...sessions];
-    updatedSessions[dayIndex].slots.splice(slotIndex, 1);
-    if (updatedSessions[dayIndex].slots.length === 0) {
-      updatedSessions.splice(dayIndex, 1);
+    const day = updatedSessions[dayIndex];
+    if (day.slots && day.slots.length > 0) {
+      day.slots.splice(slotIndex, 1);
+      if (day.slots.length === 0) {
+        updatedSessions.splice(dayIndex, 1);
+      }
     }
     setSessions(updatedSessions);
   };
@@ -57,7 +61,10 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
     value: string
   ) => {
     const updatedSessions = [...sessions];
-    updatedSessions[dayIndex].slots[slotIndex][field] = value;
+    const day = updatedSessions[dayIndex];
+    if (day.slots) {
+      day.slots[slotIndex][field] = value;
+    }
     setSessions(updatedSessions);
   };
 
@@ -104,7 +111,7 @@ const LiveSessionsModal: React.FC<LiveSessionsModalProps> = ({
             />
           }
         >
-          {session.slots.map((slot, slotIndex) => (
+          {session.slots?.map((slot, slotIndex) => (
             <Space
               key={slotIndex}
               align="center"
