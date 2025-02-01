@@ -8,6 +8,7 @@ import LoadingSpinner from "../components/loaders/LoadingSpinner";
 import "@/styles/globals.css";
 import { APP_PERMISSIONS } from "@/config/permissions";
 import { useUser } from "@/hooks/useUser";
+import LoadingSpin from "@/components/loaders/LoadingSpin";
 interface LayoutRouterProps {
   children: React.ReactNode;
 }
@@ -44,7 +45,7 @@ const LayoutRouter: React.FC<LayoutRouterProps> = ({ children }) => {
   }, [initialLoading, isDashboardRoute, user, router]);
 
   if (initialLoading || loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpin message="Building Theme" />;
   }
 
   return isDashboardRoute && user ? (

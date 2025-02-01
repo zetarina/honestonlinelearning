@@ -1,97 +1,91 @@
-import React from "react";
+import React, { Suspense } from "react";
 import AppProvider from "@/providers/AppProvider";
-import SettingService from "@/services/SettingService";
-import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
-import { SettingsInterface } from "@/config/settingKeys";
-
 import {
-  ColorSchema,
-  DESIGN_SCHEMA_SETTINGS_KEYS,
-} from "@/config/settings/DESIGN_SCHEMA_KEYS";
+  GLOBAL_SETTINGS_KEYS,
+  GLOBAL_SETTINGS_TYPES,
+} from "@/config/settings/GLOBAL_SETTINGS_KEYS";
+import { SettingsInterface } from "@/config/settingKeys";
 import CustomConfigProvider from "@/providers/CustomConfigProvider";
-import UserService from "@/services/UserService";
 import { SettingsProvider } from "@/providers/SettingsProvider";
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const settingService = new SettingService();
-  const userService = new UserService();
-  let settings: Partial<SettingsInterface> = {};
-  let loading = true;
 
+async function getSettings(): Promise<Partial<SettingsInterface>> {
   try {
-    const fetchedSettings = await settingService.getPublicSettings();
-    const syncRoles = await userService.syncRolePermissions();
-    settings = fetchedSettings || {};
-    loading = false;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+    const res = await fetch(`${baseUrl}/settings/public`, {
+      next: { revalidate: 60 },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch settings: ${res.status}`);
+    }
+
+    const fetchedSettings = await res.json();
+    console.log("Fetched settings:", fetchedSettings);
+
+    return fetchedSettings || {};
   } catch (error) {
-    console.error("Failed to fetch settings:", error);
-    loading = false;
+    console.error("Error fetching settings:", error);
+    return {};
   }
+}
+export async function generateMetadata(): Promise<Record<string, any>> {
+  const settings: Partial<SettingsInterface> = await getSettings();
 
-  if (loading) {
-    return (
-      <html lang="en">
-        <head>
-          <title>Loading...</title>
-        </head>
-      </html>
-    );
-  }
+  const siteSettings = (settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] ??
+    {}) as GLOBAL_SETTINGS_TYPES[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS];
+  const seoSettings = (settings[GLOBAL_SETTINGS_KEYS.SEO_SETTINGS] ??
+    {}) as GLOBAL_SETTINGS_TYPES[typeof GLOBAL_SETTINGS_KEYS.SEO_SETTINGS];
 
-  const defaultProductName = "WisdomWave";
-  const defaultProductDescription =
-    "An innovative learning platform designed to empower learners and educators.";
-  const defaultProductLogo = "/images/product-logo.webp";
-  const defaultFavicon = "/images/favicon.ico";
-  const defaultKeywords =
-    "learning, education, e-learning, online courses, knowledge, training";
+  const defaults = {
+    productName: "WisdomWave",
+    description:
+      "An innovative learning platform designed to empower learners and educators.",
+    logo: "/images/product-logo.webp",
+    favicon: "/images/favicon.ico",
+    keywords:
+      "learning, education, e-learning, online courses, knowledge, training",
+  };
 
-  const siteName =
-    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]?.siteName ||
-    defaultProductName;
-  const seoSettings =
-    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SEO_SETTINGS] || {};
-  const metaTitle = seoSettings.metaTitle || siteName;
-  const metaDescription =
-    seoSettings.metaDescription || defaultProductDescription;
-  const ogImage = seoSettings.ogImage || defaultProductLogo;
-  const keywords = seoSettings.keywords || defaultKeywords;
-  const favicon =
-    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]?.siteLogo ||
-    defaultFavicon;
-  const colorSchema = (settings as any)?.[
-    DESIGN_SCHEMA_SETTINGS_KEYS.COLOR_SCHEMA
-  ] as ColorSchema;
+  return {
+    title:
+      seoSettings.metaTitle ?? siteSettings.siteName ?? defaults.productName,
+    description: seoSettings.metaDescription ?? defaults.description,
+    keywords: seoSettings.keywords ?? defaults.keywords,
+    icons: { icon: siteSettings.siteLogo ?? defaults.favicon },
+    openGraph: {
+      title: seoSettings.metaTitle ?? defaults.productName,
+      description: seoSettings.metaDescription ?? defaults.description,
+      image: seoSettings.ogImage ?? defaults.logo,
+      url: "/",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seoSettings.metaTitle ?? defaults.productName,
+      description: seoSettings.metaDescription ?? defaults.description,
+      image: seoSettings.ogImage ?? defaults.logo,
+    },
+  };
+}
 
+async function SettingsLoader({ children }: { children: React.ReactNode }) {
+  const settings = await getSettings();
+
+  return (
+    <SettingsProvider settings={settings}>
+      <CustomConfigProvider>
+        <AppProvider>{children}</AppProvider>
+      </CustomConfigProvider>
+    </SettingsProvider>
+  );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {/* Basic SEO Metadata */}
-        <title>{metaTitle}</title>
-        <meta name="description" content={metaDescription} />
-        <meta name="keywords" content={keywords} />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="/" />
-        <link rel="icon" href={favicon} />
-
-        {/* Open Graph Metadata */}
-        <meta property="og:title" content={metaTitle} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:image" content={ogImage} />
-        <meta property="og:url" content="/" />
-        <meta property="og:type" content="website" />
-
-        {/* Twitter Card Metadata */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={metaTitle} />
-        <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={ogImage} />
-
-        {/* Performance Optimization */}
-        <link rel="preload" href={ogImage} as="image" />
+        {/* Next.js automatically injects metadata from generateMetadata() */}
       </head>
       <body
         style={{
@@ -103,11 +97,10 @@ export default async function AppLayout({
           flexDirection: "column",
         }}
       >
-        <SettingsProvider settings={settings}>
-          <CustomConfigProvider>
-            <AppProvider>{children}</AppProvider>
-          </CustomConfigProvider>
-        </SettingsProvider>
+        {/* Wrap content with Suspense for smooth loading */}
+        <Suspense fallback={<div>Loading settings...</div>}>
+          <SettingsLoader>{children}</SettingsLoader>
+        </Suspense>
       </body>
     </html>
   );

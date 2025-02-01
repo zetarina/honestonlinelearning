@@ -3,13 +3,6 @@
 import { createContext, useContext } from "react";
 import { SettingsInterface } from "@/config/settingKeys";
 import { generateColors } from "@/config/settings/DESIGN_SCHEMA_KEYS";
-
-interface SettingsContextProps {
-  settings: Partial<SettingsInterface>;
-  colors: ReturnType<typeof generateColors>;
-  xcolor: XColorType;
-  isSetupRequired: boolean;
-}
 export interface XColorType {
   interface: {
     background: {
@@ -190,6 +183,13 @@ export interface XColorType {
       selectedColor: string;
     };
   };
+}
+
+interface SettingsContextProps {
+  settings: Partial<SettingsInterface>;
+  colors: ReturnType<typeof generateColors>;
+  xcolor: XColorType;
+  isSetupRequired: boolean;
 }
 
 export const SettingsContext = createContext<SettingsContextProps | undefined>(

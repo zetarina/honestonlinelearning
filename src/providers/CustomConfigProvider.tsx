@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ConfigProvider, Spin } from "antd";
 import { lighten, transparentize } from "polished";
 import { useSettings } from "@/hooks/useSettings";
+import LoadingSpin from "@/components/loaders/LoadingSpin";
 
 interface CustomConfigProviderProps {
   children: React.ReactNode;
@@ -21,19 +22,7 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
   }, [xcolor]);
 
   if (loading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: xcolor.body.background,
-        }}
-      >
-        <Spin size="large" />
-      </div>
-    );
+    return <LoadingSpin message="Building Theme" />;
   }
 
   return (

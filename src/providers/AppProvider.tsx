@@ -4,11 +4,10 @@ import React from "react";
 
 import LayoutRouter from "@/router/LayoutRouter";
 import SetupForm from "@/components/forms/SetupForm";
-
-import LoadingSpinner from "@/components/loaders/LoadingSpinner";
 import { UserProvider } from "./UserProvider";
 import { FilePickerProvider } from "./FilePickerProvider";
 import { useSettings } from "@/hooks/useSettings";
+import LoadingSpin from "@/components/loaders/LoadingSpin";
 
 interface AppProviderProps {
   children: React.ReactNode;
@@ -18,7 +17,7 @@ const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const { isSetupRequired } = useSettings();
 
   if (isSetupRequired === undefined) {
-    return <LoadingSpinner />;
+    return <LoadingSpin message="..." />;
   }
 
   if (isSetupRequired) {

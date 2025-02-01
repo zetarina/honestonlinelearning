@@ -2,7 +2,7 @@
 
 import { Button, Input, Form, Alert, Typography, Spin, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 import apiClient from "@/utils/api/apiClient";
 import { APP_PERMISSIONS } from "@/config/permissions";
@@ -63,118 +63,137 @@ export default function SignupPage() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        width: "100%",
-        padding: "16px",
-      }}
-    >
-      <Card
-        title="Sign Up"
-        style={{
-          width: "100%",
-          maxWidth: "400px",
-          borderRadius: "8px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-          transition: "box-shadow 0.3s ease",
-        }}
-      >
-        {error && (
-          <Alert
-            message="Signup Error"
-            description={error}
-            type="error"
-            showIcon
-            closable
-            style={{ marginBottom: "16px" }}
-          />
-        )}
-
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          initialValues={{
-            username: "",
-            email: "",
-            password: "",
-          }}
-        >
-          <Form.Item
-            name="username"
-            label="Username"
-            rules={[
-              { required: true, message: "Please input your username!" },
-              {
-                pattern: /^[a-z0-9]+$/,
-                message: "Username must be lowercase and contain no spaces.",
-              },
-            ]}
-          >
-            <Input
-              placeholder="Username"
-              size="large"
-              onChange={handleUsernameChange}
-              autoComplete="username"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { required: true, message: "Please input your email!" },
-              { type: "email", message: "Please enter a valid email address." },
-            ]}
-          >
-            <Input placeholder="Email" size="large" autoComplete="email" />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            label="Password"
-            rules={[
-              { required: true, message: "Please input your password!" },
-              {
-                min: 6,
-                message: "Password must be at least 6 characters long.",
-              },
-            ]}
-          >
-            <Input.Password
-              placeholder="Password"
-              size="large"
-              autoComplete="new-password"
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={loading}
-              disabled={loading}
-              size="large"
-            >
-              Sign Up
-            </Button>
-          </Form.Item>
-        </Form>
-
+    <Suspense
+      fallback={
         <div
           style={{
-            textAlign: "center",
-            marginTop: "16px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            // backgroundColor: xcolor.body.background,
           }}
         >
-          Already have an account? <a href="/login">Log In</a>
+          <Spin size="large" />
         </div>
-      </Card>
-    </div>
+      }
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          width: "100%",
+          padding: "16px",
+        }}
+      >
+        <Card
+          title="Sign Up"
+          style={{
+            width: "100%",
+            maxWidth: "400px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            transition: "box-shadow 0.3s ease",
+          }}
+        >
+          {error && (
+            <Alert
+              message="Signup Error"
+              description={error}
+              type="error"
+              showIcon
+              closable
+              style={{ marginBottom: "16px" }}
+            />
+          )}
+
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            initialValues={{
+              username: "",
+              email: "",
+              password: "",
+            }}
+          >
+            <Form.Item
+              name="username"
+              label="Username"
+              rules={[
+                { required: true, message: "Please input your username!" },
+                {
+                  pattern: /^[a-z0-9]+$/,
+                  message: "Username must be lowercase and contain no spaces.",
+                },
+              ]}
+            >
+              <Input
+                placeholder="Username"
+                size="large"
+                onChange={handleUsernameChange}
+                autoComplete="username"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: "Please input your email!" },
+                {
+                  type: "email",
+                  message: "Please enter a valid email address.",
+                },
+              ]}
+            >
+              <Input placeholder="Email" size="large" autoComplete="email" />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[
+                { required: true, message: "Please input your password!" },
+                {
+                  min: 6,
+                  message: "Password must be at least 6 characters long.",
+                },
+              ]}
+            >
+              <Input.Password
+                placeholder="Password"
+                size="large"
+                autoComplete="new-password"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={loading}
+                disabled={loading}
+                size="large"
+              >
+                Sign Up
+              </Button>
+            </Form.Item>
+          </Form>
+
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: "16px",
+            }}
+          >
+            Already have an account? <a href="/login">Log In</a>
+          </div>
+        </Card>
+      </div>
+    </Suspense>
   );
 }

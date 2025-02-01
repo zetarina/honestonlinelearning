@@ -47,7 +47,6 @@ const InstructorsSection: React.FC = () => {
     fetchInstructors();
   }, [maxInstructorsCount]);
 
-  // If loading is complete, there's no error, and no instructors, hide the section.
   if (!loading && !error && instructors.length === 0) {
     return null;
   }
