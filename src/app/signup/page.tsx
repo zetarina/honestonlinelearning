@@ -1,199 +1,155 @@
 "use client";
 
-import { Button, Input, Form, Alert, Typography, Spin, Card } from "antd";
+import { Button, Input, Form, Alert, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, Suspense } from "react";
-
-import apiClient from "@/utils/api/apiClient";
-import { APP_PERMISSIONS } from "@/config/permissions";
+import { useState, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
-
-const { Title } = Typography;
 
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
-  const { user, refreshUser } = useUser();
+  const { user, signUp, initialLoading } = useUser();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      handleRoleBasedRedirect();
+    if (user && !initialLoading) {
+      router.replace(redirect || "/dashboard");
     }
-  }, [user]);
-
-  const handleRoleBasedRedirect = () => {
-    const canViewProfile = user?.roles?.some((role) =>
-      role.permissions.includes(APP_PERMISSIONS.VIEW_DASHBOARD)
-    );
-
-    const target = redirect || (canViewProfile ? "/dashboard" : "/profile");
-    router.replace(target);
-  };
+  }, [user, initialLoading, redirect, router]);
 
   const onFinish = async (values: any) => {
     setLoading(true);
     setError(null);
 
     try {
-      const { status, data } = await apiClient.post("/auth/signup", values);
-
-      if (status === 201) {
-        refreshUser();
-        handleRoleBasedRedirect();
-      } else {
-        setError(data?.error || "Signup failed. Please check your details.");
-      }
+      await signUp(values.username, values.email, values.password);
     } catch (err: any) {
       setError(
-        err.response?.data?.error ||
-          "An unexpected error occurred. Please try again."
+        err.message || "An unexpected error occurred. Please try again."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedUsername = e.target.value.toLowerCase().replace(/\s+/g, "");
-    form.setFieldsValue({ username: formattedUsername });
-  };
-
   return (
-    <Suspense
-      fallback={
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-            // backgroundColor: xcolor.body.background,
-          }}
-        >
-          <Spin size="large" />
-        </div>
-      }
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        width: "100%",
+        padding: "16px",
+      }}
     >
-      <div
+      <Card
+        title="Sign Up"
         style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
           width: "100%",
-          padding: "16px",
+          maxWidth: "400px",
+          borderRadius: "8px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+          transition: "box-shadow 0.3s ease",
         }}
       >
-        <Card
-          title="Sign Up"
-          style={{
-            width: "100%",
-            maxWidth: "400px",
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-            transition: "box-shadow 0.3s ease",
+        {error && (
+          <Alert
+            message="Signup Error"
+            description={error}
+            type="error"
+            showIcon
+            closable
+            style={{ marginBottom: "16px" }}
+          />
+        )}
+
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{
+            username: "",
+            email: "",
+            password: "",
           }}
         >
-          {error && (
-            <Alert
-              message="Signup Error"
-              description={error}
-              type="error"
-              showIcon
-              closable
-              style={{ marginBottom: "16px" }}
+          <Form.Item
+            name="username"
+            label="Username"
+            rules={[
+              { required: true, message: "Please input your username!" },
+              {
+                pattern: /^[a-z0-9]+$/,
+                message: "Username must be lowercase and contain no spaces.",
+              },
+            ]}
+          >
+            <Input
+              placeholder="Username"
+              size="large"
+              autoComplete="username"
             />
-          )}
+          </Form.Item>
 
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={{
-              username: "",
-              email: "",
-              password: "",
-            }}
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: "Please input your email!" },
+              {
+                type: "email",
+                message: "Please enter a valid email address.",
+              },
+            ]}
           >
-            <Form.Item
-              name="username"
-              label="Username"
-              rules={[
-                { required: true, message: "Please input your username!" },
-                {
-                  pattern: /^[a-z0-9]+$/,
-                  message: "Username must be lowercase and contain no spaces.",
-                },
-              ]}
-            >
-              <Input
-                placeholder="Username"
-                size="large"
-                onChange={handleUsernameChange}
-                autoComplete="username"
-              />
-            </Form.Item>
+            <Input placeholder="Email" size="large" autoComplete="email" />
+          </Form.Item>
 
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[
-                { required: true, message: "Please input your email!" },
-                {
-                  type: "email",
-                  message: "Please enter a valid email address.",
-                },
-              ]}
-            >
-              <Input placeholder="Email" size="large" autoComplete="email" />
-            </Form.Item>
-
-            <Form.Item
-              name="password"
-              label="Password"
-              rules={[
-                { required: true, message: "Please input your password!" },
-                {
-                  min: 6,
-                  message: "Password must be at least 6 characters long.",
-                },
-              ]}
-            >
-              <Input.Password
-                placeholder="Password"
-                size="large"
-                autoComplete="new-password"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={loading}
-                disabled={loading}
-                size="large"
-              >
-                Sign Up
-              </Button>
-            </Form.Item>
-          </Form>
-
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "16px",
-            }}
+          <Form.Item
+            name="password"
+            label="Password"
+            rules={[
+              { required: true, message: "Please input your password!" },
+              {
+                min: 6,
+                message: "Password must be at least 6 characters long.",
+              },
+            ]}
           >
-            Already have an account? <a href="/login">Log In</a>
-          </div>
-        </Card>
-      </div>
-    </Suspense>
+            <Input.Password
+              placeholder="Password"
+              size="large"
+              autoComplete="new-password"
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={loading}
+              disabled={loading}
+              size="large"
+            >
+              Sign Up
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: "16px",
+          }}
+        >
+          Already have an account? <a href="/login">Log In</a>
+        </div>
+      </Card>
+    </div>
   );
 }

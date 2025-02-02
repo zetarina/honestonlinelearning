@@ -8,9 +8,10 @@ const userService = new UserService();
 
 async function authMiddleware(
   request: Request,
-  showError: boolean = false,
   requiredPermissions?: AppPermissionType[]
-): Promise<{ user: any; highestRoleLevel: number } | NextResponse> {
+): Promise<
+  { user: User | null; highestRoleLevel: number | null } | NextResponse
+> {
   let userId: string | null = null;
   const authorizationHeader = request.headers.get("authorization");
 
@@ -23,43 +24,27 @@ async function authMiddleware(
       }
     } catch (error: any) {
       console.error("Invalid token:", error.message);
-      if (showError) {
-        return NextResponse.json(
-          { error: "Unauthorized: Invalid token" },
-          { status: 401 }
-        );
-      }
     }
-  } else if (showError) {
-    console.error("Missing or invalid Authorization header");
-    return NextResponse.json(
-      { error: "Unauthorized: Missing or invalid Authorization header" },
-      { status: 401 }
-    );
   }
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized: User not found" },
-      { status: 401 }
-    );
+    return { user: null, highestRoleLevel: null };
   }
 
   try {
     const user = await userService.getSafeUserById(userId);
     if (!user || !user.roles) {
-      return NextResponse.json(
-        { error: "Forbidden: User roles not found" },
-        { status: 403 }
-      );
+      return { user: null, highestRoleLevel: null };
     }
+
     const highestRoleLevel = Math.min(...user.roles.map((role) => role.level));
+
     if (requiredPermissions?.length) {
       const userPermissions = new Set(
         user.roles.flatMap((role) => role.permissions)
       );
 
-      const hasPermission = requiredPermissions.some((perm) =>
+      const hasPermission = requiredPermissions.every((perm) =>
         userPermissions.has(perm)
       );
 
@@ -80,21 +65,18 @@ async function authMiddleware(
     );
   }
 }
+
 export function withAuthMiddleware<Protected extends boolean>(
   routeHandler: (
     request: Request,
     user: Protected extends true ? User : User | null,
-    highestRoleLevel: number
+    highestRoleLevel: number | null
   ) => Promise<NextResponse>,
   isProtected: Protected,
   requiredPermissions?: AppPermissionType[]
 ): (request: Request) => Promise<NextResponse> {
   return async (request: Request): Promise<NextResponse> => {
-    const authResult = await authMiddleware(
-      request,
-      isProtected,
-      requiredPermissions
-    );
+    const authResult = await authMiddleware(request, requiredPermissions);
 
     if (authResult instanceof NextResponse) {
       return authResult;
@@ -111,7 +93,7 @@ export function withAuthMiddleware<Protected extends boolean>(
 
     return routeHandler(
       request,
-      isProtected ? user! : (user as User | null),
+      user as Protected extends true ? User : User | null,
       highestRoleLevel
     );
   };

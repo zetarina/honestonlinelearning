@@ -29,9 +29,10 @@ export async function POST(req: NextRequest) {
       userService.generateRefreshToken(user.id);
 
     await userService.saveDeviceToken(user.id, deviceName, refreshToken);
-
+    const safeUser = await userService.getSafeUserByEmail(email);
     return NextResponse.json(
       {
+        user: safeUser,
         accessToken,
         accessTokenExpiry,
         refreshToken,

@@ -10,12 +10,9 @@ import UserAvatar from "../components/UserAvatar";
 import SocialLinks from "../components/SocialLinks";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { usePathname } from "next/navigation";
-import {
-  getMainDesktopMenu,
-  getMainMobileMenu,
-  getSelectedKey,
-} from "@/config/navigations";
+
 import { useUser } from "@/hooks/useUser";
+import AppMenu from "@/config/navigationMenu";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -25,12 +22,9 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user, logout } = useUser();
-  const { settings } = useSettings();
+  const { settings, xcolor } = useSettings();
   const isMobile = useMediaQuery({ maxWidth: 767 });
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const pathname = usePathname();
-  const selectedKey = getSelectedKey(user, pathname, false);
   const siteSettings: SettingsInterface[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] =
     settings?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] ||
     ({
@@ -51,9 +45,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const currency = settings?.[SETTINGS_KEYS.CURRENCY]?.toUpperCase() || "USD";
 
   const toggleDrawer = () => setDrawerVisible(!drawerVisible);
-  const handleLogout = async () => {
-    await logout();
-  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -72,7 +63,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           style={{
             display: "flex",
             alignItems: "center",
-            background: logoBackground,
+            // background: logoBackground,
           }}
         >
           <img
@@ -88,11 +79,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         <Space>
           {!isMobile && (
-            <Menu
-              style={{ marginRight: "20px" }}
-              mode="horizontal"
-              selectedKeys={[selectedKey || ""]}
-              items={getMainDesktopMenu(user)}
+            <AppMenu
+              menuMode="horizontal"
+              isDashboard={false}
+              isMobile={false}
             />
           )}
           <UserAvatar
@@ -110,12 +100,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             placement="right"
             onClose={toggleDrawer}
             open={drawerVisible}
+            styles={{ body: { padding: "24px 0" } }}
           >
-            <Menu
-              mode="vertical"
-              items={getMainMobileMenu(user, logout)}
-              selectedKeys={[selectedKey || ""]}
-              onClick={toggleDrawer}
+            <AppMenu
+              menuMode="vertical"
+              isDashboard={false}
+              isMobile={true}
+              onMenuClick={toggleDrawer}
             />
           </Drawer>
         )}
@@ -134,7 +125,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <Space size="large" style={{ marginBottom: "20px" }}>
           <SocialLinks settings={settings} />
         </Space>
-        <Text>
+        <Text style={{ color: xcolor.interface.text.default }}>
           {siteName} © {new Date().getFullYear()} All rights reserved.
         </Text>
       </Footer>

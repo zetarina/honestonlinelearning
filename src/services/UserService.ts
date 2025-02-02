@@ -18,7 +18,7 @@ class UserService {
     return userRepository.findAllSafe();
   }
 
-  async getSafeUserById(userId: string): Promise<Partial<User> | null> {
+  async getSafeUserById(userId: string): Promise<User | null> {
     const userObjectId = toObjectId(userId);
     return userRepository.findSafeById(userObjectId);
   }

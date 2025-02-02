@@ -8,9 +8,9 @@ interface UserContextProps {
   refreshUser: () => void;
   awaitRefreshUser: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
-
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
 export default UserContext;

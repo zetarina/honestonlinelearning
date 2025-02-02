@@ -5,30 +5,46 @@ const userService = new UserService();
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const { email, password, username, deviceName } = await request.json();
 
-    if (!data.email || !data.password || !data.username) {
+    if (!email || !password || !username || !deviceName) {
       return NextResponse.json(
-        { error: "Name, email, and password are required" },
+        { error: "Username, email, password, and device name are required." },
         { status: 400 }
       );
     }
 
-    const existingUser = await userService.getUserByEmail(data.email);
+    const existingUser = await userService.getUserByEmail(email);
     if (existingUser) {
       return NextResponse.json(
-        { error: "User already exists with this email" },
+        { error: "User already exists with this email." },
         { status: 400 }
       );
     }
 
-    const newUser = await userService.signup(data);
+    const newUser = await userService.signup({ email, password, username });
 
-    return NextResponse.json(newUser, { status: 201 });
-  } catch (error) {
-    console.error(error);
+    const { token: accessToken, expirationTime: accessTokenExpiry } =
+      userService.generateAccessToken(newUser.id);
+    const { token: refreshToken, expirationTime: refreshTokenExpiry } =
+      userService.generateRefreshToken(newUser.id);
+
+    await userService.saveDeviceToken(newUser.id, deviceName, refreshToken);
+    const safeUser = await userService.getSafeUserByEmail(email);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        user: safeUser,
+        accessToken,
+        accessTokenExpiry,
+        refreshToken,
+        refreshTokenExpiry,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error("Signup error:", error);
+    return NextResponse.json(
+      { error: "Internal server error." },
       { status: 500 }
     );
   }

@@ -5,16 +5,12 @@ import { Layout, Menu, Drawer, Typography } from "antd";
 import Link from "next/link";
 import { useMediaQuery } from "react-responsive";
 import { usePathname } from "next/navigation";
-import {
-  getDashboardDesktopMenu,
-  getDashboardMobileMenu,
-  getSelectedKey,
-} from "@/config/navigations";
 import { useSettings } from "@/hooks/useSettings";
 import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import UserAvatar from "../components/UserAvatar";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { useUser } from "@/hooks/useUser";
+import AppMenu, { getSelectedKey } from "@/config/navigationMenu";
 
 const { Sider, Content, Header, Footer } = Layout;
 const { Text } = Typography;
@@ -23,18 +19,16 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const { user, logout } = useUser();
 
-  const { settings } = useSettings();
+  const { settings, xcolor } = useSettings();
 
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   const isMobile = useMediaQuery({ maxWidth: 767 });
-  const pathname = usePathname();
-  const selectedKey = getSelectedKey(user, pathname, true);
 
   const handleDrawerToggle = () => setDrawerVisible(!drawerVisible);
   const handleLogout = async () => {
-     logout();
+    logout();
   };
   const siteSettings: SettingsInterface[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] =
     settings?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] ||
@@ -76,7 +70,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               alignItems: "center",
               justifyContent: "center",
               width: "100%",
-              background: logoBackground,
+              // background: logoBackground,
             }}
           >
             <Link href="/" passHref>
@@ -104,12 +98,10 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
             </Link>
           </div>
 
-          <Menu
-            mode="inline"
-            selectedKeys={[selectedKey || ""]}
-            theme="dark"
-            items={getDashboardMobileMenu(user, logout)}
-            onClick={handleDrawerToggle}
+          <AppMenu
+            isDashboard={true}
+            isMobile={true}
+            onMenuClick={handleDrawerToggle}
           />
         </Drawer>
       ) : (
@@ -136,13 +128,13 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
             className="logo"
             style={{
               margin: "0",
-              padding: "0",
+              padding: "6px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               width: "100%",
               paddingBlock: "1px",
-              background: logoBackground,
+              // background: logoBackground,
             }}
           >
             <Link href="/" passHref>
@@ -161,11 +153,11 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               />
             </Link>
           </div>
-
-          <Menu
-            mode="inline"
-            selectedKeys={[selectedKey || ""]}
-            items={getDashboardDesktopMenu(user)}
+          <AppMenu
+            menuMode="vertical"
+            isDashboard={true}
+            isMobile={true}
+            onMenuClick={handleDrawerToggle}
           />
         </Sider>
       )}
@@ -184,10 +176,15 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
             boxShadow: "0px 1px 4px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <Text style={{ fontSize: "18px", fontWeight: "bold" }}>
+          <Text
+            style={{
+              fontSize: "18px",
+              fontWeight: "bold",
+              color: xcolor.interface.text.default,
+            }}
+          >
             {siteName}
           </Text>
-
           <UserAvatar
             currency={currency}
             isMobile={isMobile}
@@ -212,7 +209,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
             padding: "12px 24px",
           }}
         >
-          <Text>
+          <Text style={{ color: xcolor.interface.text.default }}>
             {siteName} © {new Date().getFullYear()} All rights reserved.
           </Text>
         </Footer>

@@ -22,7 +22,7 @@ class UserRepository {
       .exec();
   }
 
-  async findSafeById(id: Types.ObjectId): Promise<Partial<User> | null> {
+  async findSafeById(id: Types.ObjectId): Promise<User | null> {
     await dbConnect();
     return this.userModel
       .findById(id)
@@ -202,7 +202,6 @@ class UserRepository {
       .updateMany({}, { $set: { devices: [] }, $unset: { tokens: "" } })
       .exec();
   }
-  
 }
 
 export default UserRepository;

@@ -120,6 +120,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         });
 
         const {
+          user: apiUser,
           accessToken,
           refreshToken,
           accessTokenExpiresIn,
@@ -135,7 +136,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
           accessTokenExpiry,
           refreshTokenExpiry
         );
-
+        setUser(apiUser);
         setHasShownLogoutMessage(false);
         await mutate();
 
@@ -152,9 +153,53 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
     },
     [mutate, handleError]
   );
+  const signUp = useCallback(
+    async (username: string, email: string, password: string) => {
+      setLoading(true);
+      try {
+        const { data } = await apiClient.post("/auth/signup", {
+          username,
+          email,
+          password,
+        });
+
+        const {
+          user: apiUser,
+          accessToken,
+          refreshToken,
+          accessTokenExpiresIn,
+          refreshTokenExpiresIn,
+        } = data;
+
+        const accessTokenExpiry = Date.now() + accessTokenExpiresIn * 1000;
+        const refreshTokenExpiry = Date.now() + refreshTokenExpiresIn * 1000;
+        setUser(apiUser);
+        saveTokens(
+          accessToken,
+          refreshToken,
+          accessTokenExpiry,
+          refreshTokenExpiry
+        );
+
+        setHasShownLogoutMessage(false);
+        await mutate();
+
+        setTimeout(() => {
+          message.success("Signup successful!");
+        }, 0);
+      } catch (error) {
+        handleError(error, "Signup failed. Please try again.");
+        throw error;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [mutate, handleError]
+  );
 
   const logout = useCallback(
     async (infoMessage: string = "Logging out") => {
+      console.log("Logging out...");
       setLoading(true);
 
       try {
@@ -204,6 +249,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       refreshUser,
       awaitRefreshUser,
       signIn,
+      signUp,
       logout,
     }),
     [
@@ -213,6 +259,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       refreshUser,
       awaitRefreshUser,
       signIn,
+      signUp,
       logout,
     ]
   );

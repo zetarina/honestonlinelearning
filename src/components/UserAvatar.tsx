@@ -1,15 +1,9 @@
 import React from "react";
-import {
-  Avatar,
-  Tooltip,
-  Typography,
-  Dropdown,
-  MenuProps,
-  Spin,
-} from "antd";
+import { Avatar, Tooltip, Typography, Dropdown, MenuProps, Spin } from "antd";
 import Link from "next/link";
 import { APP_PERMISSIONS } from "@/config/permissions";
 import { useUser } from "@/hooks/useUser";
+import { useSettings } from "@/hooks/useSettings";
 
 const { Title, Text } = Typography;
 
@@ -25,10 +19,11 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   toggleDrawer,
 }) => {
   const { user, loading, logout } = useUser();
+  const { xcolor } = useSettings();
 
-  // Make sure to handle undefined or null values gracefully
   const menuItems: MenuProps["items"] = [
-    ...(user && user.roles?.some((role) =>
+    ...(user &&
+    user.roles?.some((role) =>
       role.permissions.includes(APP_PERMISSIONS.VIEW_DASHBOARD)
     )
       ? [
@@ -54,9 +49,15 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   ];
 
   if (loading) {
-    // Show loading state (spinner or placeholder)
     return (
-      <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          cursor: "pointer",
+          color: xcolor.interface.text.default,
+        }}
+      >
         <Spin size="small" />
         <div
           style={{
@@ -65,7 +66,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
             flexDirection: "column",
           }}
         >
-          <Title level={4} style={{ margin: 0, fontSize: "14px" }}>
+          <Title
+            level={4}
+            style={{
+              margin: 0,
+              fontSize: "14px",
+              color: xcolor.interface.text.default,
+            }}
+          >
             Loading...
           </Title>
         </div>
@@ -91,11 +99,24 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
               flexDirection: "column",
             }}
           >
-            <Title level={4} style={{ margin: 0, fontSize: "14px" }}>
+            <Title
+              level={4}
+              style={{
+                margin: 0,
+                fontSize: "14px",
+                color: xcolor.interface.text.default,
+              }}
+            >
               {user ? user.name || user.username : "Guest"}
             </Title>
             {user && (
-              <Text type="secondary" style={{ fontSize: "14px" }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: "14px",
+                  color: xcolor.interface.text.default,
+                }}
+              >
                 {`${user.pointsBalance || 0} ${currency}`}
               </Text>
             )}
@@ -121,11 +142,24 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
                 flexDirection: "column",
               }}
             >
-              <Title level={4} style={{ margin: 0, fontSize: "14px" }}>
+              <Title
+                level={4}
+                style={{
+                  margin: 0,
+                  fontSize: "14px",
+                  color: xcolor.interface.text.default,
+                }}
+              >
                 {user ? user.name || user.username : "Guest"}
               </Title>
               {user && (
-                <Text type="secondary" style={{ fontSize: "14px" }}>
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: "14px",
+                    color: xcolor.interface.text.default,
+                  }}
+                >
                   {`${user.pointsBalance || 0} ${currency}`}
                 </Text>
               )}

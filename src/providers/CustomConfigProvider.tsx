@@ -30,7 +30,7 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
       theme={{
         components: {
           Menu: {
-            itemBg: xcolor.interface.darkBackground.default,
+            itemBg: xcolor.interface.background.default,
             subMenuItemBg: xcolor.interface.background.default,
 
             popupBg: xcolor.interface.background.default,
@@ -38,16 +38,6 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
 
             colorText: xcolor.interface.text.default,
             itemColor: xcolor.interface.text.default,
-
-            // horizontalItemSelectedColor: xcolor.interface.text.selected,
-            // horizontalItemSelectedBg: xcolor.interface.background.selected,
-            // horizontalItemHoverBg: xcolor.interface.background.hovered,
-            // horizontalItemHoverColor: xcolor.interface.text.hovered,
-
-            // itemSelectedColor: xcolor.interface.text.selected,
-            // itemSelectedBg: xcolor.interface.background.selected,
-            // itemHoverBg: xcolor.interface.background.hovered,
-            // itemHoverColor: xcolor.interface.text.hovered,
 
             horizontalItemSelectedColor: xcolor.interface.text.selected,
             horizontalItemHoverColor: xcolor.interface.text.hovered,
@@ -101,7 +91,7 @@ const CustomConfigProvider: React.FC<CustomConfigProviderProps> = ({
             colorPrimary: xcolor.container.border.hovered,
             colorBorderSecondary: xcolor.container.border.default,
             colorText: xcolor.container.text.default,
-            colorTextHeading: xcolor.container.trigger.text.default,
+            colorTextHeading: xcolor.interface.text.default,
             colorTextDescription: xcolor.container.text.default,
           },
 
