@@ -11,7 +11,7 @@ import { SettingsProvider } from "@/providers/SettingsProvider";
 async function getSettings(): Promise<Partial<SettingsInterface>> {
   try {
     const baseUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+      process.env.NEXT_PUBLIC_API_URL || "/api";
     const res = await fetch(`${baseUrl}/settings/public`, {
       next: { revalidate: 60 },
     });
