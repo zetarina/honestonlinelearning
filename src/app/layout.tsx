@@ -10,7 +10,7 @@ import { SettingsProvider } from "@/providers/SettingsProvider";
 
 async function getSettings(): Promise<Partial<SettingsInterface>> {
   try {
-    let baseUrl = process.env.VERCEL_URL // Use Vercel deployment URL
+    const baseUrl = process.env.VERCEL_URL // Use Vercel deployment URL
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000"; // Local dev fallback
 
@@ -21,17 +21,18 @@ async function getSettings(): Promise<Partial<SettingsInterface>> {
     try {
       new URL(baseUrl); // Will throw if invalid
     } catch (err) {
-      throw new Error(
-        `Invalid baseUrl: "${baseUrl}". It must start with 'https://'`
-      );
+      throw new Error(`Invalid baseUrl: "${baseUrl}". It must start with 'https://'`);
     }
 
-    const response = await fetch(
-      `${baseUrl}/${process.env.NEXT_PUBLIC_API_URL}/settings/public`,
-      {
-        next: { revalidate: 60 },
-      }
-    );
+    // 🔥 Fix the incorrect URL construction
+    const apiPath = process.env.NEXT_PUBLIC_API_URL || "/api"; // Ensure it's set
+    const apiUrl = `${baseUrl}${apiPath}/settings/public`.replace(/([^:]\/)\/+/g, "$1"); // Remove double slashes
+
+    console.log("Fetching settings from:", apiUrl);
+
+    const response = await fetch(apiUrl, {
+      next: { revalidate: 60 },
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch settings: ${response.status}`);
@@ -46,6 +47,7 @@ async function getSettings(): Promise<Partial<SettingsInterface>> {
     return {};
   }
 }
+
 
 export async function generateMetadata(): Promise<Record<string, any>> {
   const settings: Partial<SettingsInterface> = await getSettings();
