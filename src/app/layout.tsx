@@ -8,10 +8,18 @@ import { SettingsInterface } from "@/config/settingKeys";
 import CustomConfigProvider from "@/providers/CustomConfigProvider";
 import { SettingsProvider } from "@/providers/SettingsProvider";
 
+
 async function getSettings(): Promise<Partial<SettingsInterface>> {
   try {
-    const baseUrl =
-      process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
+    let baseUrl =
+      process.env.NEXT_PUBLIC_API_URL || // Explicitly set API URL first
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+    // Ensure baseUrl has the correct protocol
+    if (!baseUrl.startsWith("http")) {
+      baseUrl = `https://${baseUrl}`;
+    }
+
     const res = await fetch(`${baseUrl}/api/settings/public`, {
       next: { revalidate: 60 },
     });
@@ -29,6 +37,8 @@ async function getSettings(): Promise<Partial<SettingsInterface>> {
     return {};
   }
 }
+
+
 export async function generateMetadata(): Promise<Record<string, any>> {
   const settings: Partial<SettingsInterface> = await getSettings();
 
