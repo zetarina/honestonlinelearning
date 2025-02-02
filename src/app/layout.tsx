@@ -1,112 +1,86 @@
-import React, { Suspense } from "react";
+import React from "react";
 import AppProvider from "@/providers/AppProvider";
-import {
-  GLOBAL_SETTINGS_KEYS,
-  GLOBAL_SETTINGS_TYPES,
-} from "@/config/settings/GLOBAL_SETTINGS_KEYS";
+import SettingService from "@/services/SettingService";
+import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { SettingsInterface } from "@/config/settingKeys";
+import {
+  ColorSchema,
+  DESIGN_SCHEMA_SETTINGS_KEYS,
+} from "@/config/settings/DESIGN_SCHEMA_KEYS";
 import CustomConfigProvider from "@/providers/CustomConfigProvider";
+import UserService from "@/services/UserService";
 import { SettingsProvider } from "@/providers/SettingsProvider";
+import { NextResponse } from "next/server";
 
 async function getSettings(): Promise<Partial<SettingsInterface>> {
   try {
-    const baseUrl = process.env.VERCEL_URL // Use Vercel deployment URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000"; // Local dev fallback
-
-    // 🚀 Debugging: Log the base URL being used
-    console.log("Using API Base URL:", baseUrl);
-
-    // Ensure baseUrl is a valid URL
-    try {
-      new URL(baseUrl); // Will throw if invalid
-    } catch (err) {
-      throw new Error(`Invalid baseUrl: "${baseUrl}". It must start with 'https://'`);
-    }
-
-    // 🔥 Fix the incorrect URL construction
-    const apiPath = process.env.NEXT_PUBLIC_API_URL || "/api"; // Ensure it's set
-    const apiUrl = `${baseUrl}${apiPath}/settings/public`.replace(/([^:]\/)\/+/g, "$1"); // Remove double slashes
-
-    console.log("Fetching settings from:", apiUrl);
-
-    const response = await fetch(apiUrl, {
-      next: { revalidate: 60 },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch settings: ${response.status}`);
-    }
-
-    const fetchedSettings = await response.json();
-    console.log("Fetched settings:", fetchedSettings);
-
+    const settingService = new SettingService();
+    const userService = new UserService();
+    const fetchedSettings = await settingService.getPublicSettings();
+    await userService.syncRolePermissions();
     return fetchedSettings || {};
   } catch (error) {
-    console.error("Error fetching settings:", error);
+    console.error("Failed to fetch settings:", error);
     return {};
   }
 }
-
-
-export async function generateMetadata(): Promise<Record<string, any>> {
+export async function generateMetadata(): Promise<any> {
   const settings: Partial<SettingsInterface> = await getSettings();
 
-  const siteSettings = (settings[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS] ??
-    {}) as GLOBAL_SETTINGS_TYPES[typeof GLOBAL_SETTINGS_KEYS.SITE_SETTINGS];
-  const seoSettings = (settings[GLOBAL_SETTINGS_KEYS.SEO_SETTINGS] ??
-    {}) as GLOBAL_SETTINGS_TYPES[typeof GLOBAL_SETTINGS_KEYS.SEO_SETTINGS];
+  // Default values
+  const defaultProductName = "WisdomWave";
+  const defaultProductDescription =
+    "An innovative learning platform designed to empower learners and educators.";
+  const defaultProductLogo = "/images/product-logo.webp";
+  const defaultFavicon = "/images/favicon.ico";
+  const defaultKeywords =
+    "learning, education, e-learning, online courses, knowledge, training";
 
-  const defaults = {
-    productName: "WisdomWave",
-    description:
-      "An innovative learning platform designed to empower learners and educators.",
-    logo: "/images/product-logo.webp",
-    favicon: "/images/favicon.ico",
-    keywords:
-      "learning, education, e-learning, online courses, knowledge, training",
-  };
+  // Extracting settings or fallback to defaults
+  const siteName =
+    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]?.siteName ||
+    defaultProductName;
+  const seoSettings =
+    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SEO_SETTINGS] || {};
+  const metaTitle = seoSettings.metaTitle || siteName;
+  const metaDescription =
+    seoSettings.metaDescription || defaultProductDescription;
+  const ogImage = seoSettings.ogImage || defaultProductLogo;
+  const keywords = seoSettings.keywords || defaultKeywords;
+  const favicon =
+    (settings as any)?.[GLOBAL_SETTINGS_KEYS.SITE_SETTINGS]?.siteLogo ||
+    defaultFavicon;
 
   return {
-    title:
-      seoSettings.metaTitle ?? siteSettings.siteName ?? defaults.productName,
-    description: seoSettings.metaDescription ?? defaults.description,
-    keywords: seoSettings.keywords ?? defaults.keywords,
-    icons: { icon: siteSettings.siteLogo ?? defaults.favicon },
+    title: metaTitle,
+    description: metaDescription,
+    keywords: keywords,
+    icons: {
+      icon: favicon,
+    },
     openGraph: {
-      title: seoSettings.metaTitle ?? defaults.productName,
-      description: seoSettings.metaDescription ?? defaults.description,
-      image: seoSettings.ogImage ?? defaults.logo,
+      title: metaTitle,
+      description: metaDescription,
+      image: ogImage,
       url: "/",
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: seoSettings.metaTitle ?? defaults.productName,
-      description: seoSettings.metaDescription ?? defaults.description,
-      image: seoSettings.ogImage ?? defaults.logo,
+      title: metaTitle,
+      description: metaDescription,
+      image: ogImage,
     },
   };
 }
-
-async function SettingsLoader({ children }: { children: React.ReactNode }) {
-  const settings = await getSettings();
-
-  return (
-    <SettingsProvider settings={settings}>
-      <CustomConfigProvider>
-        <AppProvider>{children}</AppProvider>
-      </CustomConfigProvider>
-    </SettingsProvider>
-  );
-}
-
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const settings: Partial<SettingsInterface> = await getSettings();
   return (
     <html lang="en">
-      <head>
-        {/* Next.js automatically injects metadata from generateMetadata() */}
-      </head>
       <body
         style={{
           margin: 0,
@@ -117,10 +91,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           flexDirection: "column",
         }}
       >
-        {/* Wrap content with Suspense for smooth loading */}
-        <Suspense fallback={<div>Loading settings...</div>}>
-          <SettingsLoader>{children}</SettingsLoader>
-        </Suspense>
+        <SettingsProvider settings={settings}>
+          <CustomConfigProvider>
+            <AppProvider>{children}</AppProvider>
+          </CustomConfigProvider>
+        </SettingsProvider>
       </body>
     </html>
   );
