@@ -8,27 +8,31 @@ import { SettingsInterface } from "@/config/settingKeys";
 import CustomConfigProvider from "@/providers/CustomConfigProvider";
 import { SettingsProvider } from "@/providers/SettingsProvider";
 
-
 async function getSettings(): Promise<Partial<SettingsInterface>> {
   try {
     let baseUrl =
-      process.env.NEXT_PUBLIC_API_URL || // Explicitly set API URL first
+      process.env.NEXT_PUBLIC_API_URL || // Prefer explicit API URL
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-    // Ensure baseUrl has the correct protocol
-    if (!baseUrl.startsWith("http")) {
-      baseUrl = `https://${baseUrl}`;
+    // 🚀 Debugging: Log the base URL being used
+    console.log("Using API Base URL:", baseUrl);
+
+    // 🛑 Ensure baseUrl is a valid URL (not just "api" or an invalid string)
+    try {
+      new URL(baseUrl); // This will throw if baseUrl is invalid
+    } catch (err) {
+      throw new Error(`Invalid baseUrl: "${baseUrl}". Make sure it includes 'https://'`);
     }
 
-    const res = await fetch(`${baseUrl}/api/settings/public`, {
+    const response = await fetch(`${baseUrl}/api/settings/public`, {
       next: { revalidate: 60 },
     });
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch settings: ${res.status}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch settings: ${response.status}`);
     }
 
-    const fetchedSettings = await res.json();
+    const fetchedSettings = await response.json();
     console.log("Fetched settings:", fetchedSettings);
 
     return fetchedSettings || {};
@@ -37,6 +41,7 @@ async function getSettings(): Promise<Partial<SettingsInterface>> {
     return {};
   }
 }
+
 
 
 export async function generateMetadata(): Promise<Record<string, any>> {
