@@ -25,7 +25,6 @@ const EnrollmentsPage: React.FC = () => {
     const fetchEnrollments = async () => {
       try {
         const response = await apiClient.get("/enrollments");
-        console.log(response)
         setEnrollments(response.data);
       } catch (error) {
         console.error("Error fetching enrollments:", error);
