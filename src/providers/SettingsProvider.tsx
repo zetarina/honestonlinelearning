@@ -123,7 +123,7 @@ export const SettingsProvider: React.FC<{
         },
         section: {
           background: colors.uiBackground.default,
-          color: colors.text.default,
+          color: colors.uiText.default,
           hover: colors.uiBackground.hovered,
           active: colors.uiBackground.active,
           split: colors.border.split,

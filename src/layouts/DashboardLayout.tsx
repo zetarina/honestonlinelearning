@@ -10,7 +10,7 @@ import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import UserAvatar from "../components/UserAvatar";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { useUser } from "@/hooks/useUser";
-import AppMenu, { getSelectedKey } from "@/config/navigationMenu";
+import AppMenu, { getSelectedKey } from "@/components/navigationMenu";
 
 const { Sider, Content, Header, Footer } = Layout;
 const { Text } = Typography;

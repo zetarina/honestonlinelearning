@@ -12,7 +12,7 @@ import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { usePathname } from "next/navigation";
 
 import { useUser } from "@/hooks/useUser";
-import AppMenu from "@/config/navigationMenu";
+import AppMenu from "@/components/navigationMenu";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;

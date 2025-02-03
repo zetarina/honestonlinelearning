@@ -7,8 +7,8 @@ import {
   APP_PERMISSIONS,
   AppPermissionType,
   hasPermission,
-} from "./permissions";
-import { iconMapper } from "./navigations/IconMappter";
+} from "../config/permissions";
+import { iconMapper } from "../config/navigations/IconMappter";
 import { usePathname } from "next/navigation";
 
 export interface MenuItem {
