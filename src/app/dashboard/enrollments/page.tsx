@@ -106,7 +106,10 @@ const EnrollmentsPage: React.FC = () => {
           Create EnrollmentAPI
         </Button>
       }
-      style={{ maxWidth: "100%", margin: "0 auto" }}
+      style={{
+        width: "100%",
+        overflowX: "auto",
+      }}
     >
       <Input
         placeholder="Search enrollments"

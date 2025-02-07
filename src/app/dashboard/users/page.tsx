@@ -153,7 +153,10 @@ const UsersPage: React.FC = () => {
           Create User
         </Button>
       }
-      style={{ maxWidth: "100%", margin: "0 auto" }}
+      style={{
+        width: "100%",
+        overflowX: "auto",
+      }}
     >
       <Input
         placeholder="Search users"
