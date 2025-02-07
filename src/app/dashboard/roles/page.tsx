@@ -152,6 +152,7 @@ const RolesPage: React.FC = () => {
         rowKey="_id"
         loading={loading}
         pagination={{ pageSize: 10 }}
+        scroll={{ x: "max-content" }}
       />
     </Card>
   );

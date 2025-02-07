@@ -142,40 +142,39 @@ const UsersPage: React.FC = () => {
   ];
 
   return (
-  
-      <Card
-        title="Users Management"
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => router.push("/dashboard/users/create")}
-          >
-            Create User
-          </Button>
-        }
-        style={{ maxWidth: "100%", margin: "0 auto" }}
-      >
-        <Input
-          placeholder="Search users"
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ marginBottom: 16, maxWidth: 300 }}
-        />
-        <Table<UserAPI>
-          columns={columns}
-          dataSource={users.filter(
-            (user) =>
-              user.username.toLowerCase().includes(searchText.toLowerCase()) ||
-              user.email.toLowerCase().includes(searchText.toLowerCase())
-          )}
-          rowKey="_id"
-          loading={loading}
-          pagination={{ pageSize: 10 }}
-        />
-      </Card>
-  
+    <Card
+      title="Users Management"
+      extra={
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => router.push("/dashboard/users/create")}
+        >
+          Create User
+        </Button>
+      }
+      style={{ maxWidth: "100%", margin: "0 auto" }}
+    >
+      <Input
+        placeholder="Search users"
+        prefix={<SearchOutlined />}
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        style={{ marginBottom: 16, maxWidth: 300 }}
+      />
+      <Table<UserAPI>
+        columns={columns}
+        dataSource={users.filter(
+          (user) =>
+            user.username.toLowerCase().includes(searchText.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchText.toLowerCase())
+        )}
+        rowKey="_id"
+        loading={loading}
+        pagination={{ pageSize: 10 }}
+        scroll={{ x: "max-content" }}
+      />
+    </Card>
   );
 };
 
