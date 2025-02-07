@@ -1,61 +1,53 @@
 "use client";
 import { useMemo } from "react";
-import { Card, Typography, Row, Col, Divider } from "antd";
+import { Card, Typography, Row, Col, Divider, Space } from "antd";
 import { useUser } from "@/hooks/useUser";
 
 const { Title, Text } = Typography;
 
 export default function DashboardPage() {
   const { user } = useUser();
+
   const userDetails = useMemo(() => {
+    if (!user) return <Text type="secondary">No user data available.</Text>;
+
     return (
-      <>
+      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Divider />
-        <div style={{ padding: "12px 0" }}>
+        <Space direction="horizontal" size="small">
           <Text strong>Email:</Text>
-          <Text style={{ marginLeft: "8px" }}>{user?.email || "N/A"}</Text>
-        </div>
+          <Text>{user.email || "N/A"}</Text>
+        </Space>
         <Divider />
-        <div style={{ padding: "12px 0" }}>
+        <Space direction="horizontal" size="small">
           <Text strong>Role:</Text>
-          <Text style={{ marginLeft: "8px", textTransform: "capitalize" }}>
-            {user?.roles?.length
-              ? user.roles.map((role) => role.name).join(", ")
-              : "N/A"}
+          <Text style={{ textTransform: "capitalize" }}>
+            {user.roles?.length ? user.roles.map((role) => role.name).join(", ") : "N/A"}
           </Text>
-        </div>
+        </Space>
         <Divider />
-        <div style={{ padding: "12px 0" }}>
+        <Space direction="horizontal" size="small">
           <Text strong>Points Balance:</Text>
-          <Text
-            style={{
-              marginLeft: "8px",
-              color: "#1890ff",
-              fontWeight: "bold",
-            }}
-          >
-            {user?.pointsBalance || 0}
+          <Text style={{ color: "#1890ff", fontWeight: "bold" }}>
+            {user.pointsBalance || 0}
           </Text>
-        </div>
-      </>
+        </Space>
+      </Space>
     );
   }, [user]);
 
   return (
-    <div style={{ padding: "40px", minHeight: "100vh" }}>
-      <Row justify="center">
-        <Col xs={24} sm={24} md={24} lg={24}>
+    <div style={{ padding: "40px", height:"100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <Row justify="center" style={{ width: "100%" }}>
+        <Col xs={24} sm={20} md={16} lg={12} xl={10}>
           <Card
             style={{
-              borderRadius: "8px",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+              borderRadius: "12px",
+              boxShadow: "0 6px 18px rgba(0, 0, 0, 0.15)",
             }}
-            styles={{ body: { padding: "24px" } }}
+            bodyStyle={{ padding: "24px" }}
           >
-            <Title
-              level={3}
-              style={{ textAlign: "center", marginBottom: "16px" }}
-            >
+            <Title level={3} style={{ textAlign: "center", marginBottom: "24px" }}>
               Welcome to Your Dashboard
             </Title>
             {userDetails}

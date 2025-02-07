@@ -10,7 +10,7 @@ import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import UserAvatar from "../components/UserAvatar";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
 import { useUser } from "@/hooks/useUser";
-import AppMenu, { getSelectedKey } from "@/components/navigationMenu";
+import AppMenu, { getSelectedKey } from "@/config/navigations/navigationMenu";
 
 const { Sider, Content, Header, Footer } = Layout;
 const { Text } = Typography;
@@ -97,8 +97,8 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
               )}
             </Link>
           </div>
-
           <AppMenu
+            menuMode="inline"
             isDashboard={true}
             isMobile={true}
             onMenuClick={handleDrawerToggle}
@@ -154,7 +154,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({
             </Link>
           </div>
           <AppMenu
-            menuMode="vertical"
+            menuMode="inline"
             isDashboard={true}
             isMobile={true}
             onMenuClick={handleDrawerToggle}

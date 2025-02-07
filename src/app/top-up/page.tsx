@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -9,13 +9,11 @@ import {
   message,
   Typography,
   Card,
-  Spin,
   Alert,
   Radio,
 } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useSettings } from "@/hooks/useSettings";
 import { SETTINGS_KEYS } from "@/config/settingKeys";
 import apiClient from "@/utils/api/apiClient";
@@ -27,13 +25,10 @@ const { Dragger } = Upload;
 const { Title } = Typography;
 
 const TopUpPage: React.FC = () => {
-  const { user, refreshUser } = useUser();
+  const { user, refreshUser, initialLoading } = useUser();
   const { settings } = useSettings();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -43,38 +38,7 @@ const TopUpPage: React.FC = () => {
   );
 
   const stripePublicKey = settings?.[SETTINGS_KEYS.STRIPE]?.publicKey;
-
   const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
-
-  useEffect(() => {
-    if (!user) {
-      router.push("/login?redirect=/top-up");
-    }
-  }, [user, redirect, router]);
-
-  const fetchUserData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await apiClient.get("/me", { withCredentials: true });
-      refreshUser();
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to fetch user data.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const handlePaymentMethodChange = (e: any) => {
-    setPaymentMethod(e.target.value);
-    resetFileState();
-  };
 
   const resetFileState = () => {
     setPreview(null);
@@ -102,9 +66,9 @@ const TopUpPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleRemoveFile = () => {
+  const handlePaymentMethodChange = (e: any) => {
+    setPaymentMethod(e.target.value);
     resetFileState();
-    message.info("Selected file has been removed.");
   };
 
   const handleSubmit = async (values: any) => {
@@ -129,14 +93,13 @@ const TopUpPage: React.FC = () => {
         formData.append("paymentMethod", paymentMethod);
 
         const response = await apiClient.post("/top-up", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
 
         if (response.status === 201) {
           message.success("Top-up request submitted successfully!");
           resetFileState();
+          refreshUser();
         } else {
           message.error("Failed to process top-up request.");
         }
@@ -169,19 +132,16 @@ const TopUpPage: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <SubLoader tip="Loading user account info..." />;
+  // ✅ Show loading state while checking session (no need to manually redirect!)
+  if (initialLoading || loading) {
+    return <SubLoader tip="Loading top-up page..." />;
   }
 
   if (error) {
     return (
       <div style={{ maxWidth: 600, margin: "50px auto" }}>
         <Alert message="Error" description={error} type="error" showIcon />
-        <Button
-          type="primary"
-          onClick={fetchUserData}
-          style={{ marginTop: 20 }}
-        >
+        <Button type="primary" onClick={refreshUser} style={{ marginTop: 20 }}>
           Retry
         </Button>
       </div>
@@ -204,7 +164,7 @@ const TopUpPage: React.FC = () => {
   return (
     <div style={{ maxWidth: 800, margin: "auto", padding: "40px 20px" }}>
       <Card
-        title={"Top-Up Your Account"}
+        title="Top-Up Your Account"
         style={{
           borderRadius: "10px",
           boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",

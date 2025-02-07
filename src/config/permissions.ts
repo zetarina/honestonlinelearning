@@ -45,14 +45,14 @@ export function getPermissionGuide(permission: AppPermissionType): string {
 }
 export const hasPermission = (
   user: UserAPI | null,
-  requiredPermissions: (AppPermissionType | AppPermissionType[])[]
-) => {
-  if (!user || !user.roles) return false;
-  return requiredPermissions.some((orGroup) =>
-    Array.isArray(orGroup)
-      ? orGroup.every((andPerm) =>
-          user.roles.some((role) => role.permissions.includes(andPerm))
-        )
-      : user.roles.some((role) => role.permissions.includes(orGroup))
+  requiredPermissions: AppPermissionType[]
+): boolean => {
+  if (!user?.roles?.length) {
+    return false;
+  }
+  const hasAllPermissions = requiredPermissions.every((perm) =>
+    user.roles.some((role) => role.permissions.includes(perm))
   );
+
+  return hasAllPermissions;
 };

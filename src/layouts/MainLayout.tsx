@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Layout, Menu, Drawer, Space, Typography } from "antd";
+import { Layout, Drawer, Space, Typography } from "antd";
 import { useMediaQuery } from "react-responsive";
 import Link from "next/link";
 import { useSettings } from "@/hooks/useSettings";
@@ -9,10 +9,8 @@ import { SETTINGS_KEYS, SettingsInterface } from "@/config/settingKeys";
 import UserAvatar from "../components/UserAvatar";
 import SocialLinks from "../components/SocialLinks";
 import { GLOBAL_SETTINGS_KEYS } from "@/config/settings/GLOBAL_SETTINGS_KEYS";
-import { usePathname } from "next/navigation";
 
-import { useUser } from "@/hooks/useUser";
-import AppMenu from "@/components/navigationMenu";
+import AppMenu from "@/config/navigations/navigationMenu";
 
 const { Header, Content, Footer } = Layout;
 const { Text } = Typography;
@@ -103,7 +101,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             styles={{ body: { padding: "24px 0" } }}
           >
             <AppMenu
-              menuMode="vertical"
+              menuMode="inline"
               isDashboard={false}
               isMobile={true}
               onMenuClick={toggleDrawer}

@@ -4,78 +4,24 @@ import React, { useState, useEffect } from "react";
 import { Button, Card, Descriptions, Alert } from "antd";
 
 import ProfileUpdateForm from "@/components/forms/ProfileUpdateForm";
-import { useRouter, useSearchParams } from "next/navigation";
-import apiClient from "@/utils/api/apiClient";
+import { useRouter } from "next/navigation";
 import SubLoader from "@/components/loaders/SubLoader";
 import { useUser } from "@/hooks/useUser";
 
 const UserProfile: React.FC = () => {
-  const { user, refreshUser } = useUser();
+  const { user, refreshUser, initialLoading } = useUser();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
 
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !initialLoading) {
       router.push("/login?redirect=/profile");
     }
-  }, [user, redirect, router]);
+  }, [user, initialLoading, router]);
 
-  const fetchUserData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data } = await apiClient.get("/me", {
-        withCredentials: true,
-      });
-      refreshUser();
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to fetch user data.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserData();
-  }, []);
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleSuccess = () => {
-    setIsModalVisible(false);
-    fetchUserData();
-  };
-
-  if (loading) {
+  if (initialLoading) {
     return <SubLoader tip="Loading user profile..." />;
-  }
-
-  if (error) {
-    return (
-      <div style={{ maxWidth: 600, margin: "50px auto" }}>
-        <Alert message="Error" description={error} type="error" showIcon />
-        <Button
-          type="primary"
-          onClick={fetchUserData}
-          style={{ marginTop: 20 }}
-        >
-          Retry
-        </Button>
-      </div>
-    );
   }
 
   if (!user) {
@@ -96,7 +42,7 @@ const UserProfile: React.FC = () => {
       <Card
         title="User Profile"
         extra={
-          <Button type="primary" onClick={showModal}>
+          <Button type="primary" onClick={() => setIsModalVisible(true)}>
             Edit Profile
           </Button>
         }
@@ -112,11 +58,10 @@ const UserProfile: React.FC = () => {
           </Descriptions.Item>
           <Descriptions.Item label="Email">{user.email}</Descriptions.Item>
           <Descriptions.Item label="Roles">
-            {user?.roles?.length
+            {user.roles?.length
               ? user.roles.map((role) => role.name).join(", ")
               : "N/A"}
           </Descriptions.Item>
-
           <Descriptions.Item label="Points Balance">
             {user.pointsBalance || 0}
           </Descriptions.Item>
@@ -126,8 +71,8 @@ const UserProfile: React.FC = () => {
       <ProfileUpdateForm
         user={user}
         visible={isModalVisible}
-        onCancel={handleCancel}
-        onSuccess={handleSuccess}
+        onCancel={() => setIsModalVisible(false)}
+        onSuccess={refreshUser}
       />
     </div>
   );

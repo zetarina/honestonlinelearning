@@ -29,7 +29,7 @@ const allowedFileTypes = [
 const MultiFileUploader = () => {
   const [firebaseConfig, setFirebaseConfig] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [configError, setConfigError] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -38,14 +38,16 @@ const MultiFileUploader = () => {
         const response = await apiClient.get(
           `/settings/key/${FIREBASE_SETTINGS_KEYS.FIREBASE}`
         );
+
         if (!response.data?.clientConfig) {
           throw new Error("Firebase settings are missing.");
         }
+
         setFirebaseConfig(response.data);
         initializeFirebaseClient(response.data.clientConfig);
       } catch (error) {
         console.error("Error fetching Firebase settings:", error);
-        setConfigError(true);
+        setConfigError("Firebase is not set up yet. Configure settings first.");
       }
     };
 
@@ -125,104 +127,98 @@ const MultiFileUploader = () => {
     }
   };
 
-  if (configError) {
-    return (
+  return (
+
       <div className="uploader-container">
         <Card
-          title="Firebase Not Configured"
+          title="Upload to Firebase Storage"
           bordered={false}
           style={{
             borderRadius: "12px",
             boxShadow: "0px 6px 18px rgba(0, 0, 0, 0.1)",
-            textAlign: "center",
           }}
         >
-          <Alert
-            message="Firebase is not set up yet."
-            description="Please configure Firebase settings before uploading files."
-            type="warning"
-            showIcon
-            style={{ marginBottom: "20px" }}
-          />
-          <Button
-            type="primary"
-            onClick={() => router.push("/dashboard/settings")}
-            style={{
-              fontSize: "16px",
-              padding: "10px 24px",
-              borderRadius: "8px",
-            }}
-          >
-            Go to Settings
-          </Button>
+          {configError ? (
+            <>
+              <Alert
+                message="Firebase Not Configured"
+                description={configError}
+                type="warning"
+                showIcon
+                style={{ marginBottom: "20px" }}
+              />
+              <Button
+                type="primary"
+                onClick={() => router.push("/dashboard/settings")}
+                style={{
+                  fontSize: "16px",
+                  padding: "10px 24px",
+                  borderRadius: "8px",
+                }}
+              >
+                Go to Settings
+              </Button>
+            </>
+          ) : (
+            <>
+              <Dragger
+                accept={allowedFileTypes.join(",")}
+                customRequest={handleUpload}
+                multiple
+                listType="picture"
+                showUploadList={{ showRemoveIcon: true }}
+                disabled={!firebaseConfig}
+                beforeUpload={(file) => {
+                  const isValid = allowedFileTypes.includes(file.type);
+                  if (!isValid) {
+                    message.error(`${file.name} is not a valid file type.`);
+                  }
+                  return isValid || Upload.LIST_IGNORE;
+                }}
+                style={{
+                  borderRadius: "8px",
+                  padding: "24px",
+                  border: "2px dashed #1890ff",
+                  transition: "border-color 0.3s",
+                  opacity: !firebaseConfig ? 0.5 : 1,
+                  pointerEvents: !firebaseConfig ? "none" : "auto",
+                }}
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined
+                    style={{ color: "#1890ff", fontSize: "32px" }}
+                  />
+                </p>
+                <p
+                  className="ant-upload-text"
+                  style={{ fontSize: "16px", fontWeight: 500 }}
+                >
+                  Drag & drop files here, or click to select files
+                </p>
+                <p className="ant-upload-hint" style={{ color: "#666" }}>
+                  Supports images, PDFs, and text files.
+                </p>
+              </Dragger>
+
+              <div style={{ textAlign: "center", marginTop: "20px" }}>
+                <Button
+                  type="primary"
+                  icon={<CloudUploadOutlined />}
+                  disabled={loading || !firebaseConfig}
+                  style={{
+                    fontSize: "16px",
+                    padding: "10px 24px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  {loading ? <Spin size="small" /> : "Upload Now"}
+                </Button>
+              </div>
+            </>
+          )}
         </Card>
       </div>
-    );
-  }
 
-  return (
-    <div className="uploader-container">
-      <Card
-        title="Upload to Firebase Storage"
-        bordered={false}
-        style={{
-          borderRadius: "12px",
-          boxShadow: "0px 6px 18px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <Dragger
-          accept={allowedFileTypes.join(",")}
-          customRequest={handleUpload}
-          multiple
-          listType="picture"
-          showUploadList={{ showRemoveIcon: true }}
-          disabled={!firebaseConfig} // ✅ Disable upload if Firebase is not set up
-          beforeUpload={(file) => {
-            const isValid = allowedFileTypes.includes(file.type);
-            if (!isValid) {
-              message.error(`${file.name} is not a valid file type.`);
-            }
-            return isValid || Upload.LIST_IGNORE;
-          }}
-          style={{
-            borderRadius: "8px",
-            padding: "24px",
-            border: "2px dashed #1890ff",
-            transition: "border-color 0.3s",
-            opacity: !firebaseConfig ? 0.5 : 1, // ✅ Grey out if not configured
-            pointerEvents: !firebaseConfig ? "none" : "auto",
-          }}
-        >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined style={{ color: "#1890ff", fontSize: "32px" }} />
-          </p>
-          <p
-            className="ant-upload-text"
-            style={{ fontSize: "16px", fontWeight: 500 }}
-          >
-            Drag & drop files here, or click to select files
-          </p>
-          <p className="ant-upload-hint" style={{ color: "#666" }}>
-            Supports images, PDFs, and text files.
-          </p>
-        </Dragger>
-
-        <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <Button
-            type="primary"
-            icon={<CloudUploadOutlined />}
-            disabled={loading || !firebaseConfig}
-            style={{
-              fontSize: "16px",
-              padding: "10px 24px",
-              borderRadius: "8px",
-            }}
-          >
-            {loading ? <Spin size="small" /> : "Upload Now"}
-          </Button>
-        </div>
-      </Card>
-    </div>
   );
 };
 

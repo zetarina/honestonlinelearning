@@ -10,13 +10,11 @@ import {
   Popconfirm,
   Input,
   Tooltip,
-  Typography,
 } from "antd";
 import {
   EyeOutlined,
   DeleteOutlined,
   SyncOutlined,
-  FileImageOutlined,
   FilePdfOutlined,
   FileWordOutlined,
   FileTextOutlined,

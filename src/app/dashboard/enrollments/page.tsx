@@ -1,4 +1,3 @@
-// app/dashboard/enrollments/page.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { Table, Button, Input, Space, message, Popconfirm, Card } from "antd";
@@ -14,13 +13,11 @@ import { EnrollmentAPI } from "@/models/EnrollmentModel";
 import apiClient from "@/utils/api/apiClient";
 
 const EnrollmentsPage: React.FC = () => {
-  
   const [enrollments, setEnrollments] = useState<EnrollmentAPI[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchText, setSearchText] = useState<string>("");
   const router = useRouter();
 
-  // Fetch enrollments from the API
   useEffect(() => {
     const fetchEnrollments = async () => {
       try {
@@ -37,14 +34,15 @@ const EnrollmentsPage: React.FC = () => {
     fetchEnrollments();
   }, []);
 
-  // Handle delete operation
   const handleDelete = async (enrollmentId: string) => {
     try {
       const response = await apiClient.delete(`/enrollments/${enrollmentId}`);
       if (response.status === 200) {
         message.success("EnrollmentAPI deleted successfully");
         setEnrollments(
-          enrollments.filter((EnrollmentAPI) => EnrollmentAPI._id !== enrollmentId)
+          enrollments.filter(
+            (EnrollmentAPI) => EnrollmentAPI._id !== enrollmentId
+          )
         );
       } else {
         message.error("Failed to delete EnrollmentAPI");
@@ -55,7 +53,6 @@ const EnrollmentsPage: React.FC = () => {
     }
   };
 
-  // Define table columns
   const columns: ColumnsType<EnrollmentAPI> = [
     {
       title: "User",
@@ -98,38 +95,38 @@ const EnrollmentsPage: React.FC = () => {
   ];
 
   return (
-    <Card
-      title="Enrollments Management"
-      extra={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => router.push("/dashboard/enrollments/create")}
-        >
-          Create EnrollmentAPI
-        </Button>
-      }
-      style={{ maxWidth: "100%", margin: "0 auto" }}
-    >
-      <Input
-        placeholder="Search enrollments"
-        prefix={<SearchOutlined />}
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        style={{ marginBottom: 16, maxWidth: 300 }}
-      />
-      <Table<EnrollmentAPI>
-        columns={columns}
-        dataSource={enrollments.filter((EnrollmentAPI) => {
-          const userName =
-            EnrollmentAPI.user?.name || EnrollmentAPI.user?.username || "";
-          return userName.toLowerCase().includes(searchText.toLowerCase());
-        })}
-        rowKey="_id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
-    </Card>
+      <Card
+        title="Enrollments Management"
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => router.push("/dashboard/enrollments/create")}
+          >
+            Create EnrollmentAPI
+          </Button>
+        }
+        style={{ maxWidth: "100%", margin: "0 auto" }}
+      >
+        <Input
+          placeholder="Search enrollments"
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ marginBottom: 16, maxWidth: 300 }}
+        />
+        <Table<EnrollmentAPI>
+          columns={columns}
+          dataSource={enrollments.filter((EnrollmentAPI) => {
+            const userName =
+              EnrollmentAPI.user?.name || EnrollmentAPI.user?.username || "";
+            return userName.toLowerCase().includes(searchText.toLowerCase());
+          })}
+          rowKey="_id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
   );
 };
 

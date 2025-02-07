@@ -20,31 +20,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const { xcolor } = useSettings();
 
-  useEffect(() => {
-    document.querySelectorAll(".ql-toolbar").forEach((toolbar) => {
-      (toolbar as HTMLElement).style.backgroundColor =
-        xcolor.input.addon.background;
-      (
-        toolbar as HTMLElement
-      ).style.border = `1px solid ${xcolor.input.addon.background}`;
-    });
-
-    document
-      .querySelectorAll(".ql-formats, .ql-picker, .ql-stroke")
-      .forEach((element) => {
-        (element as HTMLElement).style.color = xcolor.input.text.default;
-      });
-
-    document
-      .querySelectorAll(".ql-picker-label, .ql-picker-item")
-      .forEach((picker) => {
-        (picker as HTMLElement).style.backgroundColor =
-          xcolor.input.active.background;
-        (picker as HTMLElement).style.color = xcolor.input.text.default;
-        (picker as HTMLElement).style.borderRadius = "4px";
-      });
-  }, [xcolor]);
-
   return (
     <ReactQuill
       value={value}

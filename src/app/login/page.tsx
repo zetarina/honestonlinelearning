@@ -1,9 +1,8 @@
-'use client'
-import { Button, Input, Form, Alert, Typography, Card } from "antd";
+"use client";
+import { Button, Input, Form, Alert, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import SubLoader from "@/components/loaders/SubLoader";
-import { APP_PERMISSIONS } from "@/config/permissions";
 import { useUser } from "@/hooks/useUser";
 
 export default function LoginPage() {
@@ -15,20 +14,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user && !initialLoading) {
-      handleRoleBasedRedirect();
-    }
-  }, [user, initialLoading]);
+  if (initialLoading || sessionLoading) {
+    return <SubLoader tip="Checking session..." />;
+  }
 
-  const handleRoleBasedRedirect = () => {
-    const canViewProfile = user?.roles?.some((role) =>
-      role.permissions.includes(APP_PERMISSIONS.VIEW_DASHBOARD)
-    );
-
-    const target = redirect || (canViewProfile ? "/dashboard" : "/profile");
-    router.replace(target);
-  };
+  if (user) {
+    return <SubLoader tip="Redirecting..." />;
+  }
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -36,19 +28,16 @@ export default function LoginPage() {
 
     try {
       await signIn(values.email, values.password);
+      router.replace(redirect || "/dashboard");
     } catch (err: any) {
       console.error("Login Error:", err);
       setError(
-        err.message || "An unexpected error occurred. Please try again later."
+        err.message || "An unexpected error occurred. Please try again."
       );
     } finally {
       setLoading(false);
     }
   };
-
-  if (initialLoading || sessionLoading || (user && !initialLoading)) {
-    return <SubLoader tip="Logging in..." />;
-  }
 
   return (
     <div

@@ -24,8 +24,7 @@ const CourseEditPage: React.FC = () => {
         try {
           const response = await apiClient.get(`/courses/${courseId}`);
           if (response.status === 200) {
-            const data = await response.data;
-            setCourseData(data);
+            setCourseData(response.data);
           } else {
             setError("Failed to fetch course data");
           }
@@ -44,66 +43,64 @@ const CourseEditPage: React.FC = () => {
     }
   }, [courseId]);
 
-  if (loading) {
-    return <SubLoader tip="Loading course..." />;
-  }
-
-  if (error) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <Card>
-          <Result
-            status="error"
-            title="Error"
-            subTitle={error}
-            extra={
-              <Button
-                type="primary"
-                onClick={() => router.push("/dashboard/courses")}
-              >
-                Back to Courses
-              </Button>
-            }
-          />
-        </Card>
-      </div>
-    );
-  }
-
-  return courseData ? (
-    <CourseForm course={courseData} />
-  ) : (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-      }}
-    >
-      <Card>
-        <Result
-          status="warning"
-          title="Course Not Found"
-          subTitle="The course does not exist or has been removed."
-          extra={
-            <Button
-              type="primary"
-              onClick={() => router.push("/dashboard/courses")}
-            >
-              Back to Courses
-            </Button>
-          }
-        />
-      </Card>
-    </div>
+  return (
+    <>
+      {loading ? (
+        <SubLoader tip="Loading course..." />
+      ) : error ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <Card>
+            <Result
+              status="error"
+              title="Error"
+              subTitle={error}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => router.push("/dashboard/courses")}
+                >
+                  Back to Courses
+                </Button>
+              }
+            />
+          </Card>
+        </div>
+      ) : courseData ? (
+        <CourseForm course={courseData} />
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <Card>
+            <Result
+              status="warning"
+              title="Course Not Found"
+              subTitle="The course does not exist or has been removed."
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => router.push("/dashboard/courses")}
+                >
+                  Back to Courses
+                </Button>
+              }
+            />
+          </Card>
+        </div>
+      )}
+    </>
   );
 };
 

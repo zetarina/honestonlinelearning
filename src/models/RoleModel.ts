@@ -1,4 +1,4 @@
-import { APP_PERMISSIONS } from "@/config/permissions";
+import { APP_PERMISSIONS, AppPermissionType } from "@/config/permissions";
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { roleModelName } from ".";
 
@@ -11,7 +11,7 @@ export enum RoleType {
 interface BaseRole {
   name: string;
   type: RoleType;
-  permissions: string[];
+  permissions: AppPermissionType[];
   color: string;
   nonDeletable: boolean;
   nonPermissionsEditable: boolean;

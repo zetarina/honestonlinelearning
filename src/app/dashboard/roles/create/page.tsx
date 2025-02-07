@@ -3,7 +3,11 @@ import RoleForm from "@/components/forms/RoleForm";
 import React from "react";
 
 const CreateRolePage: React.FC = () => {
-  return <RoleForm />;
+  return (
+    <div style={{ padding: "24px" }}>
+      <RoleForm />
+    </div>
+  );
 };
 
 export default CreateRolePage;

@@ -126,7 +126,7 @@ const SettingsPage: React.FC = () => {
       const value = settings[key];
       const config = SETTINGS_GUIDE[key];
       if (!config) return null;
- 
+
       return (
         <CombinedField
           key={key}
@@ -175,20 +175,22 @@ const SettingsPage: React.FC = () => {
   }
 
   return (
-    <div style={{ padding: "24px" }}>
-      <Tabs defaultActiveKey="SiteSettings" items={tabsItems} />
+    
+      <div style={{ padding: "24px" }}>
+        <Tabs defaultActiveKey="SiteSettings" items={tabsItems} />
 
-      <Space style={{ marginTop: "20px" }}>
-        <Button
-          type="primary"
-          onClick={handleSaveAll}
-          disabled={Object.keys(modifiedSettings).length === 0 || loading}
-          loading={loading}
-        >
-          Save All Changes
-        </Button>
-      </Space>
-    </div>
+        <Space style={{ marginTop: "20px" }}>
+          <Button
+            type="primary"
+            onClick={handleSaveAll}
+            disabled={Object.keys(modifiedSettings).length === 0 || loading}
+            loading={loading}
+          >
+            Save All Changes
+          </Button>
+        </Space>
+      </div>
+
   );
 };
 

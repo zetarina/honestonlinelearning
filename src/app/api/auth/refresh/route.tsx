@@ -6,7 +6,27 @@ const userService = new UserService();
 
 export async function POST(req: NextRequest) {
   try {
-    const { refreshToken, deviceName } = await req.json();
+    // Check if Content-Type is JSON
+    const contentType = req.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      return NextResponse.json(
+        { message: "Invalid request format. Expected JSON." },
+        { status: 400 }
+      );
+    }
+
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (error) {
+      console.error("Failed to parse JSON body:", error);
+      return NextResponse.json(
+        { message: "Invalid JSON body or empty request." },
+        { status: 400 }
+      );
+    }
+
+    const { refreshToken, deviceName } = requestBody;
 
     if (!refreshToken || !deviceName) {
       return NextResponse.json(
@@ -30,6 +50,7 @@ export async function POST(req: NextRequest) {
         process.env.JWT_REFRESH_SECRET!
       ) as jwt.JwtPayload;
     } catch (err) {
+      console.error("JWT verification failed:", err);
       return NextResponse.json(
         { message: "Failed to verify refresh token." },
         { status: 403 }
@@ -50,6 +71,7 @@ export async function POST(req: NextRequest) {
     let newRefreshToken = refreshToken;
     let newRefreshTokenExpiry = refreshTokenExpiryTime;
 
+    // Refresh token should be renewed if it's expiring in less than 7 days
     if (timeRemaining < 7 * 24 * 60 * 60 * 1000) {
       const { token: newRefresh, expirationTime: newRefreshExpiry } =
         await userService.generateRefreshToken(payload.userId as string);
@@ -57,6 +79,7 @@ export async function POST(req: NextRequest) {
       newRefreshTokenExpiry = newRefreshExpiry;
     }
 
+    // Generate new access token
     const { token: newAccessToken, expirationTime: newAccessTokenExpiry } =
       await userService.generateAccessToken(payload.userId as string);
 
@@ -72,8 +95,8 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error during token refresh:", error);
     return NextResponse.json(
-      { message: "Invalid or expired refresh token." },
-      { status: 403 }
+      { message: "An unexpected error occurred during token refresh." },
+      { status: 500 }
     );
   }
 }

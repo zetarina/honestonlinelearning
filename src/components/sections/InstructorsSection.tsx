@@ -21,7 +21,7 @@ const InstructorsSection: React.FC = () => {
   const { settings } = useSettings();
   const maxInstructorsCount =
     settings[GLOBAL_SETTINGS_KEYS.HOMEPAGE]?.instructorsSection
-      .maxInstructorsCount || 5;
+      ?.maxInstructorsCount || 5;
 
   const [instructors, setInstructors] = React.useState<Instructor[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);

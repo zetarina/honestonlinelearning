@@ -2,23 +2,27 @@
 
 import { Button, Input, Form, Alert, Card } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useUser } from "@/hooks/useUser";
+import SubLoader from "@/components/loaders/SubLoader";
 
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect");
+
   const { user, signUp, initialLoading } = useUser();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user && !initialLoading) {
-      router.replace(redirect || "/dashboard");
-    }
-  }, [user, initialLoading, redirect, router]);
+  if (initialLoading) {
+    return <SubLoader tip="Checking session..." />;
+  }
+
+  if (user) {
+    return <SubLoader tip="Redirecting..." />;
+  }
 
   const onFinish = async (values: any) => {
     setLoading(true);
@@ -26,6 +30,7 @@ export default function SignupPage() {
 
     try {
       await signUp(values.username, values.email, values.password);
+      router.replace(redirect || "/dashboard");
     } catch (err: any) {
       setError(
         err.message || "An unexpected error occurred. Please try again."
@@ -100,10 +105,7 @@ export default function SignupPage() {
             label="Email"
             rules={[
               { required: true, message: "Please input your email!" },
-              {
-                type: "email",
-                message: "Please enter a valid email address.",
-              },
+              { type: "email", message: "Please enter a valid email address." },
             ]}
           >
             <Input placeholder="Email" size="large" autoComplete="email" />
@@ -141,12 +143,7 @@ export default function SignupPage() {
           </Form.Item>
         </Form>
 
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: "16px",
-          }}
-        >
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
           Already have an account? <a href="/login">Log In</a>
         </div>
       </Card>

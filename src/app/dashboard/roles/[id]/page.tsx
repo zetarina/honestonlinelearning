@@ -43,66 +43,64 @@ const EditRolePage: React.FC = () => {
     }
   }, [roleId]);
 
-  if (loading) {
-    return <SubLoader tip="Loading role details..." />;
-  }
-
-  if (error) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <Card>
-          <Result
-            status="error"
-            title="Error"
-            subTitle={error}
-            extra={
-              <Button
-                type="primary"
-                onClick={() => router.push("/dashboard/roles")}
-              >
-                Back to Roles
-              </Button>
-            }
-          />
-        </Card>
-      </div>
-    );
-  }
-
-  return role ? (
-    <RoleForm role={role} />
-  ) : (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-      }}
-    >
-      <Card>
-        <Result
-          status="warning"
-          title="No Role Found"
-          subTitle="The role does not exist or has been removed."
-          extra={
-            <Button
-              type="primary"
-              onClick={() => router.push("/dashboard/roles")}
-            >
-              Back to Roles
-            </Button>
-          }
-        />
-      </Card>
-    </div>
+  return (
+    <>
+      {loading ? (
+        <SubLoader tip="Loading role details..." />
+      ) : error ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <Card>
+            <Result
+              status="error"
+              title="Error"
+              subTitle={error}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => router.push("/dashboard/roles")}
+                >
+                  Back to Roles
+                </Button>
+              }
+            />
+          </Card>
+        </div>
+      ) : role ? (
+        <RoleForm role={role} />
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <Card>
+            <Result
+              status="warning"
+              title="No Role Found"
+              subTitle="The role does not exist or has been removed."
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => router.push("/dashboard/roles")}
+                >
+                  Back to Roles
+                </Button>
+              }
+            />
+          </Card>
+        </div>
+      )}
+    </>
   );
 };
 

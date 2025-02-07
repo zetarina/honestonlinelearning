@@ -152,36 +152,36 @@ const CoursesPage: React.FC = () => {
   ];
 
   return (
-    <Card
-      title="Courses Management"
-      extra={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => router.push("/dashboard/courses/create")}
-        >
-          Create Course
-        </Button>
-      }
-      style={{ maxWidth: "100%", margin: "0 auto" }}
-    >
-      <Input
-        placeholder="Search courses"
-        prefix={<SearchOutlined />}
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        style={{ marginBottom: 16, maxWidth: 300 }}
-      />
-      <Table<CourseAPI>
-        columns={columns}
-        dataSource={courses.filter((course) =>
-          course.title.toLowerCase().includes(searchText.toLowerCase())
-        )}
-        rowKey="_id"
-        loading={loading}
-        pagination={{ pageSize: 10 }}
-      />
-    </Card>
+      <Card
+        title="Courses Management"
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => router.push("/dashboard/courses/create")}
+          >
+            Create Course
+          </Button>
+        }
+        style={{ maxWidth: "100%", margin: "0 auto" }}
+      >
+        <Input
+          placeholder="Search courses"
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ marginBottom: 16, maxWidth: 300 }}
+        />
+        <Table<CourseAPI>
+          columns={columns}
+          dataSource={courses.filter((course) =>
+            course.title.toLowerCase().includes(searchText.toLowerCase())
+          )}
+          rowKey="_id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
   );
 };
 

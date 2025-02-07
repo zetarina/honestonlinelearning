@@ -57,7 +57,7 @@ const ArrayFieldRenderer: React.FC<ArrayFieldRendererProps> = ({
         <React.Fragment key={index}>
           {Object.entries(config.fields).map(([fieldKey, fieldConfig]) => (
             <CombinedField
-              key={`${index}-${fieldKey}`} // Ensuring a unique key for each field
+              key={`${index}-${fieldKey}`}
               title={fieldConfig.label || fieldKey}
               keyPrefix={`${index}.${fieldKey}`}
               config={fieldConfig}

@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { UserAPI } from "@/models/UserModel";
@@ -6,6 +7,8 @@ import { Result, Button, Card } from "antd";
 import UserForm from "@/components/forms/UserForm";
 import apiClient from "@/utils/api/apiClient";
 import SubLoader from "@/components/loaders/SubLoader";
+import ProtectedPage from "@/components/loaders/ProtectedPage";
+import { APP_PERMISSIONS } from "@/config/permissions";
 
 const EditUserPage: React.FC = () => {
   const [user, setUser] = useState<UserAPI | null>(null);
@@ -23,8 +26,7 @@ const EditUserPage: React.FC = () => {
         try {
           const response = await apiClient.get(`/users/${userId}`);
           if (response.status === 200) {
-            const userData = response.data;
-            setUser(userData);
+            setUser(response.data);
           } else {
             setError("Failed to fetch user details.");
           }
@@ -43,67 +45,64 @@ const EditUserPage: React.FC = () => {
     }
   }, [userId]);
 
-  if (loading) {
-    return <SubLoader tip="Loading user details..." />;
-  }
-
-  if (error) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        {" "}
-        <Card>
-          <Result
-            status="error"
-            title="Error"
-            subTitle={error}
-            extra={
-              <Button
-                type="primary"
-                onClick={() => router.push("/dashboard/users")}
-              >
-                Back to Users
-              </Button>
-            }
-          />
-        </Card>
-      </div>
-    );
-  }
-
-  return user ? (
-    <UserForm user={user} />
-  ) : (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-      }}
-    >
-      <Card>
-        <Result
-          status="warning"
-          title="No User Found"
-          subTitle="The user does not exist or has been removed."
-          extra={
-            <Button
-              type="primary"
-              onClick={() => router.push("/dashboard/users")}
-            >
-              Back to Users
-            </Button>
-          }
-        />
-      </Card>
-    </div>
+  return (
+    <>
+      {loading ? (
+        <SubLoader tip="Loading user details..." />
+      ) : error ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <Card>
+            <Result
+              status="error"
+              title="Error"
+              subTitle={error}
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => router.push("/dashboard/users")}
+                >
+                  Back to Users
+                </Button>
+              }
+            />
+          </Card>
+        </div>
+      ) : user ? (
+        <UserForm user={user} />
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <Card>
+            <Result
+              status="warning"
+              title="No User Found"
+              subTitle="The user does not exist or has been removed."
+              extra={
+                <Button
+                  type="primary"
+                  onClick={() => router.push("/dashboard/users")}
+                >
+                  Back to Users
+                </Button>
+              }
+            />
+          </Card>
+        </div>
+      )}
+    </>
   );
 };
 

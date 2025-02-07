@@ -7,7 +7,7 @@ import {
 } from "@/config/settings/DESIGN_SCHEMA_KEYS";
 import { SettingsContext, XColorType } from "@/contexts/SettingsContext";
 import { lighten } from "polished";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo } from "react";
 
 export const SettingsProvider: React.FC<{
   settings: Partial<SettingsInterface>;
@@ -207,6 +207,127 @@ export const SettingsProvider: React.FC<{
     }),
     [colors]
   );
+
+  useEffect(() => {
+    // Set CSS variables for dynamic theming
+    document.documentElement.style.setProperty(
+      "--editor-bg",
+      xcolor.input.active.background
+    );
+    document.documentElement.style.setProperty(
+      "--editor-text",
+      xcolor.input.text.default
+    );
+    document.documentElement.style.setProperty(
+      "--editor-placeholder",
+      xcolor.input.text.placeholder
+    );
+
+    document.documentElement.style.setProperty(
+      "--toolbar-bg",
+      xcolor.input.addon.background
+    );
+    document.documentElement.style.setProperty(
+      "--toolbar-border",
+      xcolor.input.addon.background
+    );
+    document.documentElement.style.setProperty(
+      "--toolbar-text",
+      xcolor.input.text.default
+    );
+
+    document.documentElement.style.setProperty(
+      "--picker-bg",
+      xcolor.input.option.selectedBackground
+    );
+    document.documentElement.style.setProperty(
+      "--picker-text",
+      xcolor.input.option.selectedColor
+    );
+    document.documentElement.style.setProperty(
+      "--picker-hover-bg",
+      xcolor.input.option.activeBackground
+    );
+
+    document.documentElement.style.setProperty(
+      "--hover-bg",
+      xcolor.input.hover.background
+    );
+    document.documentElement.style.setProperty(
+      "--hover-border",
+      xcolor.input.hover.borderColor
+    );
+    document.documentElement.style.setProperty(
+      "--hover-text",
+      xcolor.input.text.hovered
+    );
+
+    document.documentElement.style.setProperty(
+      "--selected-bg",
+      xcolor.input.active.background
+    );
+    document.documentElement.style.setProperty(
+      "--selected-border",
+      xcolor.input.active.borderColor
+    );
+    document.documentElement.style.setProperty(
+      "--selected-text",
+      xcolor.input.text.default
+    );
+
+    document.documentElement.style.setProperty(
+      "--error-bg",
+      xcolor.input.error.background
+    );
+    document.documentElement.style.setProperty(
+      "--error-text",
+      xcolor.input.error.text
+    );
+    document.documentElement.style.setProperty(
+      "--error-border",
+      xcolor.input.error.borderHover
+    );
+
+    document.documentElement.style.setProperty(
+      "--success-bg",
+      xcolor.input.success.background
+    );
+    document.documentElement.style.setProperty(
+      "--success-text",
+      xcolor.input.success.text
+    );
+    document.documentElement.style.setProperty(
+      "--success-border",
+      xcolor.input.success.borderHover
+    );
+
+    document.documentElement.style.setProperty(
+      "--warning-bg",
+      xcolor.input.warning.background
+    );
+    document.documentElement.style.setProperty(
+      "--warning-text",
+      xcolor.input.warning.text
+    );
+    document.documentElement.style.setProperty(
+      "--warning-border",
+      xcolor.input.warning.borderHover
+    );
+
+    document.documentElement.style.setProperty(
+      "--info-bg",
+      xcolor.input.info.background
+    );
+    document.documentElement.style.setProperty(
+      "--info-text",
+      xcolor.input.info.text
+    );
+    document.documentElement.style.setProperty(
+      "--info-border",
+      xcolor.input.info.borderHover
+    );
+  }, [xcolor]);
+
   return (
     <SettingsContext.Provider
       value={{ settings, colors, xcolor, isSetupRequired }}
