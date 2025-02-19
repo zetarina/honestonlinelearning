@@ -28,7 +28,7 @@ export default function LoginPage() {
 
     try {
       await signIn(values.email, values.password);
-      router.replace(redirect || "/dashboard");
+      router.replace(redirect || "/profile");
     } catch (err: any) {
       console.error("Login Error:", err);
       setError(

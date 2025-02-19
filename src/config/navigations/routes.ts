@@ -222,12 +222,12 @@ export const ROUTES: Record<RouteKey, RouteConfig> = {
   [ROUTE_KEYS.LOGIN]: {
     key: ROUTE_KEYS.LOGIN,
     path: "/login",
-    IfLoggedInRedirectUrl: "/dashboard",
+    IfLoggedInRedirectUrl: "/profile",
   },
   [ROUTE_KEYS.REGISTER]: {
     key: ROUTE_KEYS.REGISTER,
     path: "/signup",
-    IfLoggedInRedirectUrl: "/dashboard",
+    IfLoggedInRedirectUrl: "/profile",
   },
 
   [ROUTE_KEYS.COURSES_PUBLIC]: {
